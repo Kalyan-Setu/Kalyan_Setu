@@ -128,17 +128,14 @@ export default function AdminTakeActionPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
                   <div>
                     <label className="block font-bold text-on-surface mb-1">Nodal Department *</label>
-                    <select
+                    <input
+                      type="text"
+                      required
                       value={assignedDepartment}
                       onChange={(e) => setAssignedDepartment(e.target.value)}
+                      placeholder="e.g. Public Works Department (PWD)"
                       className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none font-medium"
-                    >
-                      <option>Public Works Department (PWD)</option>
-                      <option>Delhi Jal Board (Water / Drainage)</option>
-                      <option>Municipal Corporation of Delhi (MCD)</option>
-                      <option>Traffic Police & Urban Safety Cell</option>
-                      <option>DISCOM / Power Distribution Wing</option>
-                    </select>
+                    />
                   </div>
 
                   <div>
@@ -190,6 +187,7 @@ export default function AdminTakeActionPage() {
                       <option value="Action Assigned">Action Assigned</option>
                       <option value="In Progress">In Progress (Field Deployed)</option>
                       <option value="Resolved">Resolved (Completed)</option>
+                      <option value="Rejected">Rejected (Out of Scope / Invalid)</option>
                     </select>
                   </div>
                 </div>
@@ -205,15 +203,7 @@ export default function AdminTakeActionPage() {
                   ></textarea>
                 </div>
 
-                <div className="flex items-center justify-between pt-md border-t border-outline-variant">
-                  <button
-                    type="button"
-                    onClick={() => navigateTo('track', selectedComplaint.id)}
-                    className="text-primary font-bold hover:underline"
-                  >
-                    View Citizen Tracking View →
-                  </button>
-
+                <div className="flex items-center justify-end pt-md border-t border-outline-variant">
                   <button
                     type="submit"
                     className="bg-primary-container text-on-primary font-bold px-6 py-2.5 rounded hover:bg-primary transition-all shadow-md active:scale-95 flex items-center gap-2"

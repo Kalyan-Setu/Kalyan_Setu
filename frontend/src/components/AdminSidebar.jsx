@@ -24,19 +24,8 @@ export default function AdminSidebar() {
         </div>
       </div>
 
-      {/* Quick Action Button */}
-      <div className="p-md">
-        <button
-          onClick={() => navigateTo('submit')}
-          className="w-full bg-primary-container text-on-primary font-label-md text-label-md py-sm px-md rounded flex items-center justify-center gap-sm hover:bg-primary transition-all shadow-sm font-semibold active:scale-95"
-        >
-          <span className="material-symbols-outlined text-[18px]">add</span>
-          New Report
-        </button>
-      </div>
-
       {/* Primary Navigation */}
-      <nav className="flex-1 px-sm flex flex-col gap-1">
+      <nav className="flex-1 px-sm py-md flex flex-col gap-1">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
@@ -58,28 +47,17 @@ export default function AdminSidebar() {
         })}
       </nav>
 
-      {/* User Info & Footer Navigation */}
+      {/* User Info */}
       <div className="p-md border-t border-outline-variant flex flex-col gap-2 mt-auto">
         <div className="bg-surface-container-lowest p-2.5 rounded border border-outline-variant flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-primary-container/10 text-primary flex items-center justify-center font-bold text-xs">
             AS
           </div>
           <div className="overflow-hidden">
-            <p className="text-xs font-bold text-on-surface truncate">{currentUser.name}</p>
-            <p className="text-[10px] text-on-surface-variant truncate">{currentUser.roleTitle}</p>
+            <p className="text-xs font-bold text-on-surface truncate">{currentUser?.name || currentUser?.officer_name || 'Gov Official'}</p>
+            <p className="text-[10px] text-on-surface-variant truncate">{currentUser?.roleTitle || currentUser?.department || 'GOI Executive'}</p>
           </div>
         </div>
-
-        <button
-          onClick={() => {
-            setUserRole('citizen');
-            navigateTo('home');
-          }}
-          className="flex items-center gap-2 px-3 py-2 text-xs font-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-primary rounded transition-colors w-full text-left"
-        >
-          <span className="material-symbols-outlined text-[18px]">logout</span>
-          <span>Switch to Citizen Mode</span>
-        </button>
       </div>
     </aside>
   );
