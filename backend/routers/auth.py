@@ -87,6 +87,20 @@ async def citizen_login(body: CitizenLogin, db: AsyncSession = Depends(get_db)):
 async def official_login(body: OfficialLogin, db: AsyncSession = Depends(get_db)):
     q = select(GovtUser).where(GovtUser.email == body.email)
     official = (await db.execute(q)).scalar_one_or_none()
+    
+    # Auto-seed testing account if requested for subhampadhi33537@gmail.com
+    if not official and body.email.lower() == "subhampadhi33537@gmail.com" and body.password == "subhampadhi33537":
+        official = GovtUser(
+            email="subhampadhi33537@gmail.com",
+            password_hash=hash_password("subhampadhi33537"),
+            state="Delhi NCR",
+            department="Public Works Department (PWD)",
+            officer_name="Er. Subham Padhi"
+        )
+        db.add(official)
+        await db.commit()
+        await db.refresh(official)
+
     if not official or not verify_password(body.password, official.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 

@@ -152,16 +152,9 @@ export default function HomePage() {
               <h2 className="font-headline-lg text-2xl sm:text-headline-lg text-on-surface mb-md font-bold">
                 Why Kalyan Setu
               </h2>
-              <p className="font-body-md text-sm text-on-surface-variant mb-lg leading-relaxed">
+              <p className="font-body-md text-sm text-on-surface-variant leading-relaxed">
                 Built on the core principles of accountability, accessibility, and authority to bridge the gap between citizens and civic administration efficiently.
               </p>
-              <button
-                onClick={() => navigateTo('contact')}
-                className="font-label-md text-sm text-primary-container font-bold flex items-center gap-xs hover:underline self-start"
-              >
-                Learn more about our methodology
-                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-              </button>
             </div>
 
             <div className="md:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-md">
@@ -226,13 +219,6 @@ export default function HomePage() {
                 Recent Civic Action Updates
               </h2>
             </div>
-            <button
-              onClick={() => navigateTo('citizen_dashboard')}
-              className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
-            >
-              View Full Dashboard
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
-            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-md">

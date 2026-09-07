@@ -217,11 +217,11 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <span className="text-[11px] text-on-surface-variant font-medium block mb-1">Account Security</span>
+                <span className="text-[11px] text-on-surface-variant font-medium block mb-1">Account Status</span>
                 <div className="bg-surface-container p-2.5 rounded border border-outline-variant flex items-center justify-between text-[11px]">
                   <span className="flex items-center gap-1 font-semibold text-gov-green">
-                    <span className="material-symbols-outlined text-xs">shield</span>
-                    Aadhaar Linked & OTP Verified
+                    <span className="material-symbols-outlined text-xs">verified</span>
+                    Active Registered Citizen Account
                   </span>
                 </div>
               </div>

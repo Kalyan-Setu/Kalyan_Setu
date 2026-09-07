@@ -44,7 +44,7 @@ export default function Navbar() {
         <div className="flex items-center gap-2 max-w-container-max mx-auto w-full">
           <div className="flex items-center gap-1.5 font-medium">
             <span className="inline-block w-2 h-2 rounded-full bg-gov-green animate-pulse"></span>
-            <span>Government of India • Ministry of Rural Development • Kalyan Setu</span>
+            <span>{isOfficial ? 'GOI Administration Dept. of Grievances' : 'Government of India • Ministry of Rural Development • Kalyan Setu'}</span>
           </div>
           <div className="ml-auto flex items-center gap-4">
             {!isOfficial && (

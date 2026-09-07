@@ -202,8 +202,9 @@ async def list_state_problems(
 async def get_problem(
     display_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
-    """Get a single problem by its display ID."""
+    """Get a single problem by its display ID with strict role & ownership isolation."""
     q = (
         select(Problem, User.full_name)
         .outerjoin(User, Problem.user_id == User.id)
@@ -213,4 +214,13 @@ async def get_problem(
     if not row:
         raise HTTPException(status_code=404, detail="Problem not found")
     p, name = row
+
+    user_role = current_user.get("role")
+    user_id = current_user.get("sub")
+
+    # If citizen, verify problem belongs to them
+    if user_role == "citizen" and str(p.user_id) != str(user_id):
+        raise HTTPException(status_code=403, detail="Forbidden: You can only view your own grievances.")
+
     return _problem_to_response(p, name)
+

@@ -134,28 +134,13 @@ export default function SubmitProblemPage() {
     }
   };
 
-  const handleUseLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        () => {
-          setLocation("Main Ring Road, Near AIIMS Flyover, Sector 3");
-        },
-        () => {
-          setLocation("Central Market Road, Sector 4, New Delhi");
-        }
-      );
-    } else {
-      setLocation("Central Market Road, Sector 4, New Delhi");
-    }
-  };
-
   const handleFinalSubmit = async (e) => {
     e.preventDefault();
     const created = await addComplaint({
       title: title || `${category} issue in ${district}`,
       description: description || voiceTranscript || "Civic issue submitted by citizen.",
       category,
-      location: location || "Delhi Urban District",
+      location: location || "Urban District",
       district,
       priority,
       evidenceType: evidenceMethod,
@@ -166,7 +151,7 @@ export default function SubmitProblemPage() {
       voiceTranscript
     });
 
-    navigateTo('track', created.id);
+    navigateTo('citizen_dashboard');
   };
 
   const formatTime = (secs) => {
@@ -496,19 +481,9 @@ export default function SubmitProblemPage() {
                 ></textarea>
               </div>
 
-              {/* Location & GPS */}
+              {/* Location */}
               <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-bold text-on-surface">Exact Location & Landmark *</label>
-                  <button
-                    type="button"
-                    onClick={handleUseLocation}
-                    className="text-[11px] text-primary font-bold hover:underline flex items-center gap-0.5"
-                  >
-                    <span className="material-symbols-outlined text-xs">my_location</span>
-                    Detect My Location
-                  </button>
-                </div>
+                <label className="block text-xs font-bold text-on-surface mb-1">Exact Location & Landmark *</label>
                 <input
                   type="text"
                   required
@@ -522,18 +497,15 @@ export default function SubmitProblemPage() {
               {/* District & Priority */}
               <div className="grid grid-cols-2 gap-md">
                 <div>
-                  <label className="block text-xs font-bold text-on-surface mb-1">District</label>
-                  <select
+                  <label className="block text-xs font-bold text-on-surface mb-1">District *</label>
+                  <input
+                    type="text"
+                    required
                     value={district}
                     onChange={(e) => setDistrict(e.target.value)}
+                    placeholder="Enter your district"
                     className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
-                  >
-                    <option>South District</option>
-                    <option>Central District</option>
-                    <option>East District</option>
-                    <option>North District</option>
-                    <option>West District</option>
-                  </select>
+                  />
                 </div>
 
                 <div>

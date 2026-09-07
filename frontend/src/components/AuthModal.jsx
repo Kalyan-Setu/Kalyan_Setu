@@ -199,9 +199,6 @@ export default function AuthModal() {
               <span className="material-symbols-outlined text-sm">verified_user</span>
               <span>National Unified SSO Portal</span>
             </div>
-            <p className="text-[11px] text-white/90">
-              Integrated with FastAPI Backend, Supabase PostgreSQL & Parichay Single Sign-On.
-            </p>
           </div>
         </div>
 
@@ -348,19 +345,16 @@ export default function AuthModal() {
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-on-surface mb-1">
-                          District / City
+                          District / City *
                         </label>
-                        <select
+                        <input
+                          type="text"
+                          required
                           value={formData.district}
                           onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                          placeholder="Enter your district name"
                           className="w-full px-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
-                        >
-                          <option>Central Delhi</option>
-                          <option>South Delhi</option>
-                          <option>North Delhi</option>
-                          <option>East Delhi</option>
-                          <option>West Delhi</option>
-                        </select>
+                        />
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-on-surface mb-1">
@@ -418,18 +412,16 @@ export default function AuthModal() {
 
                   <div>
                     <label className="block text-xs font-bold text-on-surface mb-1">
-                      Department Jurisdiction
+                      Department Jurisdiction *
                     </label>
-                    <select
+                    <input
+                      type="text"
+                      required
                       value={formData.officialDepartment}
                       onChange={(e) => setFormData({ ...formData, officialDepartment: e.target.value })}
+                      placeholder="Enter department jurisdiction"
                       className="w-full px-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
-                    >
-                      <option>Public Works Department (PWD)</option>
-                      <option>Delhi Jal Board (Water & Sewage)</option>
-                      <option>Municipal Corporation of Delhi (MCD)</option>
-                      <option>DISCOM / Power Distribution Wing</option>
-                    </select>
+                    />
                   </div>
                 </>
               )}

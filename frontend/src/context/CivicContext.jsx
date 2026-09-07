@@ -224,12 +224,17 @@ export function CivicProvider({ children }) {
       const res = await fetch(endpoint, { headers });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setComplaints(data.map(formatBackendProblem));
         }
+      } else if (userRole === 'citizen') {
+        setComplaints([]);
       }
     } catch (e) {
-      console.warn("Could not fetch complaints from backend, using local state:", e);
+      console.warn("Could not fetch complaints from backend:", e);
+      if (userRole === 'citizen' && authToken) {
+        setComplaints([]);
+      }
     }
   };
 
