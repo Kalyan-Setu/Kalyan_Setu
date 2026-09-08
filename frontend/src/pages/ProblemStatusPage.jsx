@@ -252,87 +252,73 @@ export default function ProblemStatusPage() {
           </div>
         </div>
 
-        {/* Right Column: Assigned Officer, Photo Evidence, Directives (4 cols) */}
+        {/* Right Column: Citizen Evidence Container (4 cols) */}
         <div className="lg:col-span-4 flex flex-col gap-lg">
-          {/* Department & Officer Card */}
+          {/* Citizen Evidence Container */}
           <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient flex flex-col gap-md">
-            <h3 className="font-headline-sm text-sm font-bold text-primary border-b border-outline-variant pb-2">
-              Assigned Administrative Cell
+            <h3 className="font-headline-sm text-sm font-bold text-primary border-b border-outline-variant pb-2 flex items-center gap-2">
+              <span className="material-symbols-outlined text-base">fact_check</span>
+              <span>Citizen Evidence Container</span>
             </h3>
 
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-xs shrink-0">
-                <span className="material-symbols-outlined text-xl">account_circle</span>
+            <div className="text-xs text-on-surface-variant flex flex-col gap-2">
+              <div className="flex justify-between">
+                <span className="font-medium">Evidence Format:</span>
+                <span className="font-bold text-primary capitalize">{complaint.evidenceType || 'Text Description'}</span>
               </div>
-              <div className="text-xs">
-                <div className="font-bold text-on-surface">{complaint.assignedOfficer}</div>
-                <div className="text-on-surface-variant text-[11px] mt-0.5">{complaint.assignedDepartment}</div>
-                <div className="text-gov-green font-semibold text-[10px] mt-1 flex items-center gap-1">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-gov-green animate-pulse"></span>
-                  Active Case Officer
-                </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Filing Citizen:</span>
+                <span className="font-bold text-on-surface">{complaint.reportedBy}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Contact Phone:</span>
+                <span className="font-bold text-on-surface">{complaint.contactPhone}</span>
               </div>
             </div>
 
-            <div className="bg-surface p-3 rounded border border-outline-variant text-xs flex flex-col gap-1.5">
-              <div className="flex justify-between">
-                <span className="text-on-surface-variant">Allocated Budget:</span>
-                <span className="font-bold text-primary">{complaint.budget}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-on-surface-variant">AI Severity Index:</span>
-                <span className="font-bold text-error">{complaint.aiSeverityScore}/100</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-on-surface-variant">Jurisdiction:</span>
-                <span className="font-medium text-on-surface">{complaint.district}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => showNotification("Grievance escalated to Zonal Superintendent.")}
-              className="text-xs text-error font-bold border border-error/40 hover:bg-error-container/20 py-2 rounded transition-colors text-center"
-            >
-              Escalate Delay to Supervisor
-            </button>
-          </div>
-
-          {/* Evidence Card */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient flex flex-col gap-md">
-            <h3 className="font-headline-sm text-sm font-bold text-primary border-b border-outline-variant pb-2">
-              Citizen Evidence
-            </h3>
-
+            {/* Evidence Visual Content */}
             {complaint.imageUrl ? (
               <div className="rounded overflow-hidden border border-outline-variant">
-                <img src={complaint.imageUrl} alt="Grievance Evidence" className="w-full h-44 object-cover" />
+                <img src={complaint.imageUrl} alt="Grievance Photo Evidence" className="w-full h-48 object-cover" />
                 <div className="p-2 bg-surface text-[11px] text-on-surface-variant flex justify-between">
                   <span>Photo Attachment</span>
-                  <span className="text-gov-green font-bold">Verified Geotag</span>
+                  <span className="text-gov-green font-bold flex items-center gap-0.5">
+                    <span className="material-symbols-outlined text-xs">verified</span>
+                    Geotagged Photo
+                  </span>
                 </div>
               </div>
             ) : complaint.evidenceType === 'voice' ? (
               <div className="bg-surface p-4 rounded border border-outline-variant text-xs flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-primary font-bold">
-                  <span className="material-symbols-outlined">mic</span>
-                  <span>Voice Recording ({complaint.audioLength || '0:42'})</span>
+                  <span className="material-symbols-outlined text-lg text-gov-saffron">mic</span>
+                  <span>Recorded Voice Evidence ({complaint.audioLength || 'Recorded'})</span>
                 </div>
                 <audio controls className="w-full h-8 mt-1">
                   <source src="#" type="audio/mp3" />
-                  Your browser does not support audio playback.
+                  Voice playback component.
                 </audio>
                 {complaint.voiceTranscript && (
-                  <p className="text-[11px] text-on-surface-variant italic mt-1 bg-white p-2 rounded">
-                    "{complaint.voiceTranscript}"
-                  </p>
+                  <div className="bg-white p-2.5 rounded border border-outline-variant/60 mt-1">
+                    <span className="text-[10px] font-bold text-primary block mb-0.5">Speech-to-Text Transcript:</span>
+                    <p className="text-[11px] text-on-surface-variant italic">"{complaint.voiceTranscript}"</p>
+                  </div>
                 )}
               </div>
             ) : (
               <div className="bg-surface p-3 rounded border border-outline-variant text-xs text-on-surface-variant">
-                <span className="font-bold block text-primary mb-1">Structured Text Grievance:</span>
-                <p>{complaint.description}</p>
+                <span className="font-bold block text-primary mb-1">Text Complaint Details:</span>
+                <p className="leading-relaxed">{complaint.description}</p>
               </div>
             )}
+
+            <button
+              onClick={() => showNotification("Evidence details verified and locked in audit trail.")}
+              className="text-xs bg-primary-container/10 text-primary font-bold border border-primary/30 hover:bg-primary-container/20 py-2 rounded transition-colors text-center mt-2 flex items-center justify-center gap-1"
+            >
+              <span className="material-symbols-outlined text-sm">download</span>
+              <span>Download Evidence Acknowledgement</span>
+            </button>
           </div>
         </div>
       </div>

@@ -171,7 +171,7 @@ export default function AdminComplaintsPage() {
 
           {/* Status Tabs */}
           <div className="flex items-center gap-1 overflow-x-auto border-t border-outline-variant pt-2">
-            {['ALL', 'Submitted', 'Under Review', 'Action Assigned', 'In Progress', 'Resolved'].map((st) => (
+            {['ALL', 'Submitted', 'Under Review', 'Action Assigned', 'In Progress', 'Resolved', 'Rejected'].map((st) => (
               <button
                 key={st}
                 onClick={() => setSelectedStatus(st)}
@@ -236,7 +236,7 @@ export default function AdminComplaintsPage() {
 
                       <td className="p-3 font-mono font-bold text-primary">
                         <button
-                          onClick={() => navigateTo('track', item.id)}
+                          onClick={() => navigateTo('admin_action', item.id)}
                           className="hover:underline"
                         >
                           #{item.id}
@@ -274,6 +274,8 @@ export default function AdminComplaintsPage() {
                         <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded inline-block ${
                           item.status === 'Resolved'
                             ? 'bg-gov-green/15 text-gov-green border border-gov-green/30'
+                            : item.status === 'Rejected'
+                            ? 'bg-error/15 text-error border border-error/30 font-extrabold'
                             : item.status === 'In Progress' || item.status === 'Action Assigned'
                             ? 'bg-secondary-container/30 text-on-secondary-fixed-variant border border-secondary-container/50'
                             : 'bg-surface-container-high text-on-surface-variant border border-outline-variant'
@@ -393,16 +395,14 @@ export default function AdminComplaintsPage() {
               <form onSubmit={handleBulkAssignSubmit} className="flex flex-col gap-md text-xs">
                 <div>
                   <label className="block font-bold text-on-surface mb-1">Assign to Department</label>
-                  <select
+                  <input
+                    type="text"
+                    required
                     value={bulkDept}
                     onChange={(e) => setBulkDept(e.target.value)}
+                    placeholder="e.g. Public Works Department (PWD)"
                     className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none"
-                  >
-                    <option>Public Works Department (PWD)</option>
-                    <option>Delhi Jal Board (Water/Drainage)</option>
-                    <option>Municipal Corporation of Delhi (MCD)</option>
-                    <option>DISCOM / Power Directorate</option>
-                  </select>
+                  />
                 </div>
 
                 <div>

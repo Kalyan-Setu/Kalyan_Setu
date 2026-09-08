@@ -1,50 +1,42 @@
-# ========================
-# Dependencies
-# ========================
+# Node / Frontend
 node_modules/
-
-# ========================
-# Build Output
-# ========================
 dist/
+dist-ssr/
 build/
-
-# ========================
-# Environment Variables
-# ========================
+*.local
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-
-# ========================
-# Editor & IDE Files
-# ========================
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# ========================
-# OS Generated Files
-# ========================
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# ========================
-# Logs
-# ========================
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# ========================
-# Misc
-# ========================
-*.local
-.cache/
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+*.venv
+.pytest_cache/
+.coverage
+htmlcov/
+*.db
+*.sqlite3
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

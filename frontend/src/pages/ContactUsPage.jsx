@@ -13,8 +13,24 @@ export default function ContactUsPage() {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      await fetch('http://localhost:8000/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          department: formData.department,
+          subject: formData.subject,
+          message: formData.message
+        })
+      });
+    } catch (err) {
+      console.warn("Backend contact call failed, using fallback:", err);
+    }
     setSubmitted(true);
     showNotification("Message received! A support ticket has been opened.");
   };

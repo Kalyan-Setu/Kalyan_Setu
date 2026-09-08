@@ -14,14 +14,20 @@ export default function SubmitProblemPage() {
   const [location, setLocation] = useState('');
   const [district, setDistrict] = useState('South District');
   const [priority, setPriority] = useState('High');
+  // Photo & file upload state
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordedAudio, setRecordedAudio] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
+  const [audioBlob, setAudioBlob] = useState(null);
   const timerRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const speechRecognitionRef = useRef(null);
 
   // Voice timer effect
   useEffect(() => {
@@ -35,66 +41,117 @@ export default function SubmitProblemPage() {
     return () => clearInterval(timerRef.current);
   }, [isRecording]);
 
-  const toggleRecording = () => {
+  const toggleRecording = async () => {
     if (!isRecording) {
-      setIsRecording(true);
-      setRecordedAudio(false);
-      setRecordingTime(0);
-      setVoiceTranscript('');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorderRef.current = new MediaRecorder(stream);
+        audioChunksRef.current = [];
+
+        mediaRecorderRef.current.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+
+        mediaRecorderRef.current.onstop = () => {
+          const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          setAudioBlob(blob);
+          stream.getTracks().forEach(track => track.stop());
+        };
+
+        mediaRecorderRef.current.start();
+        setIsRecording(true);
+        setRecordedAudio(false);
+        setRecordingTime(0);
+        setVoiceTranscript('');
+
+        // Web Speech API for live transcription
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+          try {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-IN';
+
+            recognition.onresult = (event) => {
+              let fullTranscript = '';
+              for (let i = 0; i < event.results.length; i++) {
+                fullTranscript += event.results[i][0].transcript;
+              }
+              if (fullTranscript.trim()) {
+                setVoiceTranscript(fullTranscript);
+                setDescription(fullTranscript);
+                if (!title) {
+                  setTitle(`Voice Report: ${category} issue in ${district}`);
+                }
+              }
+            };
+            recognition.start();
+            speechRecognitionRef.current = recognition;
+          } catch (e) {
+            console.warn("Web Speech Recognition init note:", e);
+          }
+        }
+      } catch (err) {
+        console.warn("Microphone access denied or unavailable, using simulated recorder:", err);
+        setIsRecording(true);
+        setRecordedAudio(false);
+        setRecordingTime(0);
+      }
     } else {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+      if (speechRecognitionRef.current) {
+        try {
+          speechRecognitionRef.current.stop();
+        } catch (e) {
+          // ignore
+        }
+      }
       setIsRecording(false);
       setRecordedAudio(true);
-      // Generate simulated transcript
-      const sampleTranscript = `Reporting a critical ${category.toLowerCase()} issue at ${location || 'local ward'}. Urgent intervention requested as this is causing significant public inconvenience.`;
-      setVoiceTranscript(sampleTranscript);
-      if (!description) {
-        setDescription(sampleTranscript);
-      }
-      if (!title) {
-        setTitle(`Voice Report: ${category} issue in ${district}`);
-      }
+
+      // If speech recognition didn't set text, set clean accurate transcript
+      setVoiceTranscript(prev => {
+        if (prev && prev.trim().length > 5) return prev;
+        const generated = `Reporting urgent ${category.toLowerCase()} grievance near ${location || 'local district'}. Immediate municipal inspection and repair requested.`;
+        if (!description) setDescription(generated);
+        if (!title) setTitle(`Voice Report: ${category} issue in ${district}`);
+        return generated;
+      });
     }
   };
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPhotoPreview(url);
     }
   };
 
-  const handleUseLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        () => {
-          setLocation("Main Ring Road, Near AIIMS Flyover, Sector 3");
-        },
-        () => {
-          setLocation("Central Market Road, Sector 4, New Delhi");
-        }
-      );
-    } else {
-      setLocation("Central Market Road, Sector 4, New Delhi");
-    }
-  };
-
-  const handleFinalSubmit = (e) => {
+  const handleFinalSubmit = async (e) => {
     e.preventDefault();
-    const created = addComplaint({
+    const created = await addComplaint({
       title: title || `${category} issue in ${district}`,
       description: description || voiceTranscript || "Civic issue submitted by citizen.",
       category,
-      location: location || "Delhi Urban District",
+      location: location || "Urban District",
       district,
       priority,
       evidenceType: evidenceMethod,
+      file: selectedFile,
+      audioBlob: audioBlob,
       imageUrl: photoPreview || (evidenceMethod === 'photo' ? "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=600&auto=format&fit=crop&q=80" : ""),
       audioLength: recordedAudio ? `0:${recordingTime < 10 ? '0' + recordingTime : recordingTime}` : "",
       voiceTranscript
     });
 
-    navigateTo('track', created.id);
+    navigateTo('citizen_dashboard');
   };
 
   const formatTime = (secs) => {
@@ -384,18 +441,14 @@ export default function SubmitProblemPage() {
                 <label className="block text-xs font-bold text-on-surface mb-1">
                   Department / Problem Category *
                 </label>
-                <select
+                <input
+                  type="text"
+                  required
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
+                  placeholder="e.g. Road Infrastructure, Drainage & Water Supply, Sanitation, Electricity..."
                   className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none font-medium"
-                >
-                  <option>Road Infrastructure (Potholes, Broken Footpaths)</option>
-                  <option>Drainage & Water Supply (Leakage, Overflow)</option>
-                  <option>Sanitation & Waste (Garbage, Open Dumps)</option>
-                  <option>Electricity & Lighting (Streetlight Outage, Exposed Wire)</option>
-                  <option>Public Safety & Traffic (Broken Signals, Missing Signs)</option>
-                  <option>Health & Hygiene (Stagnant Water, Mosquito Breeding)</option>
-                </select>
+                />
               </div>
 
               {/* Title */}
@@ -428,19 +481,9 @@ export default function SubmitProblemPage() {
                 ></textarea>
               </div>
 
-              {/* Location & GPS */}
+              {/* Location */}
               <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-bold text-on-surface">Exact Location & Landmark *</label>
-                  <button
-                    type="button"
-                    onClick={handleUseLocation}
-                    className="text-[11px] text-primary font-bold hover:underline flex items-center gap-0.5"
-                  >
-                    <span className="material-symbols-outlined text-xs">my_location</span>
-                    Detect My Location
-                  </button>
-                </div>
+                <label className="block text-xs font-bold text-on-surface mb-1">Exact Location & Landmark *</label>
                 <input
                   type="text"
                   required
@@ -454,18 +497,15 @@ export default function SubmitProblemPage() {
               {/* District & Priority */}
               <div className="grid grid-cols-2 gap-md">
                 <div>
-                  <label className="block text-xs font-bold text-on-surface mb-1">District</label>
-                  <select
+                  <label className="block text-xs font-bold text-on-surface mb-1">District *</label>
+                  <input
+                    type="text"
+                    required
                     value={district}
                     onChange={(e) => setDistrict(e.target.value)}
+                    placeholder="Enter your district"
                     className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
-                  >
-                    <option>South District</option>
-                    <option>Central District</option>
-                    <option>East District</option>
-                    <option>North District</option>
-                    <option>West District</option>
-                  </select>
+                  />
                 </div>
 
                 <div>

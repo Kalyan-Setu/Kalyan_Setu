@@ -1,23 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useCivic } from '../context/CivicContext';
 import AdminSidebar from '../components/AdminSidebar';
+import DistrictHeatmap from '../components/DistrictHeatmap';
 
 export default function AdminOverviewPage() {
   const { complaints, navigateTo } = useCivic();
-  const [selectedDistrict, setSelectedDistrict] = useState('ALL');
 
   const total = complaints.length;
   const criticalCount = complaints.filter(c => c.priority === 'Critical').length;
   const resolvedCount = complaints.filter(c => c.status === 'Resolved').length;
   const inProgressCount = complaints.filter(c => c.status === 'In Progress' || c.status === 'Action Assigned').length;
-
-  const districtData = [
-    { name: 'South District', total: 42, resolved: 38, urgent: 4 },
-    { name: 'Central District', total: 35, resolved: 29, urgent: 6 },
-    { name: 'East District', total: 28, resolved: 22, urgent: 6 },
-    { name: 'North District', total: 19, resolved: 17, urgent: 2 },
-    { name: 'West District', total: 24, resolved: 21, urgent: 3 },
-  ];
+  const slaRate = total > 0 ? Math.round((resolvedCount / total) * 100) : 94;
 
   const departmentMetrics = [
     { name: 'Public Works Department (PWD)', count: 48, rate: '92%', avgTime: '36 hrs', icon: 'construction' },
@@ -50,13 +43,6 @@ export default function AdminOverviewPage() {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => navigateTo('admin_action')}
-              className="bg-error text-white font-bold text-xs px-4 py-2 rounded flex items-center gap-1.5 shadow-sm hover:bg-error/90 transition-all active:scale-95"
-            >
-              <span className="material-symbols-outlined text-sm">bolt</span>
-              <span>Rapid Response ({criticalCount})</span>
-            </button>
-            <button
               onClick={() => navigateTo('admin_complaints')}
               className="bg-primary-container text-on-primary font-bold text-xs px-4 py-2 rounded hover:bg-primary transition-all flex items-center gap-1.5"
             >
@@ -73,10 +59,10 @@ export default function AdminOverviewPage() {
               <span>TOTAL GRIEVANCES</span>
               <span className="material-symbols-outlined text-primary text-xl">folder_managed</span>
             </div>
-            <div className="text-3xl font-bold text-primary">{total + 148}</div>
+            <div className="text-3xl font-bold text-primary">{total}</div>
             <div className="text-[11px] text-gov-green font-semibold mt-1 flex items-center gap-1">
               <span className="material-symbols-outlined text-xs">trending_up</span>
-              +12% vs last week
+              Dynamic Database Query
             </div>
           </div>
 
@@ -94,7 +80,7 @@ export default function AdminOverviewPage() {
               <span>ACTIVE IN PROGRESS</span>
               <span className="material-symbols-outlined text-gov-saffron text-xl">engineering</span>
             </div>
-            <div className="text-3xl font-bold text-on-secondary-fixed-variant">{inProgressCount + 34}</div>
+            <div className="text-3xl font-bold text-on-secondary-fixed-variant">{inProgressCount}</div>
             <div className="text-[11px] text-on-surface-variant mt-1">Field teams deployed</div>
           </div>
 
@@ -103,51 +89,16 @@ export default function AdminOverviewPage() {
               <span>SLA RESOLUTION RATE</span>
               <span className="material-symbols-outlined text-gov-green text-xl">verified</span>
             </div>
-            <div className="text-3xl font-bold text-gov-green">94.2%</div>
+            <div className="text-3xl font-bold text-gov-green">{slaRate}%</div>
             <div className="text-[11px] text-on-surface-variant mt-1">Within 48-hr mandate</div>
           </div>
         </div>
 
         {/* Two Column Layout: District Analytics & Urgent Escalations */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg mb-lg">
-          {/* District Performance Breakdown (7 cols) */}
-          <div className="lg:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient">
-            <div className="flex justify-between items-center mb-md border-b border-outline-variant pb-2">
-              <h2 className="text-sm font-bold text-primary flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-base">map</span>
-                <span>District Grievance Load & Resolution</span>
-              </h2>
-              <span className="text-[11px] text-on-surface-variant font-mono">Live Sync</span>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              {districtData.map((d) => {
-                const percentage = Math.round((d.resolved / d.total) * 100);
-                return (
-                  <div key={d.name} className="flex flex-col gap-1 text-xs">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-on-surface">{d.name}</span>
-                      <span className="text-on-surface-variant">
-                        {d.resolved}/{d.total} Solved ({percentage}%)
-                        {d.urgent > 0 && (
-                          <span className="ml-2 text-error font-bold">• {d.urgent} Critical</span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="w-full h-2 bg-surface-variant rounded-full overflow-hidden flex">
-                      <div
-                        className="h-full bg-gov-green"
-                        style={{ width: `${percentage}%` }}
-                      ></div>
-                      <div
-                        className="h-full bg-gov-saffron"
-                        style={{ width: `${100 - percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          {/* District Performance Heatmap (7 cols) */}
+          <div className="lg:col-span-7">
+            <DistrictHeatmap complaints={complaints} />
           </div>
 
           {/* Rapid Response Escalation Feed (5 cols) */}
