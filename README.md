@@ -81,12 +81,10 @@ flowchart LR
     API --> GOVT[Government router]
     API --> AI[AI router]
     API --> CONTACT[Contact router]
-    AUTH --> ORM[SQLAlchemy async ORM]
-    PROB --> ORM
-    GOVT --> ORM
-    CONTACT --> ORM
-    ORM --> DB[(Supabase PostgreSQL)]
-    ORM -. local fallback .-> SQLITE[(SQLite)]
+    AUTH --> DB[(Supabase PostgreSQL)]
+    PROB --> DB
+    GOVT --> DB
+    CONTACT --> DB
     PROB --> FILES[backend/uploads]
     AI --> ANALYSIS[TF-IDF + KMeans + budget DP]
     AI -. optional .-> GROQ[Groq API]
