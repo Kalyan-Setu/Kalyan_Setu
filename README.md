@@ -45,7 +45,7 @@ Kalyan Setu is a civic grievance redressal application with two role-based exper
 - **Citizens** can register, authenticate, submit text/photo/voice complaints, track milestones, post follow-up notes, and contact support.
 - **Government officials** can view complaints, filter and export records, assign departments and officers, update statuses, inspect dashboard metrics, and run AI-assisted state analysis.
 
-The application uses a React single-page frontend and a FastAPI backend. SQLAlchemy provides the persistence layer. A local SQLite database is used when the default local PostgreSQL URL is unchanged; a Supabase PostgreSQL URL can be supplied through environment configuration.
+The application uses a React single-page frontend and a FastAPI backend. Supabase PostgreSQL is the primary database for storing users, grievances, official assignments, and contact inquiries. SQLAlchemy with asyncpg provides the database access layer; local SQLite is used only as a development fallback when no PostgreSQL URL is configured.
 
 ## Features
 
@@ -81,10 +81,12 @@ flowchart LR
     API --> GOVT[Government router]
     API --> AI[AI router]
     API --> CONTACT[Contact router]
-    AUTH --> DB[(SQLAlchemy database)]
-    PROB --> DB
-    GOVT --> DB
-    CONTACT --> DB
+    AUTH --> ORM[SQLAlchemy async ORM]
+    PROB --> ORM
+    GOVT --> ORM
+    CONTACT --> ORM
+    ORM --> DB[(Supabase PostgreSQL)]
+    ORM -. local fallback .-> SQLITE[(SQLite)]
     PROB --> FILES[backend/uploads]
     AI --> ANALYSIS[TF-IDF + KMeans + budget DP]
     AI -. optional .-> GROQ[Groq API]
@@ -122,8 +124,9 @@ sequenceDiagram
 | --- | --- |
 | Frontend | React 19, React DOM, Vite 6, Tailwind CSS, Recharts |
 | Backend | FastAPI, Uvicorn, Python multipart handling |
-| Persistence | SQLAlchemy 2 async ORM, `asyncpg`, `aiosqlite` |
-| Database | Supabase PostgreSQL-compatible URL or local SQLite fallback |
+| Database access | SQLAlchemy 2 async ORM, `asyncpg`, `aiosqlite` |
+| Primary database | Supabase PostgreSQL |
+| Local fallback | SQLite database at `backend/kalyan_setu.db` |
 | Authentication | JWT (`python-jose`), bcrypt password hashing |
 | AI/ML | scikit-learn TF-IDF/KMeans, deterministic budget knapsack, Groq HTTP API, Hugging Face Inference API |
 | Media | Pillow dependency, browser `MediaRecorder`, static file serving for uploaded evidence |
@@ -172,7 +175,7 @@ pip install -r requirements.txt
 
 ### 3. Configure the backend
 
-Create `backend/.env` using the variables in [Configuration](#configuration). Do not commit credentials. For a zero-configuration local run, leave `DATABASE_URL` unset or use the default local PostgreSQL value; the connection layer will fall back to `backend/kalyan_setu.db`.
+Create `backend/.env` using the variables in [Configuration](#configuration). Do not commit credentials. Configure the Supabase PostgreSQL connection string in `DATABASE_URL` when database persistence is required. If no usable PostgreSQL URL is configured, the connection layer falls back to `backend/kalyan_setu.db` for local development.
 
 Initialize tables and the development official account:
 
@@ -205,7 +208,7 @@ The backend loads environment variables with `python-dotenv`. The frontend curre
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `DATABASE_URL` | No | SQLAlchemy URL. Supabase PostgreSQL URLs are adapted for asyncpg; the default local configuration falls back to SQLite. |
+| `DATABASE_URL` | Recommended | Supabase PostgreSQL connection URL used by SQLAlchemy/asyncpg. If unavailable, local SQLite fallback is used. |
 | `JWT_SECRET` | Yes for production | Secret used to sign bearer tokens. The code has a development fallback that must be replaced. |
 | `FRONTEND_URL` | No | Additional frontend origin included in CORS configuration. |
 | `GROQ_API_KEY` | No | Enables Groq summarization, impact estimation, and chatbot responses. |
@@ -298,7 +301,7 @@ Tables are created automatically during FastAPI startup through `create_tables()
 | `problems` | Grievance content, evidence metadata, AI fields, status, assignment, budget, and timestamps. |
 | `contact_us` | Support/contact submissions and timestamps. |
 
-The default development fallback is `backend/kalyan_setu.db`, which is ignored by Git. Supabase PostgreSQL is supported through the async SQLAlchemy/asyncpg connection path. There are no migration files in the repository; schema creation currently relies on SQLAlchemy metadata creation at startup.
+Supabase PostgreSQL is the intended persistent datastore. SQLAlchemy/asyncpg is the async access layer used to read and write it. The default development fallback is `backend/kalyan_setu.db`, which is ignored by Git. There are no migration files in the repository; schema creation currently relies on SQLAlchemy metadata creation at startup.
 
 > **Persistence note:** Complaint records and contact inquiries are persisted by the backend. Citizen follow-up notes and profile edits are currently managed in frontend state/local storage and are not exposed as dedicated backend update endpoints.
 
