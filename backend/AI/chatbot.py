@@ -100,6 +100,25 @@ async def chat(
             print(f"[Chatbot] {model} error: {e}")
             continue
 
+    if reply == "I'm unable to process your request right now. Please try again.":
+        if complaints_context:
+            highest = max(
+                complaints_context,
+                key=lambda item: (
+                    item.get('priority') == 'Critical',
+                    item.get('priority') == 'High',
+                    item.get('ai_severity_score') or 0,
+                ),
+            )
+            reply = (
+                f"The highest-priority active issue is #{highest.get('display_id', '?')}, "
+                f"{highest.get('title', 'Untitled complaint')}, at {highest.get('location', 'an unspecified location')}. "
+                f"It is marked {highest.get('priority', 'unknown')} priority with a severity score of "
+                f"{highest.get('ai_severity_score', 'unknown')}/100 and status {highest.get('status', 'unknown')}."
+            )
+        else:
+            reply = "There are no complaints in the selected state to analyze yet."
+
     # Store in conversation history
     history.append({"role": "user", "content": message})
     history.append({"role": "assistant", "content": reply})

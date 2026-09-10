@@ -12,11 +12,12 @@ export default function ContactUsPage() {
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [ticketId, setTicketId] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await fetch('http://localhost:8000/api/contact', {
+      const response = await fetch('http://localhost:8000/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -28,8 +29,15 @@ export default function ContactUsPage() {
           message: formData.message
         })
       });
+      if (response.ok) {
+        const data = await response.json();
+        setTicketId(data.ticket_id || 'TKT-PENDING');
+      } else {
+        setTicketId('TKT-PENDING');
+      }
     } catch (err) {
       console.warn("Backend contact call failed, using fallback:", err);
+      setTicketId('TKT-PENDING');
     }
     setSubmitted(true);
     showNotification("Message received! A support ticket has been opened.");
@@ -139,7 +147,7 @@ export default function ContactUsPage() {
             {submitted ? (
               <div className="p-lg bg-gov-green/10 border border-gov-green/30 rounded-lg text-center flex flex-col items-center gap-2">
                 <span className="material-symbols-outlined text-4xl text-gov-green">check_circle</span>
-                <h3 className="text-sm font-bold text-on-surface">Inquiry Ticket #TKT-8849 Created</h3>
+                <h3 className="text-sm font-bold text-on-surface">Inquiry Ticket #{ticketId} Created</h3>
                 <p className="text-xs text-on-surface-variant max-w-md">
                   Thank you for contacting the administrative cell. A support representative will respond to your registered email address within 24 business hours.
                 </p>

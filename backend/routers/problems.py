@@ -1,6 +1,8 @@
 """Problems router — submit, list, get complaints."""
 
 import random
+from pathlib import Path
+from uuid import uuid4
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
@@ -13,6 +15,7 @@ from database.schemas import ProblemResponse, ProblemStatusUpdate
 from auth_utils import get_current_user
 
 router = APIRouter()
+UPLOAD_DIR = Path(__file__).resolve().parent.parent / "uploads"
 
 
 def _generate_display_id() -> str:
@@ -68,13 +71,19 @@ async def submit_problem(
     user_state = current_user.get("state", state or "")
     user_district = current_user.get("district", district or "")
 
-    # Read uploaded file if present
+    # Persist uploaded evidence so it remains available after the request.
     file_url = None
     ai_summary = None
     final_description = description or ""
+    file_bytes = await file.read() if file else None
+    if file_bytes:
+        suffix = Path(file.filename or "evidence.bin").suffix.lower() or ".bin"
+        stored_name = f"{uuid4().hex}{suffix}"
+        UPLOAD_DIR.mkdir(exist_ok=True)
+        (UPLOAD_DIR / stored_name).write_bytes(file_bytes)
+        file_url = f"/uploads/{stored_name}"
 
-    if file and evidence_type == "photo":
-        file_bytes = await file.read()
+    if file_bytes and evidence_type == "photo":
         # Process image → text via AI
         try:
             from AI.processor import image_to_text, summarize_text
@@ -85,8 +94,7 @@ async def submit_problem(
         except Exception as e:
             print(f"[AI] Image processing failed: {e}")
 
-    elif file and evidence_type == "voice":
-        file_bytes = await file.read()
+    elif file_bytes and evidence_type == "voice":
         # Process voice → text via AI
         try:
             from AI.processor import voice_to_text, summarize_text
