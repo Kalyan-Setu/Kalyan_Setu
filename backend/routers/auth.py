@@ -20,7 +20,11 @@ async def citizen_register(body: CitizenRegister, db: AsyncSession = Depends(get
     )
     existing = (await db.execute(q)).scalar_one_or_none()
     if existing:
-        raise HTTPException(status_code=400, detail="Phone or email already registered")
+        if existing.phone == body.phone:
+            raise HTTPException(status_code=400, detail="Mobile number is already registered")
+        if body.email and existing.email == body.email:
+            raise HTTPException(status_code=400, detail="Email is already registered")
+        raise HTTPException(status_code=400, detail="Mobile number or email already registered")
 
     user = User(
         full_name=body.full_name,
@@ -88,6 +92,19 @@ async def official_login(body: OfficialLogin, db: AsyncSession = Depends(get_db)
     q = select(GovtUser).where(GovtUser.email == body.email)
     official = (await db.execute(q)).scalar_one_or_none()
     
+    # Auto-seed: kalyansetu@gov.in official account
+    if not official and body.email.lower() == "kalyansetu@gov.in" and body.password == "kalyansetu1234":
+        official = GovtUser(
+            email="kalyansetu@gov.in",
+            password_hash=hash_password("kalyansetu1234"),
+            state="Delhi NCR",
+            department="Kalyan Setu Administration",
+            officer_name="Kalyan Setu Admin"
+        )
+        db.add(official)
+        await db.commit()
+        await db.refresh(official)
+
     # Auto-seed testing account if requested for subhampadhi33537@gmail.com
     if not official and body.email.lower() == "subhampadhi33537@gmail.com" and body.password == "subhampadhi33537":
         official = GovtUser(

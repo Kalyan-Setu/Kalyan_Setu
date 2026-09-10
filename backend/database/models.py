@@ -10,8 +10,8 @@ from sqlalchemy import (
     Integer,
     DateTime,
     ForeignKey,
+    Uuid,
 )
-from sqlalchemy.dialects.postgresql import UUID
 
 from database.connection import Base
 
@@ -29,7 +29,7 @@ class User(Base):
 
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
+    id = Column(Uuid, primary_key=True, default=_new_uuid)
     full_name = Column(String(200), nullable=False)
     email = Column(String(200), unique=True, nullable=True)
     phone = Column(String(20), unique=True, nullable=False)
@@ -44,10 +44,10 @@ class Problem(Base):
 
     __tablename__ = "problems"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
+    id = Column(Uuid, primary_key=True, default=_new_uuid)
     display_id = Column(String(20), unique=True, nullable=False)
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    user_id = Column(Uuid, ForeignKey("users.id"), nullable=False)
 
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=True)
@@ -81,7 +81,7 @@ class GovtUser(Base):
 
     __tablename__ = "govt_users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
+    id = Column(Uuid, primary_key=True, default=_new_uuid)
     email = Column(String(200), unique=True, nullable=False)
     password_hash = Column(Text, nullable=False)
     state = Column(String(100), nullable=False)
@@ -95,7 +95,7 @@ class ContactMessage(Base):
 
     __tablename__ = "contact_us"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
+    id = Column(Uuid, primary_key=True, default=_new_uuid)
     full_name = Column(String(200), nullable=False)
     email = Column(String(200), nullable=False)
     phone = Column(String(20), nullable=True)

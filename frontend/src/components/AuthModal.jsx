@@ -11,36 +11,49 @@ export default function AuthModal() {
     setUserRole, 
     setCurrentUser,
     setAuthToken,
+    setActiveTab,
     showNotification,
     navigateTo 
   } = useCivic();
 
-  const [userType, setUserType] = useState(authInitialType || 'citizen'); // 'citizen' or 'official'
-  const [authTab, setAuthTab] = useState(authInitialTab || 'login'); // 'login' or 'register'
+  const [userType, setUserType] = useState(authInitialType || 'citizen');
+  const [authTab, setAuthTab] = useState(authInitialTab || 'login');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showOfficialPassword, setShowOfficialPassword] = useState(false);
 
-  // Synchronize modal tab and user type whenever modal opens or props change
-  useEffect(() => {
-    if (authModalOpen) {
-      setUserType(authInitialType || 'citizen');
-      setAuthTab(authInitialTab || 'login');
-      setErrorMessage('');
-    }
-  }, [authModalOpen, authInitialType, authInitialTab]);
-  
-  const [formData, setFormData] = useState({
+  const EMPTY_FORM = {
     identifier: '',
-    password: 'password123',
+    password: '',
     fullName: '',
     phone: '',
     email: '',
     state: 'Delhi NCR',
-    district: 'Central Delhi',
-    officialEmail: 'rajesh.kumar@pwd.delhi.gov.in',
-    officialPassword: 'password123',
-    officialDepartment: 'Public Works Department (PWD)'
-  });
+    district: '',
+    officialEmail: '',
+    officialPassword: '',
+    officialDepartment: ''
+  };
+
+  const [formData, setFormData] = useState(EMPTY_FORM);
+
+  // Reset all fields, errors and password visibility to blank slate
+  const resetForm = () => {
+    setFormData(EMPTY_FORM);
+    setErrorMessage('');
+    setShowPassword(false);
+    setShowOfficialPassword(false);
+  };
+
+  // Reset form whenever modal opens or tab/type changes externally
+  useEffect(() => {
+    if (authModalOpen) {
+      setUserType(authInitialType || 'citizen');
+      setAuthTab(authInitialTab || 'login');
+      resetForm();
+    }
+  }, [authModalOpen, authInitialType, authInitialTab]);
 
   if (!authModalOpen) return null;
 
@@ -56,14 +69,21 @@ export default function AuthModal() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              identifier: formData.identifier || formData.phone || "9876543210",
+              identifier: (formData.identifier || formData.phone || '').trim(),
               password: formData.password
             })
           });
 
           if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.detail || "Login failed");
+            const err = await res.json().catch(() => ({}));
+            let msg = 'Login failed. Please check your credentials.';
+            if (typeof err.detail === 'string') {
+              msg = err.detail;
+            } else if (Array.isArray(err.detail) && err.detail.length > 0) {
+              msg = err.detail[0].msg ? err.detail[0].msg.replace('Value error, ', '') : 'Invalid credentials.';
+            }
+            setErrorMessage(msg);
+            return;
           }
 
           const data = await res.json();
@@ -72,17 +92,35 @@ export default function AuthModal() {
           setUserRole('citizen');
           showNotification(`Welcome back, ${data.user.full_name || 'Citizen'}!`);
           setAuthModalOpen(false);
-          navigateTo('citizen_dashboard');
+          setActiveTab('citizen_dashboard'); // direct — avoids stale-closure auth guard
+          window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         } else {
-          // Citizen Registration
+          // Citizen Registration Client-Side Validations
+          const phoneClean = (formData.phone || '').trim().replace(/\D/g, '');
+          if (phoneClean.length !== 10) {
+            setErrorMessage('Mobile number must be exactly 10 digits.');
+            return;
+          }
+
+          const emailClean = (formData.email || '').trim().toLowerCase();
+          const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+          if (!emailClean) {
+            setErrorMessage('Email address is required.');
+            return;
+          }
+          if (!gmailRegex.test(emailClean)) {
+            setErrorMessage('Email must be a valid @gmail.com address (e.g. yourname@gmail.com). Random text is not allowed.');
+            return;
+          }
+
           const res = await fetch(`${API_BASE}/auth/citizen/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              full_name: formData.fullName || "Citizen User",
-              phone: formData.phone || "9876543210",
-              email: formData.email || undefined,
+              full_name: (formData.fullName || '').trim() || "Citizen User",
+              phone: phoneClean,
+              email: emailClean,
               password: formData.password,
               state: formData.state || "Delhi NCR",
               district: formData.district || "Central Delhi"
@@ -90,8 +128,15 @@ export default function AuthModal() {
           });
 
           if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.detail || "Registration failed");
+            const err = await res.json().catch(() => ({}));
+            let msg = 'Registration failed. Please check your details.';
+            if (typeof err.detail === 'string') {
+              msg = err.detail;
+            } else if (Array.isArray(err.detail) && err.detail.length > 0) {
+              msg = err.detail[0].msg ? err.detail[0].msg.replace('Value error, ', '') : 'Invalid registration details.';
+            }
+            setErrorMessage(msg);
+            return;
           }
 
           const data = await res.json();
@@ -100,7 +145,8 @@ export default function AuthModal() {
           setUserRole('citizen');
           showNotification('Citizen registration completed successfully.');
           setAuthModalOpen(false);
-          navigateTo('citizen_dashboard');
+          setActiveTab('citizen_dashboard'); // direct — avoids stale-closure auth guard
+          window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         }
       } else {
@@ -115,8 +161,13 @@ export default function AuthModal() {
         });
 
         if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.detail || "Official authentication failed");
+          const err = await res.json().catch(() => ({}));
+          let msg = 'Official authentication failed.';
+          if (typeof err.detail === 'string') {
+            msg = err.detail;
+          }
+          setErrorMessage(msg);
+          return;
         }
 
         const data = await res.json();
@@ -125,36 +176,13 @@ export default function AuthModal() {
         setUserRole('official');
         showNotification('Official Authentication Verified.');
         setAuthModalOpen(false);
-        navigateTo('admin_overview');
+        setActiveTab('admin_overview'); // direct — avoids stale-closure auth guard
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
     } catch (err) {
-      console.warn("API Auth Exception:", err);
-      // Fallback local authentication so presentation remains seamless
-      if (userType === 'citizen') {
-        setUserRole('citizen');
-        setCurrentUser({
-          full_name: formData.fullName || "Aaditya Sharma",
-          name: formData.fullName || "Aaditya Sharma",
-          phone: formData.phone || "+91 98765 43210",
-          state: formData.state || "Delhi NCR",
-          district: formData.district || "Central Delhi"
-        });
-        showNotification(authTab === 'login' ? 'Citizen login successful!' : 'Citizen registered.');
-        setAuthModalOpen(false);
-        navigateTo('citizen_dashboard');
-      } else {
-        setUserRole('official');
-        setCurrentUser({
-          email: formData.officialEmail,
-          state: "Delhi NCR",
-          department: formData.officialDepartment,
-          officer_name: "Er. Rajesh Kumar"
-        });
-        showNotification('Official Authentication Verified.');
-        setAuthModalOpen(false);
-        navigateTo('admin_overview');
-      }
+      console.error("API Auth Exception:", err);
+      setErrorMessage(err.message || 'Unable to connect to the authentication service.');
     } finally {
       setLoading(false);
     }
@@ -165,7 +193,7 @@ export default function AuthModal() {
       <div className="bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant w-full max-w-4xl overflow-hidden flex flex-col md:flex-row relative max-h-[90vh]">
         {/* Close Button */}
         <button
-          onClick={() => setAuthModalOpen(false)}
+          onClick={() => { resetForm(); setAuthModalOpen(false); }}
           className="absolute top-3 right-3 z-20 text-on-surface-variant hover:text-primary bg-surface/80 p-1.5 rounded-full hover:bg-surface-container transition-colors"
           aria-label="Close dialog"
         >
@@ -209,7 +237,7 @@ export default function AuthModal() {
             <div className="relative grid grid-cols-2 gap-1 p-1 bg-surface-container rounded-md mb-md border border-outline-variant/60">
               <button
                 type="button"
-                onClick={() => setUserType('citizen')}
+                onClick={() => { resetForm(); setUserType('citizen'); setAuthTab('login'); }}
                 className={`py-2 px-3 rounded font-label-md text-xs font-bold transition-all ${
                   userType === 'citizen'
                     ? 'bg-primary-container text-white shadow-sm'
@@ -220,7 +248,7 @@ export default function AuthModal() {
               </button>
               <button
                 type="button"
-                onClick={() => setUserType('official')}
+                onClick={() => { resetForm(); setUserType('official'); }}
                 className={`py-2 px-3 rounded font-label-md text-xs font-bold transition-all ${
                   userType === 'official'
                     ? 'bg-primary-container text-white shadow-sm'
@@ -235,7 +263,7 @@ export default function AuthModal() {
             <div className="flex border-b border-outline-variant mb-md">
               <button
                 type="button"
-                onClick={() => setAuthTab('login')}
+                onClick={() => { resetForm(); setAuthTab('login'); }}
                 className={`flex-1 pb-2 font-label-md text-sm transition-colors text-center ${
                   authTab === 'login'
                     ? 'text-primary font-bold border-b-2 border-primary'
@@ -247,7 +275,7 @@ export default function AuthModal() {
               {userType === 'citizen' && (
                 <button
                   type="button"
-                  onClick={() => setAuthTab('register')}
+                  onClick={() => { resetForm(); setAuthTab('register'); }}
                   className={`flex-1 pb-2 font-label-md text-sm transition-colors text-center ${
                     authTab === 'register'
                       ? 'text-primary font-bold border-b-2 border-primary'
@@ -294,13 +322,26 @@ export default function AuthModal() {
                         <label className="block text-xs font-bold text-on-surface mb-1">
                           Password
                         </label>
-                        <input
-                          type="password"
-                          required
-                          value={formData.password}
-                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                          className="w-full px-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
-                        />
+                        <div className="relative">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            required
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            placeholder="Enter your password"
+                            className="w-full pl-3 pr-10 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(p => !p)}
+                            className="absolute right-3 top-2.5 text-on-surface-variant hover:text-primary transition-colors"
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          >
+                            <span className="material-symbols-outlined text-lg">
+                              {showPassword ? 'visibility_off' : 'visibility'}
+                            </span>
+                          </button>
+                        </div>
                       </div>
                     </>
                   ) : (
@@ -319,29 +360,138 @@ export default function AuthModal() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-on-surface mb-1">
-                          Mobile Number *
-                        </label>
-                        <input
-                          type="tel"
-                          required
-                          value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          placeholder="10-digit phone number"
-                          className="w-full px-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
-                        />
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-xs font-bold text-on-surface">
+                            Mobile Number *
+                          </label>
+                          <span className={`text-[10px] font-mono font-medium ${
+                            formData.phone.length === 10 ? 'text-gov-green font-bold' :
+                            formData.phone.length > 0 ? 'text-error' : 'text-on-surface-variant'
+                          }`}>
+                            {formData.phone.length}/10 digits
+                          </span>
+                        </div>
+                        <div className="relative">
+                          <span className={`material-symbols-outlined absolute left-3 top-2.5 text-lg ${
+                            formData.phone.length === 10 ? 'text-gov-green' :
+                            formData.phone.length > 0 ? 'text-error' : 'text-on-surface-variant'
+                          }`}>
+                            phone_iphone
+                          </span>
+                          <input
+                            type="tel"
+                            required
+                            maxLength={10}
+                            inputMode="numeric"
+                            pattern="[0-9]{10}"
+                            value={formData.phone}
+                            onKeyDown={(e) => {
+                              // Block any non-numeric key except control keys
+                              const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Enter'];
+                              if (!allowed.includes(e.key) && !/^[0-9]$/.test(e.key)) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onPaste={(e) => {
+                              e.preventDefault();
+                              const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 10);
+                              setFormData({ ...formData, phone: pasted });
+                            }}
+                            onChange={(e) => {
+                              const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                              setFormData({ ...formData, phone: digits });
+                            }}
+                            onInvalid={(e) => {
+                              e.target.setCustomValidity(
+                                formData.phone.length === 0
+                                  ? 'Please enter your 10-digit mobile number.'
+                                  : `Mobile number must be exactly 10 digits. You entered ${formData.phone.length} digit(s).`
+                              );
+                            }}
+                            onInput={(e) => e.target.setCustomValidity('')}
+                            placeholder="Enter 10-digit mobile number"
+                            className={`w-full pl-10 pr-10 py-2 text-sm bg-white border rounded focus:ring-1 outline-none transition-colors ${
+                              formData.phone.length === 10
+                                ? 'border-gov-green focus:border-gov-green focus:ring-gov-green'
+                                : formData.phone.length > 0
+                                ? 'border-error focus:border-error focus:ring-error'
+                                : 'border-outline-variant focus:border-primary focus:ring-primary'
+                            }`}
+                          />
+                          {formData.phone.length === 10 && (
+                            <span className="material-symbols-outlined absolute right-3 top-2.5 text-gov-green text-lg">check_circle</span>
+                          )}
+                          {formData.phone.length > 0 && formData.phone.length < 10 && (
+                            <span className="material-symbols-outlined absolute right-3 top-2.5 text-error text-lg">error</span>
+                          )}
+                        </div>
+                        {formData.phone.length > 0 && formData.phone.length < 10 ? (
+                          <p className="text-[10px] text-error mt-1 font-medium">
+                            ⚠ Mobile number must be exactly 10 digits ({formData.phone.length}/10 entered).
+                          </p>
+                        ) : (
+                          <p className="text-[10px] text-on-surface-variant mt-1">
+                            Only digits allowed · Must be exactly 10 digits (e.g. 9876543210).
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-on-surface mb-1">
-                          Email Address (Optional)
+                          Email Address (@gmail.com) *
                         </label>
-                        <input
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          placeholder="e.g. citizen@example.com"
-                          className="w-full px-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
-                        />
+                        <div className="relative">
+                          <span className={`material-symbols-outlined absolute left-3 top-2.5 text-lg ${
+                            formData.email.length > 0 && /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(formData.email)
+                              ? 'text-gov-green'
+                              : formData.email.length > 0
+                              ? 'text-error'
+                              : 'text-on-surface-variant'
+                          }`}>
+                            mail
+                          </span>
+                          <input
+                            type="text"
+                            required
+                            value={formData.email}
+                            onChange={(e) => {
+                              const val = e.target.value.trim();
+                              setFormData({ ...formData, email: val });
+                            }}
+                            onBlur={(e) => {
+                              const val = e.target.value.trim();
+                              const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+                              if (val && !gmailRegex.test(val)) {
+                                e.target.setCustomValidity('Please enter a valid @gmail.com address (e.g. yourname@gmail.com). Other email providers are not accepted.');
+                              } else {
+                                e.target.setCustomValidity('');
+                              }
+                            }}
+                            onInput={(e) => e.target.setCustomValidity('')}
+                            placeholder="e.g. yourname@gmail.com"
+                            className={`w-full pl-10 pr-10 py-2 text-sm bg-white border rounded focus:ring-1 outline-none transition-colors ${
+                              formData.email.length > 0 && /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(formData.email)
+                                ? 'border-gov-green focus:border-gov-green focus:ring-gov-green'
+                                : formData.email.length > 0
+                                ? 'border-error focus:border-error focus:ring-error'
+                                : 'border-outline-variant focus:border-primary focus:ring-primary'
+                            }`}
+                          />
+                          {formData.email.length > 0 && /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(formData.email) && (
+                            <span className="material-symbols-outlined absolute right-3 top-2.5 text-gov-green text-lg">check_circle</span>
+                          )}
+                          {formData.email.length > 0 && !/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(formData.email) && (
+                            <span className="material-symbols-outlined absolute right-3 top-2.5 text-error text-lg">error</span>
+                          )}
+                        </div>
+                        {formData.email.length > 0 && !/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(formData.email) ? (
+                          <p className="text-[10px] text-error mt-1 font-medium">
+                            ⚠ Only <span className="font-bold">@gmail.com</span> addresses are accepted. Random text or other providers (e.g. @yahoo.com, @outlook.com) are not allowed.
+                          </p>
+                        ) : (
+                          <p className="text-[10px] text-on-surface-variant mt-1">
+                            Only verified <span className="font-semibold text-primary">@gmail.com</span> addresses are accepted.
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-on-surface mb-1">
@@ -360,13 +510,26 @@ export default function AuthModal() {
                         <label className="block text-xs font-bold text-on-surface mb-1">
                           Create Password *
                         </label>
-                        <input
-                          type="password"
-                          required
-                          value={formData.password}
-                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                          className="w-full px-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
-                        />
+                        <div className="relative">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            required
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            placeholder="Enter a strong password"
+                            className="w-full pl-3 pr-10 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(p => !p)}
+                            className="absolute right-3 top-2.5 text-on-surface-variant hover:text-primary transition-colors"
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          >
+                            <span className="material-symbols-outlined text-lg">
+                              {showPassword ? 'visibility_off' : 'visibility'}
+                            </span>
+                          </button>
+                        </div>
                       </div>
                     </>
                   )}
@@ -387,6 +550,7 @@ export default function AuthModal() {
                         required
                         value={formData.officialEmail}
                         onChange={(e) => setFormData({ ...formData, officialEmail: e.target.value })}
+                        placeholder="e.g. officer@dept.gov.in"
                         className="w-full pl-10 pr-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
                       />
                     </div>
@@ -401,28 +565,26 @@ export default function AuthModal() {
                         lock
                       </span>
                       <input
-                        type="password"
+                        type={showOfficialPassword ? 'text' : 'password'}
                         required
                         value={formData.officialPassword}
                         onChange={(e) => setFormData({ ...formData, officialPassword: e.target.value })}
-                        className="w-full pl-10 pr-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
+                        placeholder="Enter your SSO password"
+                        className="w-full pl-10 pr-10 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowOfficialPassword(p => !p)}
+                        className="absolute right-3 top-2.5 text-on-surface-variant hover:text-primary transition-colors"
+                        aria-label={showOfficialPassword ? 'Hide password' : 'Show password'}
+                      >
+                        <span className="material-symbols-outlined text-lg">
+                          {showOfficialPassword ? 'visibility_off' : 'visibility'}
+                        </span>
+                      </button>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-on-surface mb-1">
-                      Department Jurisdiction *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.officialDepartment}
-                      onChange={(e) => setFormData({ ...formData, officialDepartment: e.target.value })}
-                      placeholder="Enter department jurisdiction"
-                      className="w-full px-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
-                    />
-                  </div>
                 </>
               )}
 
