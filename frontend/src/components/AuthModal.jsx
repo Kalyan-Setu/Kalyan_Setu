@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCivic, API_BASE } from '../context/CivicContext';
 import kalyanSetuLogo from '../assets/kalyan-setu-logo.png';
+import parliamentBackground from '../assets/parliament-bg.jpg';
 
 export default function AuthModal() {
   const { 
@@ -203,7 +204,7 @@ export default function AuthModal() {
         {/* Left Side: National Portal Artwork */}
         <div className="hidden md:flex md:w-1/2 relative flex-col justify-between p-lg text-white bg-primary-container overflow-hidden">
           <img
-            src="https://lh3.googleusercontent.com/aida/AEtjO1XHXHzqVGrN9TM-8pEtdS-HrS4yb8c48tnxmTuLPPssX0uFy2upHAfGsZ9iHeT2JHfdljbhqE_QU6cCCX5iFQIBzvG84RIJ_raLI_3GhIcxY3smMuGLbRtrHGf4-SO1anRCFc8rcJQhjGPZ6f2Bij_26VWwXuXLnrWE3c4gkzCD8pdn9FPvDMc6xHF5nx8y3fEJgbgjSRMMhJup6FyPDHkNNK3kodGYlCxuNEUk50R0qg62qz_loUL8V1A"
+            src={parliamentBackground}
             alt="National Portal"
             className="absolute inset-0 w-full h-full object-cover opacity-35"
           />

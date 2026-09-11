@@ -145,7 +145,9 @@ function formatBackendProblem(p) {
     assignedOfficer: p.assigned_officer || "Under Assignment",
     budget: p.budget || "Allocating...",
     evidenceType: p.evidence_type || "text",
-    imageUrl: p.file_url || "",
+    imageUrl: p.file_url
+      ? (p.file_url.startsWith('http') ? p.file_url : `${API_BASE.replace('/api', '')}${p.file_url}`)
+      : "",
     audioLength: p.voice_transcript ? "Recorded" : "",
     voiceTranscript: p.voice_transcript || "",
     aiSeverityScore: p.ai_severity_score || 75,

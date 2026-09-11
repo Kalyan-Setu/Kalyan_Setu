@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useCivic } from '../context/CivicContext';
 
 export default function ProfilePage() {
-  const { currentUser, updateUserProfile, complaints, navigateTo } = useCivic();
+  const { currentUser, updateUserProfile, complaints, navigateTo, showNotification } = useCivic();
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -173,7 +173,7 @@ export default function ProfilePage() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$"
+                  pattern="^[a-zA-Z0-9._%+\-]+@gmail\.com$"
                   placeholder="e.g. user@gmail.com"
                   className="w-full px-3 py-2 text-xs border border-outline-variant rounded bg-surface focus:outline-none focus:border-primary"
                 />

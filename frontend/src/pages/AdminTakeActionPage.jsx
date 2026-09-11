@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCivic } from '../context/CivicContext';
 import AdminSidebar from '../components/AdminSidebar';
 
@@ -7,10 +7,10 @@ export default function AdminTakeActionPage() {
 
   // Selected complaint for action, defaults to activeTrackId or first critical
   const [selectedId, setSelectedId] = useState(() => {
-    return activeTrackId || (complaints.find(c => c.priority === 'Critical') || complaints[0]).id;
+    return activeTrackId || (complaints.find(c => c.priority === 'Critical') || complaints[0])?.id || 'PP24891';
   });
 
-  const selectedComplaint = complaints.find(c => c.id === selectedId) || complaints[0];
+  const selectedComplaint = complaints.find(c => c.id === selectedId || c.display_id === selectedId) || complaints[0] || {};
 
   const [assignedDepartment, setAssignedDepartment] = useState(selectedComplaint.assignedDepartment || 'Public Works Department (PWD)');
   const [assignedOfficer, setAssignedOfficer] = useState(selectedComplaint.assignedOfficer || 'Er. Rajesh Kumar');
@@ -18,6 +18,22 @@ export default function AdminTakeActionPage() {
   const [directiveNote, setDirectiveNote] = useState('');
   const [deadline, setDeadline] = useState('24 Hours');
   const [newStatus, setNewStatus] = useState('In Progress');
+
+  // Keep selected complaint synced with activeTrackId whenever user clicks Execute on a specific cluster/problem
+  useEffect(() => {
+    if (activeTrackId) {
+      const match = complaints.find(c => c.id === activeTrackId || c.display_id === activeTrackId);
+      if (match) {
+        setSelectedId(match.id || match.display_id);
+        setAssignedDepartment(match.assignedDepartment || 'Public Works Department (PWD)');
+        setAssignedOfficer(match.assignedOfficer || 'Er. Rajesh Kumar');
+        setBudget(match.budget || '₹4,50,000');
+      } else {
+        setSelectedId(activeTrackId);
+      }
+    }
+  }, [activeTrackId, complaints]);
+
 
   const handleDispatch = (e) => {
     e.preventDefault();

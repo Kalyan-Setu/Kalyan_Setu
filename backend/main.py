@@ -1,9 +1,11 @@
 """Kalyan Setu — FastAPI application entry‑point."""
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from config import FRONTEND_ORIGINS
 from database.connection import create_tables
@@ -29,6 +31,10 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+UPLOAD_DIR = Path(__file__).resolve().parent / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # ── CORS ──────────────────────────────────────────────────
 app.add_middleware(

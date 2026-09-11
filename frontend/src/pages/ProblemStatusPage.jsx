@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useCivic } from '../context/CivicContext';
 
 export default function ProblemStatusPage() {
-  const { complaints, activeTrackId, setActiveTrackId, navigateTo, showNotification } = useCivic();
+  const { complaints, activeTrackId, setActiveTrackId, navigateTo, showNotification, currentUser } = useCivic();
   const [searchIdInput, setSearchIdInput] = useState('');
   const [commentText, setCommentText] = useState('');
   const [commentsList, setCommentsList] = useState([
@@ -30,7 +30,7 @@ export default function ProblemStatusPage() {
     if (!commentText.trim()) return;
     const newComment = {
       id: Date.now(),
-      author: "Aaditya Sharma",
+      author: currentUser?.full_name || currentUser?.name || complaint.reportedBy || "Citizen",
       role: "Citizen / Complainant",
       text: commentText,
       time: "Just now"
@@ -295,7 +295,7 @@ export default function ProblemStatusPage() {
                   <span>Recorded Voice Evidence ({complaint.audioLength || 'Recorded'})</span>
                 </div>
                 <audio controls className="w-full h-8 mt-1">
-                  <source src="#" type="audio/mp3" />
+                    {complaint.imageUrl && <source src={complaint.imageUrl} type="audio/webm" />}
                   Voice playback component.
                 </audio>
                 {complaint.voiceTranscript && (
