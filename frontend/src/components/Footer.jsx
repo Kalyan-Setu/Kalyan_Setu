@@ -89,15 +89,15 @@ export default function Footer() {
             <div className="font-body-sm text-xs text-primary-fixed-dim flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm text-gov-saffron">call</span>
-                <span>Toll-Free Helpline: <strong>1800-111-2222</strong></span>
+                <span>Toll-Free Helpline: <strong>1800-111-555</strong></span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm text-gov-saffron">mail</span>
-                <span>support@peoplespriorities.gov.in</span>
+                <span>support@kalyansetu.gov.in</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm text-gov-saffron">location_on</span>
-                <span>MeitY, CGO Complex, New Delhi</span>
+                <span>Kartavya Bhavan 3, Central Secretariat, New Delhi</span>
               </div>
             </div>
           </div>

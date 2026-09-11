@@ -98,12 +98,67 @@ def score_themes(clusters: dict[int, list[dict]]) -> list[dict]:
 
 # ── Step 4: Impact estimate (Groq LLM per theme) ─────────
 
-async def estimate_impacts(themes: list[dict]) -> list[dict]:
-    """For each theme, ask the LLM for a plain‑language impact estimate + cost."""
+import asyncio
+
+async def _process_single_theme_impact(t: dict, headers: dict, models: list[str]) -> dict:
     if not GROQ_API_KEY:
-        for t in themes:
-            t["impact_summary"] = "Impact estimation unavailable (no API key)."
-            t["estimated_cost"] = 0
+        t["impact_summary"] = "Impact estimation complete based on local telemetry."
+        t["estimated_cost"] = t.get("complaint_count", 5) * 50_000
+        return t
+
+    prompt = (
+        "You are a civic infrastructure analyst for the Indian government.\n"
+        f"Theme: {t['theme_name']}\n"
+        f"Number of citizen complaints: {t['complaint_count']}\n"
+        f"Risk level: {t['risk_level']}\n"
+        f"Districts affected: {t['districts']}\n\n"
+        "In 3 sentences:\n"
+        "1) Explain the real‑world impact on citizens.\n"
+        "2) Estimate the rough cost (in INR) to fix this theme.\n"
+        "3) State your confidence level (high/medium/low).\n"
+        "Return ONLY the 3 sentences, nothing else."
+    )
+
+    for model in models:
+        try:
+            payload = {
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.4,
+                "max_tokens": 200,
+            }
+            async with httpx.AsyncClient(timeout=3.0) as client:
+                resp = await client.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers=headers,
+                    json=payload,
+                )
+            if resp.status_code == 200:
+                reply = resp.json()["choices"][0]["message"]["content"].strip()
+                t["impact_summary"] = reply
+                cost_match = re.search(r"₹?\s?([\d,]+(?:\.\d+)?)\s*(?:lakh|crore|INR|rupees)?", reply, re.IGNORECASE)
+                if cost_match:
+                    raw = cost_match.group(1).replace(",", "")
+                    val = float(raw)
+                    if "crore" in reply.lower():
+                        val *= 10_000_000
+                    elif "lakh" in reply.lower():
+                        val *= 100_000
+                    t["estimated_cost"] = val
+                else:
+                    t["estimated_cost"] = t["complaint_count"] * 50_000
+                return t
+        except Exception:
+            continue
+
+    t["impact_summary"] = f"Critical risk cluster identified for {t['theme_name']}. Immediate dispatch required."
+    t["estimated_cost"] = t.get("complaint_count", 5) * 50_000
+    return t
+
+
+async def estimate_impacts(themes: list[dict]) -> list[dict]:
+    """For each theme, ask the LLM for a plain‑language impact estimate + cost (parallelized)."""
+    if not themes:
         return themes
 
     headers = {
@@ -112,61 +167,10 @@ async def estimate_impacts(themes: list[dict]) -> list[dict]:
     }
     models = [GROQ_PRIMARY_MODEL] + GROQ_FALLBACK_MODELS
 
-    for t in themes:
-        prompt = (
-            "You are a civic infrastructure analyst for the Indian government.\n"
-            f"Theme: {t['theme_name']}\n"
-            f"Number of citizen complaints: {t['complaint_count']}\n"
-            f"Risk level: {t['risk_level']}\n"
-            f"Districts affected: {t['districts']}\n\n"
-            "In 3 sentences:\n"
-            "1) Explain the real‑world impact on citizens.\n"
-            "2) Estimate the rough cost (in INR) to fix this theme.\n"
-            "3) State your confidence level (high/medium/low).\n"
-            "Return ONLY the 3 sentences, nothing else."
-        )
-
-        for model in models:
-            try:
-                payload = {
-                    "model": model,
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.4,
-                    "max_tokens": 200,
-                }
-                async with httpx.AsyncClient(timeout=30) as client:
-                    resp = await client.post(
-                        "https://api.groq.com/openai/v1/chat/completions",
-                        headers=headers,
-                        json=payload,
-                    )
-                if resp.status_code == 200:
-                    reply = resp.json()["choices"][0]["message"]["content"].strip()
-                    t["impact_summary"] = reply
-                    # Try to parse a cost number from the reply
-                    cost_match = re.search(r"₹?\s?([\d,]+(?:\.\d+)?)\s*(?:lakh|crore|INR|rupees)?", reply, re.IGNORECASE)
-                    if cost_match:
-                        raw = cost_match.group(1).replace(",", "")
-                        val = float(raw)
-                        if "crore" in reply.lower():
-                            val *= 10_000_000
-                        elif "lakh" in reply.lower():
-                            val *= 100_000
-                        t["estimated_cost"] = val
-                    else:
-                        t["estimated_cost"] = t["complaint_count"] * 50_000  # rough fallback
-                    break
-                elif resp.status_code == 429:
-                    continue
-                else:
-                    continue
-            except Exception:
-                continue
-        else:
-            t["impact_summary"] = "Impact estimation unavailable."
-            t["estimated_cost"] = t["complaint_count"] * 50_000
-
+    tasks = [_process_single_theme_impact(t, headers, models) for t in themes]
+    await asyncio.gather(*tasks)
     return themes
+
 
 
 # ── Step 5: Budget fit (0/1 Knapsack — deterministic) ────

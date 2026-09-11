@@ -159,7 +159,7 @@ export default function Navbar() {
                     : 'text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-high px-sm py-xs rounded'
                 }`}
               >
-                Grievance Redressal / Contact
+              Contact Us
               </button>
 
               <button

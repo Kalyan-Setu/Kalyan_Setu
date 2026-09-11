@@ -48,10 +48,10 @@ export default function ContactUsPage() {
       {/* Header */}
       <div className="border-b border-outline-variant pb-md">
         <span className="font-label-sm text-xs text-primary-container uppercase tracking-wider font-bold">
-          Ministry of Electronics & IT (MeitY)
+          Ministry of Rural Devlopement of INDIA
         </span>
         <h1 className="font-headline-lg text-3xl font-bold text-primary mt-1">
-          Contact Us & Grievance Redressal
+          Contact Us ☏
         </h1>
         <p className="font-body-lg text-sm text-on-surface-variant mt-1 max-w-2xl">
           Get in touch with our administrative support team for queries regarding grievance redressal, escalations, or portal technical assistance.
@@ -74,7 +74,7 @@ export default function ContactUsPage() {
               <div>
                 <p className="font-label-md text-xs font-bold text-on-surface">Nodal Authority</p>
                 <p className="font-body-md text-xs text-on-surface-variant mt-0.5">
-                  Ministry of Electronics and Information Technology (MeitY) & National Informatics Centre (NIC)
+                  Ministry of Rural Devlopement of INDIA & National Informatics Centre (NIC)
                 </p>
               </div>
             </div>
@@ -86,8 +86,8 @@ export default function ContactUsPage() {
               <div>
                 <p className="font-label-md text-xs font-bold text-on-surface">Official Address</p>
                 <p className="font-body-md text-xs text-on-surface-variant mt-0.5 leading-relaxed">
-                  Electronics Niketan, 6, CGO Complex,<br />
-                  Lodhi Road, New Delhi - 110003
+                  Kartavya Bhavan 3, Central Secretariat,<br />
+                  New Delhi - 110003
                 </p>
               </div>
             </div>
@@ -106,7 +106,7 @@ export default function ContactUsPage() {
               <div>
                 <p className="font-label-md text-xs font-bold text-on-surface">Official Support Email</p>
                 <p className="font-body-md text-xs text-primary font-semibold">
-                  support@peoplespriorities.gov.in
+                  support@kalyansetu.gov.in
                 </p>
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function ContactUsPage() {
               <div>
                 <p className="font-label-md text-xs font-bold text-on-surface">Toll-free Citizen Help Desk</p>
                 <p className="font-body-md text-sm text-gov-saffron font-bold">
-                  1800-111-2222 (24x7)
+                  1800-111-555 (24x7)
                 </p>
               </div>
             </div>
@@ -180,7 +180,7 @@ export default function ContactUsPage() {
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="e.g. citizen@example.com"
+                      placeholder="e.g. citizen@gmail.com"
                       className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                     />
                   </div>
@@ -193,7 +193,7 @@ export default function ContactUsPage() {
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="+91 98765 43210"
+                      placeholder="+91 90*** ****0"
                       className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                     />
                   </div>
@@ -205,11 +205,8 @@ export default function ContactUsPage() {
                       onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                       className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                     >
-                      <option>General Grievance Redressal</option>
-                      <option>Technical Portal Support</option>
-                      <option>Public Works Department (PWD)</option>
-                      <option>Delhi Jal Board (Water/Sewage)</option>
-                      <option>Municipal Corporation (Sanitation)</option>
+                      <option>Rural devlopement Authority</option>
+                     
                     </select>
                   </div>
                 </div>
