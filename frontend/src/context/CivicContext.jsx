@@ -155,38 +155,32 @@ function formatBackendProblem(p) {
   };
 }
 
+// One-time cleanup: clear stale user data if no auth token exists
+// This prevents old hardcoded demo data from auto-logging in users
+if (!localStorage.getItem('peoples_priorities_token')) {
+  localStorage.removeItem('peoples_priorities_user');
+  localStorage.removeItem('peoples_priorities_role');
+}
+
 export function CivicProvider({ children }) {
   const [authToken, setAuthToken] = useState(() => localStorage.getItem('peoples_priorities_token') || null);
-  const [userRole, setUserRole] = useState(() => localStorage.getItem('peoples_priorities_role') || 'citizen');
+  const [userRole, setUserRole] = useState(() => {
+    const token = localStorage.getItem('peoples_priorities_token');
+    return token ? (localStorage.getItem('peoples_priorities_role') || 'citizen') : 'citizen';
+  });
   
   const [currentUser, setCurrentUser] = useState(() => {
     try {
+      const token = localStorage.getItem('peoples_priorities_token');
+      if (!token) return null; // No token = not logged in
       const saved = localStorage.getItem('peoples_priorities_user');
-      return saved ? JSON.parse(saved) : {
-        id: "",
-        full_name: "Aaditya Sharma",
-        name: "Aaditya Sharma",
-        phone: "+91 98765 43210",
-        state: "Delhi NCR",
-        district: "South District",
-        department: "Department of Grievances & Urban Infrastructure",
-        roleTitle: "Senior Administrative Executive"
-      };
+      return saved ? JSON.parse(saved) : null;
     } catch {
-      return {
-        id: "",
-        full_name: "Aaditya Sharma",
-        name: "Aaditya Sharma",
-        phone: "+91 98765 43210",
-        state: "Delhi NCR",
-        district: "South District",
-        department: "Department of Grievances & Urban Infrastructure",
-        roleTitle: "Senior Administrative Executive"
-      };
+      return null;
     }
   });
 
-  const [complaints, setComplaints] = useState(INITIAL_COMPLAINTS);
+  const [complaints, setComplaints] = useState([]);
   const [activeTab, setActiveTab] = useState('home');
   const [activeTrackId, setActiveTrackId] = useState("PP24891");
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -216,25 +210,26 @@ export function CivicProvider({ children }) {
     if (!authToken) return;
     try {
       const headers = { Authorization: `Bearer ${authToken}` };
-      let endpoint = `${API_BASE}/problems/mine`;
-      if (userRole === 'official') {
-        const stateName = currentUser.state || "Delhi NCR";
-        endpoint = `${API_BASE}/problems/state/${encodeURIComponent(stateName)}`;
-      }
+      // Officials always get ALL complaints regardless of state
+      // Citizens only get their own complaints
+      const endpoint = userRole === 'official'
+        ? `${API_BASE}/govt/problems/all`
+        : `${API_BASE}/problems/mine`;
+
       const res = await fetch(endpoint, { headers });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
           setComplaints(data.map(formatBackendProblem));
         }
-      } else if (userRole === 'citizen') {
+      } else {
+        // On error, clear to empty (don't show stale demo data)
         setComplaints([]);
+        console.warn("fetchComplaints returned non-ok:", res.status, await res.text());
       }
     } catch (e) {
       console.warn("Could not fetch complaints from backend:", e);
-      if (userRole === 'citizen' && authToken) {
-        setComplaints([]);
-      }
+      setComplaints([]);
     }
   };
 

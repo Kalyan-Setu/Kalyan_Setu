@@ -15,11 +15,28 @@ export default function ProfilePage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'phone') {
+      setFormData(prev => ({ ...prev, phone: value.replace(/\D/g, '').slice(0, 10) }));
+      return;
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const phoneClean = (formData.phone || '').trim().replace(/\D/g, '');
+    if (phoneClean.length !== 10) {
+      showNotification("Mobile number must be exactly 10 digits.");
+      return;
+    }
+    if (formData.email) {
+      const emailClean = formData.email.trim().toLowerCase();
+      const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+      if (!gmailRegex.test(emailClean)) {
+        showNotification("Email must be a valid @gmail.com address.");
+        return;
+      }
+    }
     updateUserProfile(formData);
     setIsEditing(false);
   };
@@ -134,24 +151,30 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-on-surface mb-1">Phone Number</label>
+                <label className="block text-xs font-bold text-on-surface mb-1">Phone Number (10 Digits)</label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
+                  maxLength={10}
+                  pattern="[0-9]{10}"
+                  inputMode="numeric"
+                  placeholder="10-digit mobile number"
                   required
                   className="w-full px-3 py-2 text-xs border border-outline-variant rounded bg-surface focus:outline-none focus:border-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-on-surface mb-1">Email Address</label>
+                <label className="block text-xs font-bold text-on-surface mb-1">Email Address (@gmail.com)</label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$"
+                  placeholder="e.g. user@gmail.com"
                   className="w-full px-3 py-2 text-xs border border-outline-variant rounded bg-surface focus:outline-none focus:border-primary"
                 />
               </div>

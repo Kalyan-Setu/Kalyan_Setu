@@ -6,7 +6,8 @@ import uuid
 from datetime import datetime
 from typing import Optional, List
 
-from pydantic import BaseModel, Field
+import re
+from pydantic import BaseModel, Field, field_validator
 
 
 # ── Auth ──────────────────────────────────────────────────
@@ -14,10 +15,32 @@ from pydantic import BaseModel, Field
 class CitizenRegister(BaseModel):
     full_name: str
     phone: str
-    email: Optional[str] = None
+    email: str
     password: str
     state: str
     district: str
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        cleaned = v.strip().replace(" ", "").replace("-", "")
+        if cleaned.startswith("+91"):
+            cleaned = cleaned[3:]
+        elif cleaned.startswith("0") and len(cleaned) == 11:
+            cleaned = cleaned[1:]
+        if not re.match(r"^\d{10}$", cleaned):
+            raise ValueError("Mobile number must be exactly 10 digits")
+        return cleaned
+
+    @field_validator("email")
+    @classmethod
+    def validate_gmail(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Email is required and must be a valid @gmail.com address")
+        cleaned = v.strip().lower()
+        if not re.match(r"^[a-zA-Z0-9._%+-]+@gmail\.com$", cleaned):
+            raise ValueError("Email must be a valid @gmail.com address (e.g. user@gmail.com)")
+        return cleaned
 
 
 class CitizenLogin(BaseModel):
