@@ -1,7 +1,7 @@
 """AI router — analyse complaints and chat with AI assistant."""
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, func
+from sqlalchemy import select, func, String
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.connection import get_db
@@ -12,10 +12,14 @@ from database.schemas import (
     ThemeResult,
     ChatRequest,
     ChatResponse,
+    BudgetEstimateRequest,
+    BudgetEstimateResponse,
 )
-from auth_utils import get_current_user
+from auth_utils import get_current_user, get_optional_user
+from AI.analysis import run_analysis, estimate_complaint_budget
 
 router = APIRouter()
+
 
 
 def _require_official(user: dict):
@@ -131,3 +135,41 @@ async def chat_endpoint(
     )
 
     return ChatResponse(reply=reply, conversation_id=conversation_id)
+
+
+@router.post("/estimate-budget", response_model=BudgetEstimateResponse)
+@router.post("/budget-estimate", response_model=BudgetEstimateResponse)
+async def estimate_budget_endpoint(
+    body: BudgetEstimateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict | None = Depends(get_optional_user),
+):
+    """Dynamically determine AI emergency budget for a specific complaint."""
+    did = body.display_id or body.problem_id
+    prob = None
+    if did:
+        stmt = select(Problem).where(
+            (Problem.display_id == did) | (func.cast(Problem.id, String) == did)
+        )
+        prob = (await db.execute(stmt)).scalar_one_or_none()
+
+    complaint_dict = {
+        "title": body.title or (prob.title if prob else "") or "Civic Grievance",
+        "description": body.description or (prob.description if prob else "") or "",
+        "category": body.category or (prob.category if prob else "") or "General Infrastructure",
+        "location": body.location or (prob.location if prob else "") or "Urban District",
+        "district": body.district or (prob.district if prob else "") or "Central District",
+        "state": body.state or (prob.state if prob else "") or "Delhi NCR",
+        "priority": body.priority or (prob.priority if prob else "") or "High",
+        "ai_severity_score": body.ai_severity_score or (prob.ai_severity_score if prob else 75),
+        "ai_summary": body.ai_summary or (prob.ai_summary if prob else ""),
+    }
+
+    result = await estimate_complaint_budget(complaint_dict)
+
+    return BudgetEstimateResponse(
+        recommended_budget=result["recommended_budget"],
+        formatted_budget=result["formatted_budget"],
+        explanation=result.get("explanation"),
+    )
+

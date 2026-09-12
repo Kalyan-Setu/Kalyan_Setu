@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useCivic } from '../context/CivicContext';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useCivic, API_BASE } from '../context/CivicContext';
 import AdminSidebar from '../components/AdminSidebar';
 
 export default function AdminTakeActionPage() {
-  const { complaints, activeTrackId, updateComplaintStatus, showNotification, navigateTo } = useCivic();
+  const { complaints, activeTrackId, updateComplaintStatus, showNotification, navigateTo, authToken } = useCivic();
 
   // Selected complaint for action, defaults to activeTrackId or first critical
   const [selectedId, setSelectedId] = useState(() => {
@@ -14,10 +14,114 @@ export default function AdminTakeActionPage() {
 
   const [assignedDepartment, setAssignedDepartment] = useState(selectedComplaint.assignedDepartment || 'Public Works Department (PWD)');
   const [assignedOfficer, setAssignedOfficer] = useState(selectedComplaint.assignedOfficer || 'Er. Rajesh Kumar');
-  const [budget, setBudget] = useState(selectedComplaint.budget || '₹4,50,000');
+  const [budget, setBudget] = useState('');
+  const [budgetLoading, setBudgetLoading] = useState(false);
+  const [budgetError, setBudgetError] = useState(null);
+  const [aiExplanation, setAiExplanation] = useState(null);
+  const [aiBudgets, setAiBudgets] = useState({});
   const [directiveNote, setDirectiveNote] = useState('');
   const [deadline, setDeadline] = useState('24 Hours');
   const [newStatus, setNewStatus] = useState('In Progress');
+
+  const abortControllerRef = useRef(null);
+
+  // Dynamically analyze the selected complaint and fetch AI-determined budget
+  const fetchAiBudget = useCallback(async (complaint, forceRefresh = false) => {
+    if (!complaint || (!complaint.id && !complaint.display_id)) return;
+    const cid = complaint.id || complaint.display_id;
+
+    // Check if complaint already has a finalized official budget assigned (and not 'Allocating...')
+    const hasOfficialBudget = complaint.budget &&
+      complaint.budget !== 'Allocating...' &&
+      !complaint.budget.toLowerCase().includes('allocat');
+
+    if (!forceRefresh && hasOfficialBudget) {
+      setBudget(complaint.budget);
+      setBudgetLoading(false);
+      setBudgetError(null);
+      setAiExplanation(null);
+      return;
+    }
+
+    // Check cached AI budget for this complaint
+    if (!forceRefresh && aiBudgets[cid]) {
+      const cached = aiBudgets[cid];
+      setBudget(cached.formatted_budget);
+      setAiExplanation(cached.explanation || null);
+      setBudgetLoading(false);
+      setBudgetError(null);
+      return;
+    }
+
+    // Abort previous inflight request if user rapidly toggles complaints
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    setBudgetLoading(true);
+    setBudgetError(null);
+    setBudget('Calculating AI Budget...');
+    setAiExplanation(null);
+
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {})
+      };
+
+      const payload = {
+        problem_id: complaint.id,
+        display_id: complaint.display_id || complaint.id,
+        title: complaint.title,
+        description: complaint.description,
+        category: complaint.category,
+        location: complaint.location,
+        district: complaint.district,
+        state: complaint.state,
+        priority: complaint.priority,
+        ai_severity_score: complaint.aiSeverityScore || complaint.ai_severity_score || 75,
+        ai_summary: complaint.ai_summary || complaint.description
+      };
+
+      const res = await fetch(`${API_BASE}/ai/estimate-budget`, {
+        method: 'POST',
+        headers,
+        signal: controller.signal,
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        throw new Error(`Server returned ${res.status}`);
+      }
+
+      const data = await res.json();
+      const formatted = data.formatted_budget || `₹${Number(data.recommended_budget).toLocaleString('en-IN')}`;
+
+      setBudget(formatted);
+      setAiExplanation(data.explanation || null);
+      setBudgetError(null);
+
+      setAiBudgets(prev => ({
+        ...prev,
+        [cid]: {
+          formatted_budget: formatted,
+          recommended_budget: data.recommended_budget,
+          explanation: data.explanation
+        }
+      }));
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        return;
+      }
+      console.error("AI Budget Estimation error:", err);
+      setBudgetError("AI budget calculation failed. Please enter amount manually.");
+      setBudget("");
+    } finally {
+      setBudgetLoading(false);
+    }
+  }, [authToken, aiBudgets]);
 
   // Keep selected complaint synced with activeTrackId whenever user clicks Execute on a specific cluster/problem
   useEffect(() => {
@@ -25,15 +129,25 @@ export default function AdminTakeActionPage() {
       const match = complaints.find(c => c.id === activeTrackId || c.display_id === activeTrackId);
       if (match) {
         setSelectedId(match.id || match.display_id);
-        setAssignedDepartment(match.assignedDepartment || 'Public Works Department (PWD)');
-        setAssignedOfficer(match.assignedOfficer || 'Er. Rajesh Kumar');
-        setBudget(match.budget || '₹4,50,000');
       } else {
         setSelectedId(activeTrackId);
       }
     }
   }, [activeTrackId, complaints]);
 
+  // Synchronize fields and trigger AI budget estimation whenever selectedId or complaints change
+  useEffect(() => {
+    if (!complaints || complaints.length === 0) return;
+    const match = complaints.find(c => c.id === selectedId || c.display_id === selectedId) || complaints[0];
+    if (match) {
+      if (match.id !== selectedId && match.display_id !== selectedId) {
+        setSelectedId(match.id || match.display_id);
+      }
+      setAssignedDepartment(match.assignedDepartment || 'Public Works Department (PWD)');
+      setAssignedOfficer(match.assignedOfficer || 'Under Assignment');
+      fetchAiBudget(match);
+    }
+  }, [selectedId, complaints.length]);
 
   const handleDispatch = (e) => {
     e.preventDefault();
@@ -83,10 +197,7 @@ export default function AdminTakeActionPage() {
                 <div
                   key={item.id}
                   onClick={() => {
-                    setSelectedId(item.id);
-                    setAssignedDepartment(item.assignedDepartment);
-                    setAssignedOfficer(item.assignedOfficer);
-                    setBudget(item.budget || '₹1,50,000');
+                    setSelectedId(item.id || item.display_id);
                   }}
                   className={`p-3 rounded-lg border cursor-pointer transition-all ${
                     selectedId === item.id
@@ -169,14 +280,53 @@ export default function AdminTakeActionPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-md">
                   <div>
-                    <label className="block font-bold text-on-surface mb-1">Emergency Budget Allocation</label>
-                    <input
-                      type="text"
-                      value={budget}
-                      onChange={(e) => setBudget(e.target.value)}
-                      placeholder="e.g. ₹4,50,000"
-                      className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none font-mono"
-                    />
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block font-bold text-on-surface">Emergency Budget Allocation</label>
+                      {budgetLoading ? (
+                        <span className="text-[10px] text-primary flex items-center gap-1 font-semibold animate-pulse">
+                          <span className="material-symbols-outlined text-xs animate-spin">sync</span>
+                          AI Calculating...
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => fetchAiBudget(selectedComplaint, true)}
+                          title="Recalculate AI recommended budget"
+                          className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-xs text-gov-saffron">auto_awesome</span>
+                          AI Recalculate
+                        </button>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={budget}
+                        onChange={(e) => setBudget(e.target.value)}
+                        placeholder={budgetLoading ? "Calculating AI Budget..." : "e.g. ₹85,000"}
+                        className={`w-full p-2 bg-surface border rounded focus:border-primary outline-none font-mono ${
+                          budgetLoading ? 'bg-surface-container/60 cursor-wait border-primary/50' :
+                          budgetError ? 'border-error text-error' : 'border-outline-variant'
+                        }`}
+                      />
+                      {budgetLoading && (
+                        <div className="absolute right-2.5 top-2.5">
+                          <span className="material-symbols-outlined text-sm text-primary animate-spin">sync</span>
+                        </div>
+                      )}
+                    </div>
+                    {budgetError && (
+                      <p className="text-[11px] text-error mt-1 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs">error</span>
+                        {budgetError}
+                      </p>
+                    )}
+                    {!budgetLoading && !budgetError && aiExplanation && (
+                      <p className="text-[10px] text-on-surface-variant mt-1 line-clamp-2" title={aiExplanation}>
+                        <span className="font-semibold text-primary">AI Rationale:</span> {aiExplanation}
+                      </p>
+                    )}
                   </div>
 
                   <div>

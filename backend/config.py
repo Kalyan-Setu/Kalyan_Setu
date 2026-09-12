@@ -19,12 +19,13 @@ JWT_EXPIRY_HOURS: int = 72
 
 # ── Groq LLM ─────────────────────────────────────────────
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-GROQ_PRIMARY_MODEL: str = "llama-3.3-70b-versatile"
+GROQ_PRIMARY_MODEL: str = "qwen/qwen3.8-27b"
 GROQ_VISION_MODEL: str = "llama-3.2-11b-vision-preview"
 GROQ_FALLBACK_MODELS: list[str] = [
-    "llama-3.1-8b-instant",
-    "mixtral-8x7b-32768",
-    "gemma2-9b-it",
+    "qwen/qwen3.6-27b",
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "llama-3.3-70b-versatile",
 ]
 
 # ── HuggingFace ───────────────────────────────────────────

@@ -288,3 +288,130 @@ async def run_analysis(complaints: list[dict], budget_limit: float = 1_000_000) 
         "district_hotspots": district_hotspots,
         "early_warning_directives": early_warning_directives
     }
+
+
+# ── Dynamic Complaint Budget Estimation ───────────────────
+
+def format_inr(amount: int) -> str:
+    """Format an integer as Indian Rupee string, e.g. 85000 -> ₹85,000."""
+    s = str(int(amount))
+    if len(s) <= 3:
+        return f"₹{s}"
+    last_three = s[-3:]
+    rest = s[:-3]
+    parts = []
+    while len(rest) > 2:
+        parts.insert(0, rest[-2:])
+        rest = rest[:-2]
+    if rest:
+        parts.insert(0, rest)
+    return f"₹{','.join(parts)},{last_three}"
+
+
+async def estimate_complaint_budget(complaint: dict) -> dict:
+    """Dynamically analyze a single citizen grievance and determine an AI-generated budget."""
+    import json
+
+    title = complaint.get("title") or "Civic Grievance"
+    description = complaint.get("description") or ""
+    category = complaint.get("category") or "General Infrastructure"
+    location = complaint.get("location") or "Urban Ward"
+    district = complaint.get("district") or "Central District"
+    state = complaint.get("state") or "Delhi NCR"
+    severity = complaint.get("ai_severity_score") or 75
+    priority = complaint.get("priority") or "High"
+    ai_summary = complaint.get("ai_summary") or ""
+
+    if GROQ_API_KEY:
+        prompt = (
+            "You are an expert civic infrastructure budgeting analyst for Indian municipal and public works departments (PWD, Jal Board, Municipal Corporation, DISCOM).\n"
+            "Analyze the following specific citizen grievance and estimate an accurate, realistic emergency repair or resolution budget in Indian Rupees (INR).\n\n"
+            f"Complaint Title: {title}\n"
+            f"Category: {category}\n"
+            f"Description: {description}\n"
+            f"Location: {location}, {district}, {state}\n"
+            f"AI Severity Score: {severity}/100\n"
+            f"Priority: {priority}\n"
+            f"AI Summary: {ai_summary}\n\n"
+            "Budgeting Guidelines:\n"
+            "- Consider realistic equipment, materials (hot mix asphalt, jetting pumps, wiring, pipes), contractor labor, and urgent deployment costs in India.\n"
+            "- Minor repairs (e.g. single light fixture, minor pothole, garbage heap): ₹15,000 to ₹45,000.\n"
+            "- Medium repairs (e.g. street lighting stretch, drainage desilting, sewer jetting, patch work): ₹50,000 to ₹1,50,000.\n"
+            "- Critical / heavy repairs (e.g. crater hazard, burst water main, drainage collapse, hospital/facility emergency): ₹1,50,000 to ₹5,00,000+.\n"
+            "- The budget must be uniquely tailored to this specific complaint and rounded to nearest ₹500 or ₹1,000.\n\n"
+            "Return ONLY a JSON object with this exact schema:\n"
+            "{\n"
+            '  "recommended_budget": <integer amount in INR without currency symbols or commas>,\n'
+            '  "explanation": "<brief 1-sentence rationale for the emergency allocation>"\n'
+            "}\n"
+            "Do NOT include markdown backticks or any other text."
+        )
+
+        headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        models = [GROQ_PRIMARY_MODEL] + GROQ_FALLBACK_MODELS
+
+        for model in models:
+            try:
+                payload = {
+                    "model": model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.2,
+                }
+                async with httpx.AsyncClient(timeout=6.0) as client:
+                    resp = await client.post(
+                        "https://api.groq.com/openai/v1/chat/completions",
+                        headers=headers,
+                        json=payload,
+                    )
+                if resp.status_code == 200:
+                    raw_content = resp.json()["choices"][0]["message"]["content"].strip()
+                    cleaned = re.sub(r"^```(?:json)?\s*", "", raw_content)
+                    cleaned = re.sub(r"\s*```$", "", cleaned).strip()
+                    parsed = json.loads(cleaned)
+                    amount = int(parsed.get("recommended_budget", 0))
+                    if amount > 0:
+                        return {
+                            "recommended_budget": amount,
+                            "formatted_budget": format_inr(amount),
+                            "explanation": parsed.get("explanation") or f"AI-calculated emergency budget for {title}."
+                        }
+            except Exception as e:
+                continue
+
+    # Domain heuristic fallback
+    cat_lower = category.lower()
+    text_corpus = f"{title} {description}".lower()
+
+    if "road" in cat_lower or "pothole" in text_corpus:
+        base = 80000
+    elif "drain" in cat_lower or "water" in cat_lower or "flood" in text_corpus:
+        base = 70000
+    elif "electr" in cat_lower or "light" in cat_lower:
+        base = 28000
+    elif "medic" in cat_lower or "health" in cat_lower or "hospit" in text_corpus:
+        base = 95000
+    elif "sanitat" in cat_lower or "garbage" in cat_lower:
+        base = 35000
+    else:
+        base = 50000
+
+    modifier = (float(severity) / 100.0) * 1.15
+    if "critical" in str(priority).lower() or severity >= 85:
+        modifier += 0.25
+    if any(k in text_corpus for k in ["crater", "collapse", "burst", "hazard", "fatal", "accident"]):
+        base += 30000
+
+    # Deterministic fingerprint variation
+    salt = abs(hash(title + location)) % 15
+    estimated = int(base * modifier + (salt * 1500))
+    estimated = round(estimated / 500) * 500
+
+    return {
+        "recommended_budget": estimated,
+        "formatted_budget": format_inr(estimated),
+        "explanation": f"Calculated based on {category} emergency triage parameters and {severity}/100 severity rating."
+    }
+
