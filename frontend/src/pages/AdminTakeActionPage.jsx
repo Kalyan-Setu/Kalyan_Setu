@@ -11,6 +11,7 @@ export default function AdminTakeActionPage() {
   });
 
   const selectedComplaint = complaints.find(c => c.id === selectedId || c.display_id === selectedId) || complaints[0] || {};
+  const selectedSeverity = selectedComplaint.aiSeverityScore ?? selectedComplaint.ai_severity_score;
 
   const [assignedDepartment, setAssignedDepartment] = useState(selectedComplaint.assignedDepartment || 'Public Works Department (PWD)');
   const [assignedOfficer, setAssignedOfficer] = useState(selectedComplaint.assignedOfficer || 'Er. Rajesh Kumar');
@@ -93,10 +94,14 @@ export default function AdminTakeActionPage() {
       });
 
       if (!res.ok) {
-        throw new Error(`Server returned ${res.status}`);
+        const detail = await res.text();
+        throw new Error(`Server returned ${res.status}: ${detail.slice(0, 160)}`);
       }
 
       const data = await res.json();
+      if (!Number.isFinite(Number(data.recommended_budget)) || Number(data.recommended_budget) <= 0) {
+        throw new Error('Budget agent returned an invalid recommendation');
+      }
       const formatted = data.formatted_budget || `₹${Number(data.recommended_budget).toLocaleString('en-IN')}`;
 
       setBudget(formatted);
@@ -173,7 +178,7 @@ export default function AdminTakeActionPage() {
         <div className="mb-lg border-b border-outline-variant pb-md">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-error mb-1">
             <span className="material-symbols-outlined text-sm">bolt</span>
-            <span>Executive Command Directives</span>
+            <span>ALL Problems With Ranking Manner</span>
           </div>
           <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary">
             Take Strategic Action
@@ -193,7 +198,11 @@ export default function AdminTakeActionPage() {
             </h2>
 
             <div className="flex flex-col gap-3">
-              {complaints.map((item) => (
+              {[...complaints].sort((a, b) => {
+                const scoreA = a.aiSeverityScore || a.ai_severity_score || 0;
+                const scoreB = b.aiSeverityScore || b.ai_severity_score || 0;
+                return scoreB - scoreA;
+              }).map((item) => (
                 <div
                   key={item.id}
                   onClick={() => {
@@ -233,7 +242,7 @@ export default function AdminTakeActionPage() {
                     <span className="text-xs font-bold text-on-surface">{selectedComplaint.title}</span>
                   </div>
                   <span className="text-xs font-bold text-error">
-                    AI Severity Score: {selectedComplaint.aiSeverityScore}/100
+                    AI Severity Score: {selectedSeverity == null ? 'Not analyzed' : `${selectedSeverity}/100`}
                   </span>
                 </div>
                 <p className="text-xs text-on-surface-variant leading-relaxed">

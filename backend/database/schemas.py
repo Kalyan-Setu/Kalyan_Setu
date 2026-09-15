@@ -170,12 +170,14 @@ class ThemeResult(BaseModel):
 
 class AnalyseResponse(BaseModel):
     themes: List[ThemeResult]
+    analyzed_count: int = 0
     budget_plan: Optional[List[dict]] = None
     sentiment_index: Optional[float] = None
     sentiment_score: Optional[float] = None
     budget_allocation_summary: Optional[dict] = None
     district_hotspots: Optional[List[dict]] = None
     early_warning_directives: Optional[List[dict]] = None
+    severity_results: Optional[List[dict]] = None
 
 
 class ChatRequest(BaseModel):

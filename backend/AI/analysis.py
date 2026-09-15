@@ -310,6 +310,10 @@ def format_inr(amount: int) -> str:
 
 async def estimate_complaint_budget(complaint: dict) -> dict:
     """Dynamically analyze a single citizen grievance and determine an AI-generated budget."""
+    from AI.budget_agent import recommend_budget
+
+    return await recommend_budget(complaint)
+
     import json
 
     title = complaint.get("title") or "Civic Grievance"

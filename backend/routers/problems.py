@@ -1,17 +1,13 @@
-"""Problems router — submit, list, get complaints."""
+"""Problems router — submit, list, get complaints using direct asyncpg."""
 
 import random
+import uuid
 from pathlib import Path
-from uuid import uuid4
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.connection import get_db
-from database.models import Problem, User
-from database.schemas import ProblemResponse, ProblemStatusUpdate
+from database.connection import fetch_one, fetch_all, execute
 from auth_utils import get_current_user
 
 router = APIRouter()
@@ -22,33 +18,102 @@ def _generate_display_id() -> str:
     return f"PP{random.randint(10000, 99999)}"
 
 
-def _problem_to_response(p: Problem, reporter_name: str = None) -> dict:
+def _format_problem(p: dict) -> dict:
+    if not p:
+        return {}
     return {
-        "id": str(p.id),
-        "display_id": p.display_id,
-        "title": p.title,
-        "description": p.description,
-        "ai_summary": p.ai_summary,
-        "category": p.category,
-        "location": p.location,
-        "district": p.district,
-        "state": p.state,
-        "priority": p.priority,
-        "status": p.status,
-        "evidence_type": p.evidence_type,
-        "file_url": p.file_url,
-        "voice_transcript": p.voice_transcript,
-        "ai_severity_score": p.ai_severity_score,
-        "sentiment": p.sentiment,
-        "theme_id": p.theme_id,
-        "assigned_department": p.assigned_department,
-        "assigned_officer": p.assigned_officer,
-        "action_notes": p.action_notes,
-        "budget": p.budget,
-        "created_at": p.created_at.isoformat() if p.created_at else None,
-        "updated_at": p.updated_at.isoformat() if p.updated_at else None,
-        "reported_by": reporter_name,
+        "id": str(p["id"]),
+        "display_id": p["display_id"],
+        "title": p["title"],
+        "description": p.get("description"),
+        "ai_summary": p.get("ai_summary"),
+        "category": p.get("category"),
+        "location": p.get("location"),
+        "district": p.get("district"),
+        "state": p.get("state"),
+        "priority": p.get("priority", "High"),
+        "status": p.get("status", "Submitted"),
+        "evidence_type": p.get("evidence_type", "text"),
+        "file_url": p.get("file_url"),
+        "voice_transcript": p.get("voice_transcript"),
+        "ai_severity_score": p.get("ai_severity_score"),
+        "sentiment": p.get("sentiment"),
+        "theme_id": p.get("theme_id"),
+        "assigned_department": p.get("assigned_department"),
+        "assigned_officer": p.get("assigned_officer"),
+        "action_notes": p.get("action_notes"),
+        "budget": p.get("budget"),
+        "created_at": p["created_at"].isoformat() if p.get("created_at") else None,
+        "updated_at": p["updated_at"].isoformat() if p.get("updated_at") else None,
+        "reported_by": p.get("full_name") or p.get("reported_by") or "Unknown",
     }
+
+
+@router.post("/transcribe")
+async def transcribe_audio(
+    file: UploadFile = File(...),
+    language_code: Optional[str] = Form("unknown"),
+):
+    """Transcribe uploaded voice recording using Sarvam AI (model: saaras:v3)."""
+    try:
+        from AI.processor import voice_to_text
+        audio_bytes = await file.read()
+        if not audio_bytes:
+            raise HTTPException(status_code=400, detail="Empty audio file")
+
+        transcript = await voice_to_text(audio_bytes, language_code=language_code or "unknown")
+        return {
+            "transcript": transcript or "",
+            "model": "saaras:v3",
+            "language_code": language_code,
+        }
+    except Exception as e:
+        print(f"[Transcribe] API Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+
+
+@router.post("/generate-description")
+async def generate_description(
+    transcript: str = Form(...),
+    category: Optional[str] = Form("General Civic Issue"),
+    location: Optional[str] = Form(""),
+    district: Optional[str] = Form(""),
+):
+    """Stage 2 of the voice pipeline: expand raw transcript into a formal
+    grievance title + description using Groq LLM."""
+    if not transcript.strip():
+        raise HTTPException(status_code=400, detail="Transcript cannot be empty")
+    try:
+        from AI.processor import generate_description_from_transcript
+        result = await generate_description_from_transcript(
+            transcript=transcript,
+            category=category or "General Civic Issue",
+            location=location or "",
+            district=district or "",
+        )
+        if result:
+            return {
+                "title": result["title"],
+                "description": result["description"],
+                "source_transcript": transcript,
+                "model": "groq",
+            }
+        # Groq unavailable — return transcript as-is so frontend can still use it
+        return {
+            "title": "",
+            "description": transcript,
+            "source_transcript": transcript,
+            "model": "raw_transcript",
+        }
+    except Exception as e:
+        print(f"[GenerateDescription] Error: {e}")
+        return {
+            "title": "",
+            "description": transcript,
+            "source_transcript": transcript,
+            "model": "raw_transcript",
+        }
+
 
 
 @router.post("")
@@ -63,28 +128,26 @@ async def submit_problem(
     evidence_type: Optional[str] = Form("text"),
     voice_transcript: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
-    db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    """Submit a new complaint. Accepts multipart form‑data for file uploads."""
-    user_id = current_user["sub"]
+    """Submit a new complaint."""
+    user_id_str = current_user["sub"]
+    user_id = uuid.UUID(user_id_str)
     user_state = current_user.get("state", state or "")
     user_district = current_user.get("district", district or "")
 
-    # Persist uploaded evidence so it remains available after the request.
     file_url = None
     ai_summary = None
     final_description = description or ""
     file_bytes = await file.read() if file else None
     if file_bytes:
         suffix = Path(file.filename or "evidence.bin").suffix.lower() or ".bin"
-        stored_name = f"{uuid4().hex}{suffix}"
+        stored_name = f"{uuid.uuid4().hex}{suffix}"
         UPLOAD_DIR.mkdir(exist_ok=True)
         (UPLOAD_DIR / stored_name).write_bytes(file_bytes)
         file_url = f"/uploads/{stored_name}"
 
     if file_bytes and evidence_type == "photo":
-        # Process image → text via AI
         try:
             from AI.processor import image_to_text, summarize_text
             extracted_text = await image_to_text(file_bytes)
@@ -95,7 +158,6 @@ async def submit_problem(
             print(f"[AI] Image processing failed: {e}")
 
     elif file_bytes and evidence_type == "voice":
-        # Process voice → text via AI
         try:
             from AI.processor import voice_to_text, summarize_text
             transcript = await voice_to_text(file_bytes)
@@ -114,7 +176,6 @@ async def submit_problem(
         except Exception as e:
             print(f"[AI] Text processing failed: {e}")
 
-    # Auto‑assign department based on category
     dept_map = {
         "Road": "Public Works Department (PWD)",
         "Water": "Delhi Jal Board",
@@ -130,105 +191,100 @@ async def submit_problem(
             assigned_dept = dept
             break
 
-    # AI severity score
-    severity = random.randint(60, 95)
+    # Severity is calculated by the AI analysis workflow, never guessed at submission time.
+    severity = None
     sentiment_map = {"Critical": "Critical Emergency", "High": "High Urgency", "Medium": "Moderate Concern", "Low": "Low Priority"}
     sentiment = sentiment_map.get(priority, "High Urgency")
 
-    problem = Problem(
-        display_id=_generate_display_id(),
-        user_id=user_id,
-        title=title,
-        description=final_description,
-        ai_summary=ai_summary,
-        category=category,
-        location=location,
-        district=user_district or district,
-        state=user_state or state,
-        priority=priority,
-        status="Submitted",
-        evidence_type=evidence_type,
-        file_url=file_url,
-        voice_transcript=voice_transcript,
-        ai_severity_score=severity,
-        sentiment=sentiment,
-        assigned_department=assigned_dept,
-        assigned_officer="Under Assignment",
-        action_notes="Grievance queued for automated AI analysis and officer triage.",
-        budget="Allocating...",
+    prob_id = uuid.uuid4()
+    display_id = _generate_display_id()
+
+    await execute(
+        """
+        INSERT INTO problems (
+            id, display_id, user_id, title, description, ai_summary, category, location,
+            district, state, priority, status, evidence_type, file_url, voice_transcript,
+            ai_severity_score, sentiment, assigned_department, assigned_officer, action_notes, budget
+        )
+        VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8,
+            $9, $10, $11, $12, $13, $14, $15,
+            $16, $17, $18, $19, $20, $21
+        )
+        """,
+        prob_id, display_id, user_id, title, final_description, ai_summary, category, location,
+        user_district or district, user_state or state, priority, "Submitted", evidence_type, file_url, voice_transcript,
+        severity, sentiment, assigned_dept, "Under Assignment", "Grievance queued for automated AI analysis and officer triage.", "Allocating..."
     )
 
-    db.add(problem)
-    await db.commit()
-    await db.refresh(problem)
-
-    # Fetch reporter name
-    user = (await db.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
-    reporter_name = user.full_name if user else "Unknown"
-
-    return _problem_to_response(problem, reporter_name)
+    created_p = await fetch_one(
+        "SELECT p.*, u.full_name FROM problems p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = $1",
+        prob_id
+    )
+    return _format_problem(created_p)
 
 
 @router.get("/mine")
-async def list_my_problems(
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-):
+async def list_my_problems(current_user: dict = Depends(get_current_user)):
     """List all problems submitted by the current citizen."""
-    user_id = current_user["sub"]
-    q = select(Problem).where(Problem.user_id == user_id).order_by(Problem.created_at.desc())
-    rows = (await db.execute(q)).scalars().all()
-
-    # Get reporter name
-    user = (await db.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
-    name = user.full_name if user else "Unknown"
-
-    return [_problem_to_response(p, name) for p in rows]
+    user_id = uuid.UUID(current_user["sub"])
+    rows = await fetch_all(
+        """
+        SELECT p.*, u.full_name
+        FROM problems p
+        LEFT JOIN users u ON p.user_id = u.id
+        WHERE p.user_id = $1
+        ORDER BY p.created_at DESC
+        """,
+        user_id
+    )
+    return [_format_problem(p) for p in rows]
 
 
 @router.get("/state/{state_name}")
 async def list_state_problems(
     state_name: str,
-    db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
     """List all problems for a given state (government officials only)."""
     if current_user.get("role") != "official":
         raise HTTPException(status_code=403, detail="Officials only")
 
-    q = (
-        select(Problem, User.full_name)
-        .outerjoin(User, Problem.user_id == User.id)
-        .where(func.lower(Problem.state) == state_name.lower())
-        .order_by(Problem.created_at.desc())
+    rows = await fetch_all(
+        """
+        SELECT p.*, u.full_name
+        FROM problems p
+        LEFT JOIN users u ON p.user_id = u.id
+        WHERE LOWER(p.state) = LOWER($1)
+        ORDER BY p.created_at DESC
+        """,
+        state_name
     )
-    rows = (await db.execute(q)).all()
-    return [_problem_to_response(p, name) for p, name in rows]
+    return [_format_problem(p) for p in rows]
 
 
 @router.get("/{display_id}")
 async def get_problem(
     display_id: str,
-    db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    """Get a single problem by its display ID with strict role & ownership isolation."""
-    q = (
-        select(Problem, User.full_name)
-        .outerjoin(User, Problem.user_id == User.id)
-        .where(Problem.display_id == display_id)
+    """Get a single problem by its display ID."""
+    p = await fetch_one(
+        """
+        SELECT p.*, u.full_name
+        FROM problems p
+        LEFT JOIN users u ON p.user_id = u.id
+        WHERE p.display_id = $1
+        """,
+        display_id
     )
-    row = (await db.execute(q)).first()
-    if not row:
+    if not p:
         raise HTTPException(status_code=404, detail="Problem not found")
-    p, name = row
 
     user_role = current_user.get("role")
     user_id = current_user.get("sub")
 
-    # If citizen, verify problem belongs to them
-    if user_role == "citizen" and str(p.user_id) != str(user_id):
+    if user_role == "citizen" and str(p["user_id"]) != str(user_id):
         raise HTTPException(status_code=403, detail="Forbidden: You can only view your own grievances.")
 
-    return _problem_to_response(p, name)
-
+    return _format_problem(p)

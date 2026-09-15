@@ -1,11 +1,9 @@
-"""Auth router — citizen signup / login, official login."""
+"""Auth router — citizen signup / login, official login using direct asyncpg."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, or_
-from sqlalchemy.ext.asyncio import AsyncSession
+import uuid
+from fastapi import APIRouter, HTTPException, status, Depends
 
-from database.connection import get_db
-from database.models import User, GovtUser
+from database.connection import fetch_one, execute
 from database.schemas import CitizenRegister, CitizenLogin, OfficialLogin, TokenResponse
 from auth_utils import hash_password, verify_password, create_token, get_current_user
 
@@ -13,129 +11,139 @@ router = APIRouter()
 
 
 @router.post("/citizen/register", response_model=TokenResponse)
-async def citizen_register(body: CitizenRegister, db: AsyncSession = Depends(get_db)):
+async def citizen_register(body: CitizenRegister):
     # Check duplicate phone / email
-    q = select(User).where(
-        or_(User.phone == body.phone, User.email == body.email) if body.email else User.phone == body.phone
-    )
-    existing = (await db.execute(q)).scalar_one_or_none()
+    if body.email:
+        existing = await fetch_one(
+            "SELECT id, phone, email FROM users WHERE phone = $1 OR email = $2",
+            body.phone, body.email
+        )
+    else:
+        existing = await fetch_one(
+            "SELECT id, phone, email FROM users WHERE phone = $1",
+            body.phone
+        )
+
     if existing:
-        if existing.phone == body.phone:
+        if existing["phone"] == body.phone:
             raise HTTPException(status_code=400, detail="Mobile number is already registered")
-        if body.email and existing.email == body.email:
+        if body.email and existing.get("email") == body.email:
             raise HTTPException(status_code=400, detail="Email is already registered")
         raise HTTPException(status_code=400, detail="Mobile number or email already registered")
 
-    user = User(
-        full_name=body.full_name,
-        phone=body.phone,
-        email=body.email,
-        password_hash=hash_password(body.password),
-        state=body.state,
-        district=body.district,
+    user_id = uuid.uuid4()
+    pwd_hash = hash_password(body.password)
+
+    await execute(
+        """
+        INSERT INTO users (id, full_name, phone, email, password_hash, state, district)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        """,
+        user_id, body.full_name, body.phone, body.email, pwd_hash, body.state, body.district
     )
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
 
     token = create_token({
-        "sub": str(user.id),
+        "sub": str(user_id),
         "role": "citizen",
-        "state": user.state,
-        "district": user.district,
+        "state": body.state,
+        "district": body.district,
     })
+
     return TokenResponse(
         access_token=token,
         role="citizen",
         user={
-            "id": str(user.id),
-            "full_name": user.full_name,
-            "phone": user.phone,
-            "email": user.email,
-            "state": user.state,
-            "district": user.district,
+            "id": str(user_id),
+            "full_name": body.full_name,
+            "phone": body.phone,
+            "email": body.email,
+            "state": body.state,
+            "district": body.district,
         },
     )
 
 
 @router.post("/citizen/login", response_model=TokenResponse)
-async def citizen_login(body: CitizenLogin, db: AsyncSession = Depends(get_db)):
-    q = select(User).where(
-        or_(User.phone == body.identifier, User.email == body.identifier)
+async def citizen_login(body: CitizenLogin):
+    user = await fetch_one(
+        "SELECT * FROM users WHERE phone = $1 OR email = $1",
+        body.identifier
     )
-    user = (await db.execute(q)).scalar_one_or_none()
-    if not user or not verify_password(body.password, user.password_hash):
+    if not user or not verify_password(body.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_token({
-        "sub": str(user.id),
+        "sub": str(user["id"]),
         "role": "citizen",
-        "state": user.state,
-        "district": user.district,
+        "state": user["state"],
+        "district": user["district"],
     })
     return TokenResponse(
         access_token=token,
         role="citizen",
         user={
-            "id": str(user.id),
-            "full_name": user.full_name,
-            "phone": user.phone,
-            "email": user.email,
-            "state": user.state,
-            "district": user.district,
+            "id": str(user["id"]),
+            "full_name": user["full_name"],
+            "phone": user["phone"],
+            "email": user["email"],
+            "state": user["state"],
+            "district": user["district"],
         },
     )
 
 
 @router.post("/official/login", response_model=TokenResponse)
-async def official_login(body: OfficialLogin, db: AsyncSession = Depends(get_db)):
-    q = select(GovtUser).where(GovtUser.email == body.email)
-    official = (await db.execute(q)).scalar_one_or_none()
-    
+async def official_login(body: OfficialLogin):
+    official = await fetch_one(
+        "SELECT * FROM govt_users WHERE LOWER(email) = LOWER($1)",
+        body.email
+    )
+
     # Auto-seed: kalyansetu@gov.in official account
     if not official and body.email.lower() == "kalyansetu@gov.in" and body.password == "kalyansetu1234":
-        official = GovtUser(
-            email="kalyansetu@gov.in",
-            password_hash=hash_password("kalyansetu1234"),
-            state="Delhi NCR",
-            department="Kalyan Setu Administration",
-            officer_name="Kalyan Setu Admin"
+        off_id = uuid.uuid4()
+        pwd_h = hash_password("kalyansetu1234")
+        await execute(
+            """
+            INSERT INTO govt_users (id, email, password_hash, state, department, officer_name)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            """,
+            off_id, "kalyansetu@gov.in", pwd_h, "Delhi NCR", "Kalyan Setu Administration", "Kalyan Setu Admin"
         )
-        db.add(official)
-        await db.commit()
-        await db.refresh(official)
+        official = await fetch_one("SELECT * FROM govt_users WHERE id = $1", off_id)
 
     # Auto-seed testing account if requested for subhampadhi33537@gmail.com
     if not official and body.email.lower() == "subhampadhi33537@gmail.com" and body.password == "subhampadhi33537":
-        official = GovtUser(
-            email="subhampadhi33537@gmail.com",
-            password_hash=hash_password("subhampadhi33537"),
-            state="Delhi NCR",
-            department="Public Works Department (PWD)",
-            officer_name="Er. Subham Padhi"
+        off_id = uuid.uuid4()
+        pwd_h = hash_password("subhampadhi33537")
+        await execute(
+            """
+            INSERT INTO govt_users (id, email, password_hash, state, department, officer_name)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            """,
+            off_id, "subhampadhi33537@gmail.com", pwd_h, "Delhi NCR", "Public Works Department (PWD)", "Er. Subham Padhi"
         )
-        db.add(official)
-        await db.commit()
-        await db.refresh(official)
+        official = await fetch_one("SELECT * FROM govt_users WHERE id = $1", off_id)
 
-    if not official or not verify_password(body.password, official.password_hash):
+    if not official or not verify_password(body.password, official["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_token({
-        "sub": str(official.id),
+        "sub": str(official["id"]),
         "role": "official",
-        "state": official.state,
-        "department": official.department or "",
+        "state": official["state"],
+        "department": official.get("department") or "",
     })
+
     return TokenResponse(
         access_token=token,
         role="official",
         user={
-            "id": str(official.id),
-            "email": official.email,
-            "state": official.state,
-            "department": official.department,
-            "officer_name": official.officer_name,
+            "id": str(official["id"]),
+            "email": official["email"],
+            "state": official["state"],
+            "department": official.get("department"),
+            "officer_name": official.get("officer_name"),
         },
     )
 

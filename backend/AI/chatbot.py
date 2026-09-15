@@ -1,26 +1,146 @@
-"""AI Chatbot — LangChain‑powered RAG assistant for government officials.
-
-Uses complaint data as context so the assistant answers from real data,
-not hallucinations.
-"""
+"""Grounded agentic RAG assistant for government officials."""
 
 from __future__ import annotations
 
+import re
 import uuid
-import httpx
+import json
+from typing import Any, TypedDict
 
-from config import GROQ_API_KEY, GROQ_PRIMARY_MODEL, GROQ_FALLBACK_MODELS
+from langchain_core.documents import Document
+from langchain_core.tools import tool
+from langchain_groq import ChatGroq
+from langgraph.graph import END, StateGraph
 
-# In‑memory conversation store (per session, not persistent)
-_conversations: dict[str, list[dict]] = {}
+from config import GROQ_API_KEY, GROQ_PRIMARY_MODEL
+
+_conversations: dict[str, list[dict[str, str]]] = {}
+_active_documents: list[Document] = []
 
 
-def _get_or_create_conversation(conversation_id: str | None) -> tuple[str, list[dict]]:
-    if conversation_id and conversation_id in _conversations:
-        return conversation_id, _conversations[conversation_id]
-    cid = conversation_id or str(uuid.uuid4())
-    _conversations[cid] = []
-    return cid, _conversations[cid]
+def _document_text(complaint: dict[str, Any]) -> str:
+    return (
+        f"Complaint #{complaint.get('display_id', '?')} | {complaint.get('title', '')}\n"
+        f"Category: {complaint.get('category', 'Unknown')} | Location: {complaint.get('location', 'Unknown')} | "
+        f"District: {complaint.get('district', 'Unknown')}\n"
+        f"Status: {complaint.get('status', 'Unknown')} | Priority: {complaint.get('priority', 'Unknown')} | "
+        f"AI Severity Score: {complaint.get('ai_severity_score', '?')}/100\n"
+        f"Description: {(complaint.get('description') or '')[:1200]}"
+    )
+
+
+@tool
+def retrieve_complaints(query: str, limit: int = 6) -> str:
+    """Retrieve the most relevant real complaints for the official's question."""
+    terms = set(re.findall(r"[a-z0-9]+", query.lower()))
+    ranked = []
+    for document in _active_documents:
+        words = set(re.findall(r"[a-z0-9]+", document.page_content.lower()))
+        overlap = len(terms & words)
+        severity = int(document.metadata.get("score") or 0)
+        ranked.append((overlap * 10 + severity / 100, document))
+    ranked.sort(key=lambda item: item[0], reverse=True)
+    return "\n\n".join(item[1].page_content for item in ranked[:max(1, min(limit, 10))])
+
+
+class RagState(TypedDict, total=False):
+    question: str
+    history: list[dict[str, str]]
+    context: str
+    answer: str
+
+
+async def _retrieve_node(state: RagState) -> RagState:
+    state["context"] = retrieve_complaints.invoke({"query": state["question"], "limit": 8})
+    return state
+
+
+async def _answer_node(state: RagState) -> RagState:
+    if not GROQ_API_KEY:
+        state["answer"] = "Groq is not configured. Please set GROQ_API_KEY to query the complaint knowledge base."
+        return state
+
+    prompt = (
+        "You are Kalyan Setu's government operations assistant. Answer ONLY from the retrieved complaint records. "
+        "Never invent complaints, scores, locations, dates, or actions. Cite complaint IDs when relevant. "
+        "If the records do not support an answer, say that clearly and ask a focused follow-up. "
+        "For recommendations, distinguish facts from recommendations and prioritize higher AI Severity Scores.\n\n"
+        f"RETRIEVED RECORDS:\n{state.get('context') or 'No matching records found.'}\n\n"
+        f"RECENT CONVERSATION:\n{state.get('history', [])[-6:]}\n\n"
+        f"OFFICIAL QUESTION:\n{state['question']}"
+    )
+    try:
+        llm = ChatGroq(model=GROQ_PRIMARY_MODEL, temperature=0.1, max_tokens=700)
+        response = await llm.ainvoke(prompt)
+        state["answer"] = response.content if isinstance(response.content, str) else str(response.content)
+    except Exception:
+        state["answer"] = "The AI assistant could not reach Groq right now. Please retry while keeping the analysis page open."
+    return state
+
+
+def _build_graph():
+    graph = StateGraph(RagState)
+    graph.add_node("retrieve", _retrieve_node)
+    graph.add_node("answer", _answer_node)
+    graph.set_entry_point("retrieve")
+    graph.add_edge("retrieve", "answer")
+    graph.add_edge("answer", END)
+    return graph.compile()
+
+
+_RAG_GRAPH = _build_graph()
+
+
+def _answer_prompt(question: str, context: str, history: list[dict[str, str]]) -> str:
+    return (
+        "You are Kalyan Setu's government operations assistant. Answer ONLY from the retrieved complaint records. "
+        "Never invent complaints, scores, locations, dates, or actions. Cite complaint IDs when relevant. "
+        "Use short headings and bullet points. Do not use markdown asterisks or tables. "
+        "If the records do not support an answer, say that clearly and ask a focused follow-up. "
+        "For recommendations, distinguish facts from recommendations and prioritize higher AI Severity Scores.\n\n"
+        f"RETRIEVED RECORDS:\n{context or 'No matching records found.'}\n\n"
+        f"RECENT CONVERSATION:\n{history[-6:]}\n\n"
+        f"OFFICIAL QUESTION:\n{question}"
+    )
+
+
+async def stream_chat(
+    message: str,
+    complaints_context: list[dict],
+    conversation_id: str | None = None,
+):
+    """Stream grounded answer tokens as newline-delimited SSE events."""
+    global _active_documents
+    conversation_id = conversation_id or str(uuid.uuid4())
+    history = _conversations.setdefault(conversation_id, [])
+    _active_documents = [
+        Document(page_content=_document_text(complaint), metadata={"score": complaint.get("ai_severity_score") or 0})
+        for complaint in complaints_context
+    ]
+    context = retrieve_complaints.invoke({"query": message, "limit": 8})
+    yield f"data: {json.dumps({'type': 'meta', 'conversation_id': conversation_id})}\n\n"
+
+    if not GROQ_API_KEY:
+        answer = "Groq is not configured. Please set GROQ_API_KEY to query the complaint knowledge base."
+        yield f"data: {json.dumps({'type': 'chunk', 'content': answer})}\n\n"
+    else:
+        prompt = _answer_prompt(message, context, history)
+        answer_parts = []
+        try:
+            llm = ChatGroq(model=GROQ_PRIMARY_MODEL, temperature=0.1, max_tokens=700)
+            async for chunk in llm.astream(prompt):
+                content = chunk.content if isinstance(chunk.content, str) else str(chunk.content)
+                if content:
+                    answer_parts.append(content)
+                    yield f"data: {json.dumps({'type': 'chunk', 'content': content})}\n\n"
+        except Exception:
+            answer_parts = ["The AI assistant could not reach Groq right now. Please retry while keeping the analysis page open."]
+            yield f"data: {json.dumps({'type': 'chunk', 'content': answer_parts[0]})}\n\n"
+
+        answer = "".join(answer_parts)
+
+    history.extend([{"role": "user", "content": message}, {"role": "assistant", "content": answer}])
+    yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
 
 async def chat(
@@ -28,100 +148,15 @@ async def chat(
     complaints_context: list[dict],
     conversation_id: str | None = None,
 ) -> tuple[str, str]:
-    """Chat with the AI assistant.
-
-    Returns (reply_text, conversation_id).
-    """
-    cid, history = _get_or_create_conversation(conversation_id)
-
-    # Build context from complaints
-    complaints_text = ""
-    for i, c in enumerate(complaints_context[:30]):  # limit context size
-        complaints_text += (
-            f"[{i+1}] #{c.get('display_id','?')} | {c.get('title','')} | "
-            f"Status: {c.get('status','')} | Priority: {c.get('priority','')} | "
-            f"Location: {c.get('location','')} | "
-            f"Severity: {c.get('ai_severity_score','?')}/100\n"
-            f"    Description: {(c.get('description','') or '')[:200]}\n"
-        )
-
-    system_prompt = (
-        "You are the Kalyan Setu AI Civic Assistant, helping government officials "
-        "understand and act on citizen complaints. You answer based ONLY on the "
-        "actual complaint data provided below. If you don't know, say so.\n\n"
-        "=== CITIZEN COMPLAINTS DATA ===\n"
-        f"{complaints_text}\n"
-        "=== END DATA ===\n\n"
-        "Guidelines:\n"
-        "- Be concise but thorough\n"
-        "- Cite complaint IDs when referencing specific issues\n"
-        "- If asked about ranking, explain the transparent scoring formula: "
-        "complaint_count × 3 + urgency_weight × 2 + avg_severity / 10\n"
-        "- Suggest concrete actionable steps\n"
-    )
-
-    messages = [{"role": "system", "content": system_prompt}]
-    for h in history[-10:]:  # keep last 10 turns
-        messages.append(h)
-    messages.append({"role": "user", "content": message})
-
-    # Call Groq with fallback chain
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json",
-    }
-    models = [GROQ_PRIMARY_MODEL] + GROQ_FALLBACK_MODELS
-    reply = "I'm unable to process your request right now. Please try again."
-
-    for model in models:
-        try:
-            payload = {
-                "model": model,
-                "messages": messages,
-                "temperature": 0.5,
-                "max_tokens": 600,
-            }
-            async with httpx.AsyncClient(timeout=30) as client:
-                resp = await client.post(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    headers=headers,
-                    json=payload,
-                )
-            if resp.status_code == 200:
-                reply = resp.json()["choices"][0]["message"]["content"].strip()
-                break
-            elif resp.status_code == 429:
-                print(f"[Chatbot] Rate limited on {model}, trying next…")
-                continue
-            else:
-                print(f"[Chatbot] {model} returned {resp.status_code}")
-                continue
-        except Exception as e:
-            print(f"[Chatbot] {model} error: {e}")
-            continue
-
-    if reply == "I'm unable to process your request right now. Please try again.":
-        if complaints_context:
-            highest = max(
-                complaints_context,
-                key=lambda item: (
-                    item.get('priority') == 'Critical',
-                    item.get('priority') == 'High',
-                    item.get('ai_severity_score') or 0,
-                ),
-            )
-            reply = (
-                f"The highest-priority active issue is #{highest.get('display_id', '?')}, "
-                f"{highest.get('title', 'Untitled complaint')}, at {highest.get('location', 'an unspecified location')}. "
-                f"It is marked {highest.get('priority', 'unknown')} priority with a severity score of "
-                f"{highest.get('ai_severity_score', 'unknown')}/100 and status {highest.get('status', 'unknown')}."
-            )
-        else:
-            reply = "There are no complaints in the selected state to analyze yet."
-
-    # Store in conversation history
-    history.append({"role": "user", "content": message})
-    history.append({"role": "assistant", "content": reply})
-    _conversations[cid] = history
-
-    return reply, cid
+    """Retrieve grounded complaint evidence, then answer with the agent graph."""
+    global _active_documents
+    conversation_id = conversation_id or str(uuid.uuid4())
+    history = _conversations.setdefault(conversation_id, [])
+    _active_documents = [
+        Document(page_content=_document_text(complaint), metadata={"score": complaint.get("ai_severity_score") or 0})
+        for complaint in complaints_context
+    ]
+    state = await _RAG_GRAPH.ainvoke({"question": message, "history": history})
+    reply = state["answer"]
+    history.extend([{"role": "user", "content": message}, {"role": "assistant", "content": reply}])
+    return reply, conversation_id
