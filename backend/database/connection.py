@@ -12,9 +12,7 @@ _pool: asyncpg.Pool | None = None
 
 
 def get_clean_dsn(url: str) -> str:
-    """Normalize SQLAlchemy DSN format to standard postgresql:// for asyncpg."""
-    if url.startswith("postgresql+asyncpg://"):
-        return url.replace("postgresql+asyncpg://", "postgresql://", 1)
+    """Normalize PostgreSQL-compatible DSN aliases for asyncpg."""
     if url.startswith("postgres://"):
         return url.replace("postgres://", "postgresql://", 1)
     return url

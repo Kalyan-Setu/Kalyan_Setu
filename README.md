@@ -13,7 +13,7 @@
   <img alt="Vite" src="https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white" />
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white" />
   <img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white" />
-  <img alt="Database" src="https://img.shields.io/badge/Database-Supabase%20PostgreSQL%20%7C%20SQLite-3ECF8E?logo=supabase&logoColor=white" />
+  <img alt="Database" src="https://img.shields.io/badge/Database-Supabase%20PostgreSQL-3ECF8E?logo=supabase&logoColor=white" />
 </p>
 
 > **Project status:** The repository contains a working local development stack. The frontend, backend, database fallback, authentication, evidence upload, admin workflow, and AI fallback paths have been exercised locally. Production hardening and provider configuration are still required before public deployment.
@@ -44,7 +44,7 @@ Kalyan Setu is a civic grievance redressal application with two role-based exper
 - **Citizens** can register, authenticate, submit text/photo/voice complaints, track milestones, post follow-up notes, and contact support.
 - **Government officials** can view complaints, filter and export records, assign departments and officers, update statuses, inspect dashboard metrics, and run AI-assisted state analysis.
 
-The application uses a React single-page frontend and a FastAPI backend. Supabase PostgreSQL is the primary database for storing users, grievances, official assignments, and contact inquiries. SQLAlchemy with asyncpg provides the database access layer; local SQLite is used only as a development fallback when no PostgreSQL URL is configured.
+The application uses a React single-page frontend and a FastAPI backend. Supabase PostgreSQL is the database for users, grievances, official assignments, and contact inquiries. The backend uses a direct asyncpg connection pool and PostgreSQL SQL; no ORM or SQLite fallback is used.
 
 ## Features
 
@@ -97,7 +97,7 @@ sequenceDiagram
     participant Citizen
     participant SPA as React SPA
     participant API as FastAPI
-    participant DB as SQLite / Supabase PostgreSQL
+    participant DB as Supabase PostgreSQL
     participant AI as Optional AI providers
 
     Citizen->>SPA: Register or sign in
@@ -121,9 +121,9 @@ sequenceDiagram
 | --- | --- |
 | Frontend | React 19, React DOM, Vite 6, Tailwind CSS, Recharts |
 | Backend | FastAPI, Uvicorn, Python multipart handling |
-| Database access | SQLAlchemy 2 async ORM, `asyncpg`, `aiosqlite` |
+| Database access | Direct `asyncpg` connection pool and PostgreSQL SQL |
 | Primary database | Supabase PostgreSQL |
-| Local fallback | SQLite database at `backend/kalyan_setu.db` |
+| Database | Supabase PostgreSQL |
 | Authentication | JWT (`python-jose`), bcrypt password hashing |
 | AI/ML | scikit-learn TF-IDF/KMeans, deterministic budget knapsack, Groq HTTP API, Hugging Face Inference API |
 | Media | Pillow dependency, browser `MediaRecorder`, static file serving for uploaded evidence |
@@ -205,7 +205,7 @@ The backend loads environment variables with `python-dotenv`. The frontend curre
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `DATABASE_URL` | Recommended | Supabase PostgreSQL connection URL used by SQLAlchemy/asyncpg. If unavailable, local SQLite fallback is used. |
+| `DATABASE_URL` | Recommended | Supabase PostgreSQL connection URL used by the direct asyncpg pool. |
 | `JWT_SECRET` | Yes for production | Secret used to sign bearer tokens. The code has a development fallback that must be replaced. |
 | `FRONTEND_URL` | No | Additional frontend origin included in CORS configuration. |
 | `GROQ_API_KEY` | No | Enables Groq summarization, impact estimation, and chatbot responses. |
@@ -298,7 +298,7 @@ Tables are created automatically during FastAPI startup through `create_tables()
 | `problems` | Grievance content, evidence metadata, AI fields, status, assignment, budget, and timestamps. |
 | `contact_us` | Support/contact submissions and timestamps. |
 
-Supabase PostgreSQL is the intended persistent datastore. SQLAlchemy/asyncpg is the async access layer used to read and write it. The default development fallback is `backend/kalyan_setu.db`, which is ignored by Git. There are no migration files in the repository; schema creation currently relies on SQLAlchemy metadata creation at startup.
+Supabase PostgreSQL is the persistent datastore. The backend uses direct asyncpg queries and creates the required tables at startup through `create_tables()`.
 
 > **Persistence note:** Complaint records and contact inquiries are persisted by the backend. Citizen follow-up notes and profile edits are currently managed in frontend state/local storage and are not exposed as dedicated backend update endpoints.
 
@@ -330,8 +330,7 @@ Kalyan_Setu/
 │   │   ├── chatbot.py          # Official complaint-context assistant
 │   │   └── processor.py        # Text, image, voice enrichment
 │   ├── database/
-│   │   ├── connection.py       # Async engine and SQLite fallback
-│   │   ├── models.py           # SQLAlchemy models
+│   │   ├── connection.py       # Direct asyncpg pool and PostgreSQL schema
 │   │   └── schemas.py          # Pydantic request/response contracts
 │   └── routers/
 │       ├── auth.py

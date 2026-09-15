@@ -6,11 +6,8 @@ load_dotenv()
 # ── Database ──────────────────────────────────────────────
 DATABASE_URL: str = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres",
+    "postgresql://postgres:postgres@localhost:5432/postgres",
 )
-# Supabase pooler uses transaction mode → disable prepared‑statement cache
-if "supabase" in DATABASE_URL:
-    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
 # ── Auth ──────────────────────────────────────────────────
 JWT_SECRET: str = os.getenv("JWT_SECRET", "kalyan-setu-super-secret-key-change-me")
