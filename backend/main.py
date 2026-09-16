@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from config import FRONTEND_ORIGINS
-from database.connection import create_tables
+from database.connection import init_db, close_db
 
 # Import routers
 from routers.auth import router as auth_router
@@ -20,9 +20,10 @@ from routers.ai import router as ai_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: ensure DB tables exist."""
-    await create_tables()
+    """Startup: initialize asyncpg pool and ensure DB tables exist; Shutdown: close pool."""
+    await init_db()
     yield
+    await close_db()
 
 
 app = FastAPI(

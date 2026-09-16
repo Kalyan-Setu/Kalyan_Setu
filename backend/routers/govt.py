@@ -1,45 +1,44 @@
-"""Government router — status updates, bulk assign, dashboard stats."""
+"""Government router — status updates, bulk assign, dashboard stats using direct asyncpg."""
 
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, func, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.connection import get_db
-from database.models import Problem, User
+from database.connection import fetch_one, fetch_all, execute
 from database.schemas import ProblemStatusUpdate, BulkAssign, DashboardStats
 from auth_utils import get_current_user
 
 router = APIRouter()
 
 
-def _problem_to_response(p: Problem, reporter_name: str = None) -> dict:
+def _format_problem(p: dict) -> dict:
+    if not p:
+        return {}
     return {
-        "id": str(p.id),
-        "display_id": p.display_id,
-        "title": p.title,
-        "description": p.description,
-        "ai_summary": p.ai_summary,
-        "category": p.category,
-        "location": p.location,
-        "district": p.district,
-        "state": p.state,
-        "priority": p.priority,
-        "status": p.status,
-        "evidence_type": p.evidence_type,
-        "file_url": p.file_url,
-        "voice_transcript": p.voice_transcript,
-        "ai_severity_score": p.ai_severity_score,
-        "sentiment": p.sentiment,
-        "theme_id": p.theme_id,
-        "assigned_department": p.assigned_department,
-        "assigned_officer": p.assigned_officer,
-        "action_notes": p.action_notes,
-        "budget": p.budget,
-        "created_at": p.created_at.isoformat() if p.created_at else None,
-        "updated_at": p.updated_at.isoformat() if p.updated_at else None,
-        "reported_by": reporter_name,
+        "id": str(p["id"]),
+        "display_id": p["display_id"],
+        "title": p["title"],
+        "description": p.get("description"),
+        "ai_summary": p.get("ai_summary"),
+        "category": p.get("category"),
+        "location": p.get("location"),
+        "district": p.get("district"),
+        "state": p.get("state"),
+        "priority": p.get("priority", "High"),
+        "status": p.get("status", "Submitted"),
+        "evidence_type": p.get("evidence_type", "text"),
+        "file_url": p.get("file_url"),
+        "voice_transcript": p.get("voice_transcript"),
+        "ai_severity_score": p.get("ai_severity_score"),
+        "sentiment": p.get("sentiment"),
+        "theme_id": p.get("theme_id"),
+        "assigned_department": p.get("assigned_department"),
+        "assigned_officer": p.get("assigned_officer"),
+        "action_notes": p.get("action_notes"),
+        "budget": p.get("budget"),
+        "created_at": p["created_at"].isoformat() if p.get("created_at") else None,
+        "updated_at": p["updated_at"].isoformat() if p.get("updated_at") else None,
+        "reported_by": p.get("full_name") or p.get("reported_by") or "Unknown",
     }
 
 
@@ -52,121 +51,117 @@ def _require_official(user: dict):
 async def update_status(
     display_id: str,
     body: ProblemStatusUpdate,
-    db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
     """Update a problem's status, notes, officer, department, or budget."""
     _require_official(current_user)
 
-    q = select(Problem).where(Problem.display_id == display_id)
-    problem = (await db.execute(q)).scalar_one_or_none()
+    problem = await fetch_one("SELECT * FROM problems WHERE display_id = $1", display_id)
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
 
-    problem.status = body.status
+    action_notes = problem.get("action_notes")
     if body.action_notes:
         now = datetime.now(timezone.utc).strftime("%d %b %Y")
-        problem.action_notes = f"{body.action_notes} (Updated on {now})"
-    if body.assigned_officer:
-        problem.assigned_officer = body.assigned_officer
-    if body.assigned_department:
-        problem.assigned_department = body.assigned_department
-    if body.budget:
-        problem.budget = body.budget
-    problem.updated_at = datetime.now(timezone.utc)
+        action_notes = f"{body.action_notes} (Updated on {now})"
 
-    await db.commit()
+    assigned_officer = body.assigned_officer or problem.get("assigned_officer")
+    assigned_department = body.assigned_department or problem.get("assigned_department")
+    budget = body.budget or problem.get("budget")
+
+    await execute(
+        """
+        UPDATE problems
+        SET status = $1, action_notes = $2, assigned_officer = $3,
+            assigned_department = $4, budget = $5, updated_at = CURRENT_TIMESTAMP
+        WHERE display_id = $6 OR CAST(id AS TEXT) = $6
+        """,
+        body.status, action_notes, assigned_officer, assigned_department, budget, display_id
+    )
+
     return {"message": f"Problem {display_id} updated to {body.status}"}
 
 
 @router.get("/problems/all")
-async def list_all_problems(
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-):
+async def list_all_problems(current_user: dict = Depends(get_current_user)):
     """List ALL problems across all states (government officials only)."""
     _require_official(current_user)
 
-    q = (
-        select(Problem, User.full_name)
-        .outerjoin(User, Problem.user_id == User.id)
-        .order_by(Problem.created_at.desc())
+    rows = await fetch_all(
+        """
+        SELECT p.*, u.full_name
+        FROM problems p
+        LEFT JOIN users u ON p.user_id = u.id
+        ORDER BY COALESCE(p.ai_severity_score, 0) DESC, p.created_at DESC
+        """
     )
-    rows = (await db.execute(q)).all()
-    return [_problem_to_response(p, name) for p, name in rows]
+    return [_format_problem(p) for p in rows]
 
 
 @router.get("/problems")
-async def list_problems_for_official(
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-):
+async def list_problems_for_official(current_user: dict = Depends(get_current_user)):
     """List problems for the official's state (or all if superadmin)."""
     _require_official(current_user)
-    state = (current_user.get("state") or "").strip()
 
-    # Superadmin (kalyansetu@gov.in) sees all complaints
-    if not state:
-        q = (
-            select(Problem, User.full_name)
-            .outerjoin(User, Problem.user_id == User.id)
-            .order_by(Problem.created_at.desc())
-        )
-    else:
-        q = (
-            select(Problem, User.full_name)
-            .outerjoin(User, Problem.user_id == User.id)
-            .order_by(Problem.created_at.desc())
-        )
-
-    rows = (await db.execute(q)).all()
-    return [_problem_to_response(p, name) for p, name in rows]
+    rows = await fetch_all(
+        """
+        SELECT p.*, u.full_name
+        FROM problems p
+        LEFT JOIN users u ON p.user_id = u.id
+        ORDER BY p.created_at DESC
+        """
+    )
+    return [_format_problem(p) for p in rows]
 
 
 @router.post("/problems/bulk-assign")
 async def bulk_assign(
     body: BulkAssign,
-    db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
     """Bulk assign department + officer to multiple problems."""
     _require_official(current_user)
 
-    q = (
-        update(Problem)
-        .where(Problem.display_id.in_(body.problem_ids))
-        .values(
-            assigned_department=body.department,
-            assigned_officer=body.officer,
-            status="Action Assigned",
-            updated_at=datetime.now(timezone.utc),
-        )
+    if not body.problem_ids:
+        return {"message": "No problems selected"}
+
+    res = await execute(
+        """
+        UPDATE problems
+        SET assigned_department = $1,
+            assigned_officer = $2,
+            status = 'Action Assigned',
+            updated_at = CURRENT_TIMESTAMP
+        WHERE display_id = ANY($3) OR CAST(id AS TEXT) = ANY($3)
+        """,
+        body.department, body.officer, body.problem_ids
     )
-    result = await db.execute(q)
-    await db.commit()
-    return {"message": f"Assigned {result.rowcount} complaints to {body.department}"}
+
+    return {"message": f"Assigned selected complaints to {body.department}"}
 
 
 @router.get("/dashboard/stats", response_model=DashboardStats)
-async def dashboard_stats(
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-):
+async def dashboard_stats(current_user: dict = Depends(get_current_user)):
     """Aggregated complaint statistics for the official's state."""
     _require_official(current_user)
     state = current_user.get("state", "")
 
-    base = select(Problem).where(func.lower(Problem.state) == state.lower())
-    problems = (await db.execute(base)).scalars().all()
+    problems = await fetch_all(
+        "SELECT * FROM problems WHERE LOWER(state) = LOWER($1)",
+        state
+    )
 
     status_counts = {}
     priority_counts = {}
     category_counts = {}
 
     for p in problems:
-        status_counts[p.status] = status_counts.get(p.status, 0) + 1
-        priority_counts[p.priority or "Unknown"] = priority_counts.get(p.priority or "Unknown", 0) + 1
-        cat = (p.category or "Other").split("(")[0].strip()
+        st = p.get("status") or "Submitted"
+        pr = p.get("priority") or "Unknown"
+        cat = (p.get("category") or "Other").split("(")[0].strip()
+
+        status_counts[st] = status_counts.get(st, 0) + 1
+        priority_counts[pr] = priority_counts.get(pr, 0) + 1
         category_counts[cat] = category_counts.get(cat, 0) + 1
 
     return DashboardStats(

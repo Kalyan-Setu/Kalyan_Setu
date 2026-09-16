@@ -150,7 +150,7 @@ function formatBackendProblem(p) {
       : "",
     audioLength: p.voice_transcript ? "Recorded" : "",
     voiceTranscript: p.voice_transcript || "",
-    aiSeverityScore: p.ai_severity_score || 75,
+    aiSeverityScore: p.ai_severity_score ?? null,
     sentiment: p.sentiment || "High Urgency",
     actionNotes: p.action_notes || "Grievance queued for automated AI analysis and officer triage.",
     timeline

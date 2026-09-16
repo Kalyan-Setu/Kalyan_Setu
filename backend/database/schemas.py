@@ -170,12 +170,14 @@ class ThemeResult(BaseModel):
 
 class AnalyseResponse(BaseModel):
     themes: List[ThemeResult]
+    analyzed_count: int = 0
     budget_plan: Optional[List[dict]] = None
     sentiment_index: Optional[float] = None
     sentiment_score: Optional[float] = None
     budget_allocation_summary: Optional[dict] = None
     district_hotspots: Optional[List[dict]] = None
     early_warning_directives: Optional[List[dict]] = None
+    severity_results: Optional[List[dict]] = None
 
 
 class ChatRequest(BaseModel):
@@ -187,3 +189,23 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     reply: str
     conversation_id: str
+
+
+class BudgetEstimateRequest(BaseModel):
+    problem_id: Optional[str] = None
+    display_id: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    location: Optional[str] = None
+    district: Optional[str] = None
+    state: Optional[str] = None
+    priority: Optional[str] = None
+    ai_severity_score: Optional[int] = None
+    ai_summary: Optional[str] = None
+
+
+class BudgetEstimateResponse(BaseModel):
+    recommended_budget: int
+    formatted_budget: str
+    explanation: Optional[str] = None

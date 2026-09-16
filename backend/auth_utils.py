@@ -54,3 +54,16 @@ async def get_current_user(
             detail="Not authenticated",
         )
     return decode_token(creds.credentials)
+
+
+async def get_optional_user(
+    creds: HTTPAuthorizationCredentials = Depends(security),
+) -> dict | None:
+    """FastAPI dependency – extracts user info if bearer token is present, else returns None."""
+    if creds is None or not creds.credentials:
+        return None
+    try:
+        return decode_token(creds.credentials)
+    except Exception:
+        return None
+

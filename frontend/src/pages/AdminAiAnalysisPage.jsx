@@ -1,9 +1,29 @@
 import React, { useState } from 'react';
 import { useCivic, API_BASE } from '../context/CivicContext';
 import AdminSidebar from '../components/AdminSidebar';
+import GeographicGrievanceMap from '../components/GeographicGrievanceMap';
+
+function renderAssistantText(text) {
+  return text.split('\n').map((line, index) => {
+    const trimmed = line.trim();
+    const parts = trimmed.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
+    const content = parts.map((part, partIndex) => part.startsWith('**') && part.endsWith('**')
+      ? <strong key={partIndex}>{part.slice(2, -2)}</strong>
+      : part);
+
+    if (!trimmed) return <div key={index} className="h-1" />;
+    if (/^#{1,3}\s/.test(trimmed)) {
+      return <h4 key={index} className="font-bold text-primary mt-2 mb-1">{trimmed.replace(/^#{1,3}\s/, '')}</h4>;
+    }
+    if (/^[-•]\s/.test(trimmed)) {
+      return <div key={index} className="flex gap-2"><span className="text-gov-saffron">•</span><span>{content}</span></div>;
+    }
+    return <p key={index} className="mb-1 last:mb-0">{content}</p>;
+  });
+}
 
 export default function AdminAiAnalysisPage() {
-  const { complaints, navigateTo, currentUser, authToken } = useCivic();
+  const { complaints, navigateTo, currentUser, authToken, fetchComplaints } = useCivic();
   const [mobileMode, setMobileMode] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [aiAnalysisResult, setAiAnalysisResult] = useState(null);
@@ -12,66 +32,18 @@ export default function AdminAiAnalysisPage() {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatQuery, setChatQuery] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  const [chatConversationId, setChatConversationId] = useState(null);
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'ai',
-      text: 'Namaste! I am the Kalyan Setu Neural Assistant powered by Groq & LangChain RAG. How can I assist you with state grievance intelligence today?'
+      text: '🤖Namaste! I am the Kalyan Setu AI powered Assistant . How can I assist you with state grievance intelligence today?'
     }
   ]);
-
-  const defaultClusters = [
-    {
-      id: complaints[0]?.id || "PP24891",
-      name: "Road & Asphalt Structural Damage",
-      description: "Severe surface asphalt erosion, deep potholes, and physical hazards across primary commercial & transit corridors.",
-      count: 6,
-      risk: "Critical",
-      color: "bg-error-container text-on-error-container border-error",
-      growth: "+15%"
-    },
-    {
-      id: complaints[1]?.id || "PP24892",
-      name: "Stormwater Drainage & Flood Inundation",
-      description: "Choked underground storm drains, monsoon silt accumulation, and standing waterlogging in residential blocks.",
-      count: 4,
-      risk: "High",
-      color: "bg-error/10 text-error border-error/30",
-      growth: "+15%"
-    },
-    {
-      id: complaints[2]?.id || "PP24893",
-      name: "Public Lighting & Dark Corridor Hazards",
-      description: "Consecutive streetlight fixture outages and underground cable faults compromising nocturnal public safety.",
-      count: 4,
-      risk: "Critical",
-      color: "bg-error-container text-on-error-container border-error",
-      growth: "+24%"
-    }
-  ];
-
-  const defaultPredictiveAlerts = [
-    {
-      id: 1,
-      title: "Drainage Overflow Risk - East District Ward 12",
-      prob: "88% Probability",
-      desc: "Weather forecast predicts 35mm precipitation in next 24h. Historical drainage models flag 5 vulnerable low-lying junctions.",
-      action: "Pre-position suction pumps",
-      level: "Critical"
-    },
-    {
-      id: 2,
-      title: "Road Integrity Degradation - Ring Road Sector 4",
-      prob: "74% Probability",
-      desc: "High heavy-truck density combined with moisture saturation will expand existing potholes into major crater hazards.",
-      action: "Issue PWD asphalt patch work order",
-      level: "High"
-    }
-  ];
 
   const runLiveAiAnalysis = async () => {
     setAnalyzing(true);
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s fast timeout
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     // Calculate dynamic budget sum from complaints array
     const totalBudgetSum = complaints.reduce((sum, c) => {
@@ -99,11 +71,13 @@ export default function AdminAiAnalysisPage() {
         const data = await res.json();
         setAiAnalysisResult({
           ...data,
+          analyzed_count: data.analyzed_count || complaints.length,
           sentiment_score: data.sentiment_score || 82.4,
           sentiment_trend: "+5.8 pts improvement post-resolution",
           triage_accuracy: 98.2,
           budget_allocation_summary: data.budget_allocation_summary || { total_allocated: totalBudgetSum }
         });
+        await fetchComplaints();
       } else {
         throw new Error("AI analysis response error");
       }
@@ -121,29 +95,26 @@ export default function AdminAiAnalysisPage() {
           recommended_themes: []
         },
         district_hotspots: [
-          { district: `${currentUser?.state || 'Central'} District - Ward 12`, count: Math.ceil(totalComplaints * 0.4), severity: 'Critical' }
+          { district: `${currentUser?.state || 'East'} District - Ward 12 & Indiranagar`, count: Math.ceil(totalComplaints * 0.4), severity: 'Critical', category: 'Drainage & Road Inundation' },
+          { district: `${currentUser?.state || 'South'} District - Sector 4 & Metro Line`, count: Math.ceil(totalComplaints * 0.3), severity: 'High', category: 'Road Infrastructure Hazards' },
+          { district: `${currentUser?.state || 'Central'} District - Commercial Corridor`, count: Math.ceil(totalComplaints * 0.2), severity: 'High', category: 'Public Sanitation & Lighting' },
+          { district: `${currentUser?.state || 'North'} District - Outer Ring Road`, count: Math.max(2, Math.floor(totalComplaints * 0.1)), severity: 'Medium', category: 'Streetlight Cable Outages' },
         ],
-        early_warning_directives: [
-          {
-            hazard_title: "Monsoon Drainage Overflow Vulnerability",
-            confidence: "92% Probability",
-            description: `Precipitation forecast flags 4 low-lying junctions in ${currentUser?.state || 'Delhi NCR'}.`,
-            recommended_action: "Pre-position suction pumps",
-            level: "Critical"
-          },
-          {
-            hazard_title: "High Density Pothole Saturation Alert",
-            confidence: "81% Probability",
-            description: "Moisture saturation & heavy vehicle density expanding asphalt craters.",
-            recommended_action: "Issue PWD asphalt patch work order",
-            level: "High"
-          }
-        ],
-        themes: [
-          { id: complaints[0]?.id || "PP24891", theme_name: "Road Infrastructure — Road damaged broken", complaint_count: 6, risk_level: "Critical", growth: "+15%" },
-          { id: complaints[1]?.id || "PP24892", theme_name: "Road Infrastructure — Voice Report Road", complaint_count: 4, risk_level: "High", growth: "+15%" },
-          { id: complaints[2]?.id || "PP24893", theme_name: "Monsoon Drainage & Water Inundation", complaint_count: 4, risk_level: "Critical", growth: "+24%" }
-        ]
+        analyzed_count: complaints.length,
+        early_warning_directives: complaints
+          .filter((complaint) => (complaint.aiSeverityScore || complaint.ai_severity_score || 0) > 65)
+          .sort((a, b) => (b.aiSeverityScore || b.ai_severity_score || 0) - (a.aiSeverityScore || a.ai_severity_score || 0))
+          .map((complaint) => {
+            const score = complaint.aiSeverityScore || complaint.ai_severity_score;
+            return {
+              problem_id: complaint.id || complaint.display_id,
+              hazard_title: `Predictive Warning: ${complaint.category || 'Civic'} Hazard`,
+              score,
+              description: `${complaint.title || 'Complaint'} at ${complaint.location || complaint.district || 'reported location'}.`,
+              recommended_action: 'Dispatch field crew within 48 hours',
+              level: score >= 90 ? 'Critical' : 'High'
+            };
+          })
       });
     } finally {
       setAnalyzing(false);
@@ -165,20 +136,46 @@ export default function AdminAiAnalysisPage() {
         'Content-Type': 'application/json',
         ...(authToken ? { Authorization: `Bearer ${authToken}` } : {})
       };
-      const res = await fetch(`${API_BASE}/ai/chat`, {
+      const res = await fetch(`${API_BASE}/ai/chat/stream`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
           message: userText,
-          state: currentUser.state || 'Delhi NCR'
+          state: currentUser.state || 'Delhi NCR',
+          conversation_id: chatConversationId
         })
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        setChatMessages(prev => [...prev, { sender: 'ai', text: data.reply || data.answer || "Analyzed grievance database." }]);
-      } else {
+      if (!res.ok || !res.body) {
         throw new Error("Chat request failed");
+      }
+
+      setChatMessages(prev => [...prev, { sender: 'ai', text: '' }]);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let finished = false;
+      while (!finished) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split('\n\n');
+        buffer = events.pop() || '';
+        for (const event of events) {
+          const line = event.split('\n').find(item => item.startsWith('data: '));
+          if (!line) continue;
+          const data = JSON.parse(line.slice(6));
+          if (data.type === 'meta') setChatConversationId(data.conversation_id);
+          if (data.type === 'chunk') {
+            setChatMessages(prev => {
+              const next = [...prev];
+              const last = next.length - 1;
+              next[last] = { ...next[last], text: `${next[last].text}${data.content}` };
+              return next;
+            });
+          }
+          if (data.type === 'done') finished = true;
+        }
       }
     } catch (err) {
       setChatMessages(prev => [...prev, {
@@ -190,78 +187,77 @@ export default function AdminAiAnalysisPage() {
     }
   };
 
-  // Dynamic derivation of top 3 clusters from actual complaints list
-  const dynamicClusters = React.useMemo(() => {
+  // Dynamic derivation of District Hotspots from actual state complaints
+  const dynamicDistrictHotspots = React.useMemo(() => {
     if (!complaints || complaints.length === 0) {
-      return defaultClusters;
+      return [
+        { district: `${currentUser?.state || 'East'} District - Ward 12 & Indiranagar`, count: 18, severity: 'Critical', category: 'Drainage & Road Inundation' },
+        { district: `${currentUser?.state || 'South'} District - Sector 4 & Metro Line`, count: 12, severity: 'High', category: 'Road Infrastructure Hazards' },
+        { district: `${currentUser?.state || 'Central'} District - Commercial Corridor`, count: 9, severity: 'High', category: 'Public Sanitation & Lighting' },
+        { district: `${currentUser?.state || 'North'} District - Outer Ring Road`, count: 6, severity: 'Medium', category: 'Streetlight Cable Outages' },
+      ];
     }
-
-    const categoryMap = {};
+    const distMap = {};
     complaints.forEach(c => {
-      const cat = c.category || "General Infrastructure";
-      if (!categoryMap[cat]) categoryMap[cat] = [];
-      categoryMap[cat].push(c);
+      const d = c.district || c.location || "Central District";
+      if (!distMap[d]) distMap[d] = { district: d, count: 0, criticalCount: 0, categories: new Set() };
+      distMap[d].count += 1;
+      if (c.priority === 'Critical' || (c.aiSeverityScore || c.ai_severity_score || 0) >= 80) {
+        distMap[d].criticalCount += 1;
+      }
+      if (c.category) distMap[d].categories.add(c.category);
     });
 
-    const list = Object.entries(categoryMap).map(([category, items]) => {
-      const sorted = [...items].sort((a, b) => (b.aiSeverityScore || b.ai_severity_score || 50) - (a.aiSeverityScore || a.ai_severity_score || 50));
-      const lead = sorted[0];
-      const maxSev = lead.aiSeverityScore || lead.ai_severity_score || 50;
-      const priority = lead.priority || (maxSev >= 85 ? "Critical" : maxSev >= 70 ? "High" : "Medium");
+    const list = Object.values(distMap).map(item => ({
+      district: item.district,
+      count: item.count,
+      severity: item.criticalCount > 0 || item.count >= 5 ? 'Critical' : item.count >= 3 ? 'High' : 'Medium',
+      category: Array.from(item.categories).slice(0, 2).join(' & ') || 'Infrastructure Issues'
+    }));
 
-      return {
-        id: lead.id || lead.display_id || "PP24891",
-        name: `${category} — ${lead.title}`,
-        count: items.length,
-        risk: priority,
-        color: priority === 'Critical' ? "bg-error-container text-on-error-container border-error" : priority === 'High' ? "bg-error/10 text-error border-error/30" : "bg-secondary-container/30 text-on-secondary-container border-secondary-container",
-        growth: priority === 'Critical' ? "+24%" : "+15%",
-        maxSev
-      };
-    });
+    list.sort((a, b) => b.count - a.count);
+    return list;
+  }, [complaints, currentUser]);
 
-    list.sort((a, b) => b.maxSev - a.maxSev);
-    return list.slice(0, 3);
-  }, [complaints]);
-
-  // Top 2 highest AI Severity Score complaints for Predictive Early Warning Directives (crisis_alert)
-  const top2HighestSeverityComplaints = React.useMemo(() => {
-    if (!complaints || complaints.length === 0) return [];
-    return [...complaints].sort((a, b) => {
-      const scoreA = a.aiSeverityScore || a.ai_severity_score || 50;
-      const scoreB = b.aiSeverityScore || b.ai_severity_score || 50;
-      return scoreB - scoreA;
-    }).slice(0, 2);
-  }, [complaints]);
-
-  const activeClusters = aiAnalysisResult?.themes && aiAnalysisResult.themes.length > 0
-    ? aiAnalysisResult.themes.slice(0, 3).map((t, idx) => {
-        const matchingComplaint = complaints.find(c =>
-          c.category?.toLowerCase() === t.theme_name?.toLowerCase() ||
-          t.theme_name?.toLowerCase().includes(c.category?.toLowerCase())
-        ) || complaints[idx % complaints.length] || {};
-
-        return {
-          id: matchingComplaint.id || matchingComplaint.display_id || t.id || "PP24891",
-          name: t.theme_name || matchingComplaint.title || "Civic Cluster",
-          count: t.complaint_count || 4,
-          risk: t.risk_level || matchingComplaint.priority || "High",
-          color: t.risk_level === 'Critical' ? "bg-error-container text-on-error-container border-error" : t.risk_level === 'Medium' ? "bg-secondary-container/30 text-on-secondary-container border-secondary-container" : "bg-error/10 text-error border-error/30",
-          growth: t.growth || "+15%"
-        };
-      })
-    : dynamicClusters;
-
-  const activePredictiveAlerts = top2HighestSeverityComplaints.length > 0
-    ? top2HighestSeverityComplaints.map((c) => ({
-        id: c.id || c.display_id,
-        title: `Predictive Alert: ${c.category || 'Infrastructure'} Emergency`,
-        prob: `${c.aiSeverityScore || 90}% AI Severity Score`,
-        desc: `${c.title} (${c.location || c.district || 'Urban District'}). ${c.description}`,
-        action: `Dispatch ${c.assignedDepartment || 'Emergency Cell'} team`,
-        level: c.priority || "Critical"
+  const activeHotspots = aiAnalysisResult?.district_hotspots && aiAnalysisResult.district_hotspots.length > 0
+    ? aiAnalysisResult.district_hotspots.map(h => ({
+        district: h.district,
+        count: h.count || 5,
+        severity: h.severity || 'High',
+        category: h.category || 'Co-located Civic Grievances'
       }))
-    : defaultPredictiveAlerts;
+    : dynamicDistrictHotspots;
+
+  const storedScoreAlerts = React.useMemo(() => complaints
+    .filter((complaint) => (complaint.aiSeverityScore || complaint.ai_severity_score || 0) > 65)
+    .sort((a, b) => (b.aiSeverityScore || b.ai_severity_score || 0) - (a.aiSeverityScore || a.ai_severity_score || 0))
+    .map((complaint) => {
+      const score = complaint.aiSeverityScore || complaint.ai_severity_score;
+      return {
+        id: complaint.id || complaint.display_id,
+        title: `Predictive Warning: ${complaint.category || 'Civic'} Hazard`,
+        score,
+        desc: `${complaint.title || 'Complaint'} at ${complaint.location || complaint.district || 'reported location'}.`,
+        action: 'Dispatch field crew within 48 hours',
+        level: score >= 90 ? 'Critical' : 'High'
+      };
+    }), [complaints]);
+
+  const analyzedAlerts = (aiAnalysisResult?.early_warning_directives || []).map((alert) => ({
+      id: alert.problem_id,
+      title: alert.hazard_title,
+      score: alert.score,
+      desc: alert.description,
+      action: alert.recommended_action,
+      level: alert.level
+    }));
+
+  const activePredictiveAlerts = [
+    ...analyzedAlerts,
+    ...storedScoreAlerts.filter((storedAlert) =>
+      !analyzedAlerts.some((analyzedAlert) => analyzedAlert.id === storedAlert.id)
+    )
+  ];
 
 
   return (
@@ -280,7 +276,7 @@ export default function AdminAiAnalysisPage() {
               AI State Analysis & Insights
             </h1>
             <p className="font-body-md text-xs text-on-surface-variant mt-1">
-              Predictive risk models, automated NLP speech clustering, and Groq RAG telemetry.
+              Predictive risk models, automated  speech clustering, and RAG telemetry.
             </p>
           </div>
 
@@ -291,7 +287,7 @@ export default function AdminAiAnalysisPage() {
               className="bg-gov-saffron text-white font-bold text-xs px-3.5 py-2 rounded flex items-center gap-1.5 shadow-md hover:brightness-105 disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-sm">{analyzing ? 'sync' : 'auto_awesome'}</span>
-              <span>{analyzing ? 'Running AI Pipeline...' : 'Run 5-Step AI Analysis'}</span>
+              <span>{analyzing ? 'Running AI Pipeline...' : 'AI Analysis & Recomendation'}</span>
             </button>
 
             <button
@@ -299,7 +295,7 @@ export default function AdminAiAnalysisPage() {
               className="bg-primary text-white font-bold text-xs px-3.5 py-2 rounded flex items-center gap-1.5 shadow-md hover:bg-primary/90"
             >
               <span className="material-symbols-outlined text-sm">chat</span>
-              <span>AI RAG Assistant</span>
+              <span>AI Assistant</span>
             </button>
 
             <button
@@ -358,87 +354,12 @@ export default function AdminAiAnalysisPage() {
           </div>
         </div>
 
-        {/* Bento Grid: Clusters & Hotspots */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg mb-lg">
-          {/* Issue Clustering Table (7 cols) */}
-          <div className="lg:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient">
-            <h2 className="text-sm font-bold text-primary mb-md border-b border-outline-variant pb-2 flex flex-wrap items-center justify-between gap-2">
-              <span className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-base text-primary">bubble_chart</span>
-                <span>AI Automated Issue Clustering</span>
-              </span>
-              <span className="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-mono font-bold">
-                NLP TF-IDF &amp; K-Means
-              </span>
-            </h2>
-
-            <div className="flex flex-col gap-3">
-              {activeClusters.map((c, idx) => (
-                <div
-                  key={idx}
-                  className="bg-surface p-3.5 rounded-lg border border-outline-variant flex flex-col gap-2 text-xs hover:border-primary/40 transition-all shadow-sm"
-                >
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-sm text-primary">analytics</span>
-                      <span className="font-bold text-on-surface text-sm">{c.name || c.category}</span>
-                    </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase self-start sm:self-auto ${c.color}`}>
-                      {c.risk} Risk
-                    </span>
-                  </div>
-
-                  <p className="text-on-surface-variant text-xs leading-relaxed font-normal">
-                    {c.description || "Synthesized cluster of co-located grievances identified by NLP TF-IDF & K-Means speech analytics."}
-                  </p>
-
-                  <div className="flex justify-between items-center pt-2 border-t border-outline-variant/60 text-[11px]">
-                    <span className="text-on-surface-variant">
-                      <strong className="text-on-surface">{c.count} Active Grievances</strong> • Trend: <strong className={c.growth.startsWith('+') ? 'text-error' : 'text-gov-green'}>{c.growth}</strong>
-                    </span>
-                    <span className="text-[10px] text-primary font-semibold font-mono bg-primary/5 px-2 py-0.5 rounded">
-                      Cluster Priority #{idx + 1}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Hotspot Geospatial Intelligence (5 cols) */}
-          <div className="lg:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient flex flex-col">
-            <h2 className="text-sm font-bold text-primary mb-md border-b border-outline-variant pb-2 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-base text-error">local_fire_department</span>
-              <span>District Hotspot Heatmap</span>
-            </h2>
-
-            <div className="bg-primary-container text-white p-4 rounded-lg relative overflow-hidden flex flex-col justify-between flex-grow min-h-[160px]">
-              <div className="relative z-10">
-                <span className="text-[10px] font-mono text-gov-saffron uppercase tracking-widest block mb-1">
-                  High Density Cluster Detected
-                </span>
-                <h3 className="text-base font-bold">
-                  {aiAnalysisResult?.district_hotspots?.[0]?.district || 'East Delhi - Ward 12 & Indiranagar'}
-                </h3>
-                <p className="text-xs text-primary-fixed-dim mt-1">
-                  {aiAnalysisResult?.district_hotspots?.[0]?.count ? `${aiAnalysisResult.district_hotspots[0].count} co-located reports registered.` : '18 co-located drainage & road reports registered within 400m radius.'}
-                </p>
-              </div>
-
-              <div className="flex justify-between items-center pt-3 border-t border-white/15 relative z-10 mt-4">
-                <span className="text-xs font-bold text-error bg-white px-2 py-0.5 rounded">
-                  Cluster Severity: Critical
-                </span>
-                <button
-                  onClick={() => navigateTo('admin_action')}
-                  className="text-xs text-gov-saffron hover:underline font-bold"
-                >
-                  Deploy Taskforce →
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Interactive Geographic Map Container with Red Incident Pins */}
+        <GeographicGrievanceMap
+          complaints={complaints}
+          navigateTo={navigateTo}
+          stateName={currentUser?.state || 'Delhi NCR'}
+        />
 
         {/* Predictive AI Early Warning System */}
         <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient">
@@ -466,7 +387,7 @@ export default function AdminAiAnalysisPage() {
                       {alert.title}
                     </span>
                     <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                      {alert.prob}
+                      AI Severity Score: {alert.score}/100
                     </span>
                   </div>
                   <p className="text-on-surface-variant leading-relaxed mt-1">
@@ -487,6 +408,13 @@ export default function AdminAiAnalysisPage() {
               </div>
             ))}
           </div>
+          {activePredictiveAlerts.length === 0 && (
+            <p className="text-xs text-on-surface-variant py-4">
+              {aiAnalysisResult
+                ? `No analyzed complaint scored above 65/100 (${aiAnalysisResult.analyzed_count || 0} complaints checked).`
+                : 'Run AI Analysis & Recommendation to identify complaints scoring above 65/100.'}
+            </p>
+          )}
         </div>
       </main>
 
@@ -497,7 +425,7 @@ export default function AdminAiAnalysisPage() {
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-gov-saffron text-base">psychology</span>
               <div>
-                <h3 className="font-bold text-xs">Groq LangChain RAG Assistant</h3>
+                <h3 className="font-bold text-xs">AI Assistant</h3>
                 <p className="text-[10px] text-white/80">Querying {currentUser.state || 'Delhi NCR'} Grievance Knowledge Base</p>
               </div>
             </div>
@@ -516,20 +444,19 @@ export default function AdminAiAnalysisPage() {
                 className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[85%] p-2.5 rounded-lg leading-relaxed ${
-                    msg.sender === 'user'
-                      ? 'bg-primary-container text-white rounded-br-none'
-                      : 'bg-surface-container-lowest border border-outline-variant text-on-surface rounded-bl-none shadow-sm'
-                  }`}
+                  className={`max-w-[85%] p-2.5 rounded-lg leading-relaxed ${msg.sender === 'user'
+                    ? 'bg-primary-container text-white rounded-br-none'
+                    : 'bg-surface-container-lowest border border-outline-variant text-on-surface rounded-bl-none shadow-sm'
+                    }`}
                 >
-                  {msg.text}
+                  {msg.sender === 'ai' ? renderAssistantText(msg.text) : msg.text}
                 </div>
               </div>
             ))}
             {chatLoading && (
               <div className="flex justify-start">
                 <div className="bg-surface-container-lowest border border-outline-variant p-2 rounded-lg text-[11px] text-on-surface-variant animate-pulse">
-                  Querying vector database & Groq LLM...
+                  Respond Generating by LLM...
                 </div>
               </div>
             )}
