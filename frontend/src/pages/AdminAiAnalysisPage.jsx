@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCivic, API_BASE } from '../context/CivicContext';
 import AdminSidebar from '../components/AdminSidebar';
-import GeographicGrievanceMap from '../components/GeographicGrievanceMap';
+import ProblemLocationMap from '../components/ProblemLocationMap';
 
 function renderAssistantText(text) {
   return text.split('\n').map((line, index) => {
@@ -27,6 +27,9 @@ export default function AdminAiAnalysisPage() {
   const [mobileMode, setMobileMode] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [aiAnalysisResult, setAiAnalysisResult] = useState(null);
+  const [selectedProblemId, setSelectedProblemId] = useState('');
+
+  const selectedProblem = complaints.find(c => (c.id === selectedProblemId || c.display_id === selectedProblemId)) || null;
 
   // Chatbot State
   const [chatOpen, setChatOpen] = useState(false);
@@ -259,6 +262,34 @@ export default function AdminAiAnalysisPage() {
     )
   ];
 
+  // Derive crisis alert problem records corresponding to the cards displayed in the Crisis Alert section
+  const crisisAlertProblems = React.useMemo(() => {
+    return activePredictiveAlerts.map((alert) => {
+      const complaint = complaints.find(c => c.id === alert.id || c.display_id === alert.id);
+      return {
+        id: alert.id,
+        display_id: alert.id,
+        title: complaint?.title || alert.title,
+        description: complaint?.description || alert.desc,
+        category: complaint?.category || 'Civic Infrastructure Hazard',
+        location: complaint?.location || (alert.desc ? alert.desc.replace(/^.*? at (.*?)\.?$/, '$1') : ''),
+        district: complaint?.district || '',
+        state: complaint?.state || currentUser?.state || '',
+        latitude: complaint?.latitude ?? complaint?.lat,
+        longitude: complaint?.longitude ?? complaint?.lng,
+        priority: alert.level || complaint?.priority || 'Critical',
+        severity: alert.score || complaint?.aiSeverityScore || complaint?.ai_severity_score,
+        status: complaint?.status || 'Action Required',
+        assignedDepartment: complaint?.assignedDepartment || 'Disaster / Civic Rapid Response',
+        dateFiled: complaint?.dateFiled || 'Next 48 Hours Directive',
+        alertTitle: alert.title,
+        alertScore: alert.score,
+        alertAction: alert.action,
+        isCrisisAlert: true
+      };
+    });
+  }, [activePredictiveAlerts, complaints, currentUser]);
+
 
   return (
     <div className="flex-grow w-full flex bg-surface min-h-[calc(100vh-5rem)] relative">
@@ -354,11 +385,30 @@ export default function AdminAiAnalysisPage() {
           </div>
         </div>
 
-        {/* Interactive Geographic Map Container with Red Incident Pins */}
-        <GeographicGrievanceMap
-          complaints={complaints}
-          navigateTo={navigateTo}
-          stateName={currentUser?.state || 'Delhi NCR'}
+        {/* Selected Public Problem Location Map Section with Crisis Alert Red Pins */}
+        <ProblemLocationMap
+          problem={selectedProblem}
+          alertProblems={crisisAlertProblems}
+          headerAction={
+            <div className="flex items-center gap-1.5">
+              <label htmlFor="problem-location-select" className="text-xs font-bold text-on-surface-variant whitespace-nowrap">
+                Problem:
+              </label>
+              <select
+                id="problem-location-select"
+                value={selectedProblemId}
+                onChange={(e) => setSelectedProblemId(e.target.value)}
+                className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-1 text-on-surface font-semibold outline-none focus:border-primary max-w-xs md:max-w-sm truncate"
+              >
+                <option value="">-- Select a problem to view location --</option>
+                {complaints.map((c) => (
+                  <option key={c.id || c.display_id} value={c.id || c.display_id}>
+                    #{c.display_id || c.id}: {c.title} ({c.location || 'No address'})
+                  </option>
+                ))}
+              </select>
+            </div>
+          }
         />
 
         {/* Predictive AI Early Warning System */}
