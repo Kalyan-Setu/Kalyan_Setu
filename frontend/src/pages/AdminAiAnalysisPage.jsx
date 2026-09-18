@@ -657,9 +657,6 @@ export default function AdminAiAnalysisPage() {
                         {severity.score}/100
                       </span>
                     )}
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded ${selectedComplaintObj.priority === 'Critical' ? 'bg-error-container text-on-error-container' : 'bg-primary-container/30 text-primary'}`}>
-                      {selectedComplaintObj.priority}
-                    </span>
                   </div>
                 </div>
               )}
@@ -745,11 +742,6 @@ export default function AdminAiAnalysisPage() {
                     <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
                       <div className="font-bold text-primary text-sm">{routing.department || '—'}</div>
                       <div className="text-on-surface-variant mt-0.5">Officer: <span className="font-semibold text-on-surface">{routing.officer_designation || '—'}</span></div>
-                      {routing.priority_flag && (
-                        <span className={`inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${routing.priority_flag === 'Critical' ? 'bg-error/10 text-error' : 'bg-amber-500/10 text-amber-600'}`}>
-                          {routing.priority_flag} Priority
-                        </span>
-                      )}
                     </div>
                     {routing.routing_rationale && (
                       <div className="text-on-surface-variant italic text-[11px]">

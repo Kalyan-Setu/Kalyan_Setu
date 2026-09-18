@@ -16,7 +16,7 @@ export default function AdminTakeActionPage() {
 
   // Selected complaint for action, defaults to activeTrackId or first critical
   const [selectedId, setSelectedId] = useState(() => {
-    return activeTrackId || (complaints.find(c => c.priority === 'Critical' && c.status !== 'Deleted' && c.status !== 'Rejected') || complaints[0])?.id || 'PP24891';
+    return activeTrackId || (complaints.find(c => (c.aiSeverityScore || c.ai_severity_score || 0) >= 80 && c.status !== 'Deleted' && c.status !== 'Rejected') || complaints[0])?.id || 'PP24891';
   });
 
   const selectedComplaint = activeComplaints.find(c => c.id === selectedId || c.display_id === selectedId) || activeComplaints[0] || {};
@@ -32,6 +32,10 @@ export default function AdminTakeActionPage() {
   const [directiveNote, setDirectiveNote] = useState('');
   const [deadline, setDeadline] = useState('24 Hours');
   const [newStatus, setNewStatus] = useState('In Progress');
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectPreset, setRejectPreset] = useState('Out of scope / non-civic jurisdictional matter');
+  const [customRejectNote, setCustomRejectNote] = useState('');
+  const [rejecting, setRejecting] = useState(false);
 
   const abortControllerRef = useRef(null);
 
@@ -198,6 +202,28 @@ export default function AdminTakeActionPage() {
     setDirectiveNote('');
   };
 
+  const handleConfirmReject = async () => {
+    if (!selectedComplaint || (!selectedComplaint.id && !selectedComplaint.display_id)) return;
+    setRejecting(true);
+    const targetId = selectedComplaint.display_id || selectedComplaint.id;
+    const reasonText = customRejectNote.trim()
+      ? `${rejectPreset} — ${customRejectNote.trim()}`
+      : rejectPreset;
+
+    await updateComplaintStatus(
+      targetId,
+      'Rejected',
+      `Grievance Rejected: ${reasonText}`,
+      'Administrative Authority',
+      selectedComplaint.assignedDepartment || 'Urban Affairs Oversight',
+      '₹0'
+    );
+    showNotification(`Grievance #${targetId} has been Rejected by government.`);
+    setShowRejectModal(false);
+    setCustomRejectNote('');
+    setRejecting(false);
+  };
+
   return (
     <div className="flex-grow w-full flex bg-surface min-h-[calc(100vh-5rem)]">
       <AdminSidebar />
@@ -258,11 +284,7 @@ export default function AdminTakeActionPage() {
                   }`}
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
-                      item.priority === 'Critical' ? 'bg-error-container text-on-error-container' : 'bg-surface-container text-on-surface-variant'
-                    }`}>
-                      {item.priority}
-                    </span>
+                    <span className="font-mono text-[10px] font-bold text-primary">#{item.id}</span>
                     <span className="font-mono text-[10px] text-on-surface-variant">{item.dateFiled}</span>
                   </div>
                   <h3 className="text-xs font-bold text-on-surface line-clamp-1">{item.title}</h3>
@@ -284,9 +306,11 @@ export default function AdminTakeActionPage() {
                     </span>
                     <span className="text-xs font-bold text-on-surface">{selectedComplaint.title}</span>
                   </div>
-                  <span className="text-xs font-bold text-error">
-                    AI Severity Score: {selectedSeverity == null ? 'Not analyzed' : `${selectedSeverity}/100`}
-                  </span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold text-error">
+                      AI Severity Score: {selectedSeverity == null ? 'Pending AI Analysis' : `${selectedSeverity}/100`}
+                    </span>
+                  </div>
                 </div>
                 <p className="text-xs text-on-surface-variant leading-relaxed">
                   {selectedComplaint.description}
@@ -431,10 +455,19 @@ export default function AdminTakeActionPage() {
                   ></textarea>
                 </div>
 
-                <div className="flex items-center justify-end pt-md border-t border-outline-variant">
+                <div className="flex items-center justify-between pt-md border-t border-outline-variant flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowRejectModal(true)}
+                    className="bg-error/10 hover:bg-error/20 text-error border border-error/30 font-bold px-5 py-2.5 rounded transition-all shadow-sm active:scale-95 flex items-center gap-2 text-xs cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-sm">block</span>
+                    <span>Reject Grievance</span>
+                  </button>
+
                   <button
                     type="submit"
-                    className="bg-primary-container text-on-primary font-bold px-6 py-2.5 rounded hover:bg-primary transition-all shadow-md active:scale-95 flex items-center gap-2"
+                    className="bg-primary-container text-on-primary font-bold px-6 py-2.5 rounded hover:bg-primary transition-all shadow-md active:scale-95 flex items-center gap-2 text-xs cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-sm">send_and_archive</span>
                     <span>Issue Directive & Dispatch Crew</span>
@@ -444,6 +477,81 @@ export default function AdminTakeActionPage() {
             </div>
           </section>
         </div>
+
+        {/* Rejection Modal */}
+        {showRejectModal && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-surface rounded-xl max-w-md w-full border border-outline-variant shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in zoom-in-95">
+              <div className="flex items-start justify-between border-b border-outline-variant pb-3">
+                <div className="flex items-center gap-2.5 text-error">
+                  <div className="w-9 h-9 rounded-full bg-error/15 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-xl">block</span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-on-surface">Reject Grievance #{selectedComplaint.id}</h3>
+                    <p className="text-xs text-on-surface-variant">Formal rejection recorded on citizen tracking portal.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRejectModal(false)}
+                  className="text-on-surface-variant hover:text-on-surface text-lg p-1"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-3 text-xs">
+                <div>
+                  <label className="block font-bold text-on-surface mb-1">Select Reason for Rejection *</label>
+                  <select
+                    value={rejectPreset}
+                    onChange={(e) => setRejectPreset(e.target.value)}
+                    className="w-full p-2.5 bg-surface-container border border-outline-variant rounded focus:border-error outline-none font-medium"
+                  >
+                    <option value="Out of scope / non-civic jurisdictional matter">Out of scope / non-civic jurisdictional matter</option>
+                    <option value="Duplicate grievance already actioned or resolved">Duplicate grievance already actioned or resolved</option>
+                    <option value="Insufficient or unverifiable location details">Insufficient or unverifiable location details</option>
+                    <option value="Ineligible or false public claim">Ineligible or false public claim</option>
+                    <option value="Private property / non-municipal domain">Private property / non-municipal domain</option>
+                    <option value="Other administrative reason">Other administrative reason</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-on-surface mb-1">Detailed Explanation for Citizen *</label>
+                  <textarea
+                    rows={3}
+                    value={customRejectNote}
+                    onChange={(e) => setCustomRejectNote(e.target.value)}
+                    placeholder="Enter specific administrative clarification to be displayed to citizen..."
+                    className="w-full p-2.5 bg-surface border border-outline-variant rounded focus:border-error outline-none resize-none leading-relaxed"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-outline-variant">
+                <button
+                  type="button"
+                  onClick={() => setShowRejectModal(false)}
+                  disabled={rejecting}
+                  className="text-xs font-bold text-on-surface-variant hover:text-on-surface px-4 py-2"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmReject}
+                  disabled={rejecting}
+                  className="bg-error hover:bg-error/90 text-white font-bold text-xs px-5 py-2.5 rounded flex items-center gap-1.5 shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">check_circle</span>
+                  <span>{rejecting ? 'Rejecting...' : 'Confirm Rejection'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

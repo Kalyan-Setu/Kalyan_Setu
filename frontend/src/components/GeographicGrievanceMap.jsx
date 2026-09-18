@@ -269,10 +269,8 @@ export default function GeographicGrievanceMap({ complaints = [], navigateTo, st
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-slate-700/80">
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
-                activePin.priority === 'Critical' ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-              }`}>
-                {activePin.priority} PRIORITY
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-primary/20 text-primary-fixed border border-primary/40">
+                🤖 Severity: {activePin.severity}/100
               </span>
               <button
                 onClick={() => navigateTo('admin_action', activePin.id)}

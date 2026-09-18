@@ -7,7 +7,6 @@ export default function AdminComplaintsPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
-  const [selectedPriority, setSelectedPriority] = useState('ALL');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
@@ -29,13 +28,10 @@ export default function AdminComplaintsPage() {
     const matchesStatus =
       selectedStatus === 'ALL' ? true : item.status === selectedStatus;
 
-    const matchesPriority =
-      selectedPriority === 'ALL' ? true : item.priority === selectedPriority;
-
     const matchesCategory =
       selectedCategory === 'ALL' ? true : item.category.includes(selectedCategory);
 
-    return matchesSearch && matchesStatus && matchesPriority && matchesCategory;
+    return matchesSearch && matchesStatus && matchesCategory;
   });
 
   const toggleSelectAll = () => {
@@ -73,8 +69,8 @@ export default function AdminComplaintsPage() {
 
   const exportReport = () => {
     const csvContent = "data:text/csv;charset=utf-8," + 
-      ["ID,Title,Category,Priority,Status,Location,DateFiled,Officer"]
-      .concat(filteredComplaints.map(c => `"${c.id}","${c.title}","${c.category}","${c.priority}","${c.status}","${c.location}","${c.dateFiled}","${c.assignedOfficer}"`))
+      ["ID,Title,Category,SeverityScore,Status,Location,DateFiled,Officer"]
+      .concat(filteredComplaints.map(c => `"${c.id}","${c.title}","${c.category}","${c.aiSeverityScore || c.ai_severity_score || 'Pending'}","${c.status}","${c.location}","${c.dateFiled}","${c.assignedOfficer}"`))
       .join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -154,18 +150,6 @@ export default function AdminComplaintsPage() {
                 <option value="Electricity">Electricity & Lighting</option>
                 <option value="Safety">Public Safety</option>
               </select>
-
-              <select
-                value={selectedPriority}
-                onChange={(e) => setSelectedPriority(e.target.value)}
-                className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-2 text-on-surface focus:border-primary outline-none"
-              >
-                <option value="ALL">All Priorities</option>
-                <option value="Critical">Critical</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-              </select>
             </div>
           </div>
 
@@ -204,7 +188,7 @@ export default function AdminComplaintsPage() {
                   <th className="p-3">Grievance ID</th>
                   <th className="p-3">Issue Title & Category</th>
                   <th className="p-3">Location & Citizen</th>
-                  <th className="p-3">Priority & AI Score</th>
+                  <th className="p-3">AI Severity Score</th>
                   <th className="p-3">Assigned Cell</th>
                   <th className="p-3">Status</th>
                   <th className="p-3 text-right">Actions</th>
@@ -255,18 +239,8 @@ export default function AdminComplaintsPage() {
 
                       <td className="p-3">
                         <div className="flex flex-col gap-1">
-                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded w-fit ${
-                            item.priority === 'Critical'
-                              ? 'bg-error-container text-on-error-container font-extrabold'
-                              : item.priority === 'High'
-                              ? 'bg-secondary-container text-on-secondary-container'
-                              : 'bg-surface-container-high text-on-surface-variant'
-                          }`}>
-                            {item.priority}
-                          </span>
-                          {/* AI Severity Score pill */}
-                          {(item.aiSeverityScore || item.ai_severity_score) && (
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded w-fit ${
+                          {(item.aiSeverityScore || item.ai_severity_score) ? (
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded w-fit ${
                               (item.aiSeverityScore || item.ai_severity_score) >= 80
                                 ? 'bg-error/10 text-error border border-error/20'
                                 : (item.aiSeverityScore || item.ai_severity_score) >= 60
@@ -274,6 +248,10 @@ export default function AdminComplaintsPage() {
                                 : 'bg-gov-green/10 text-gov-green border border-gov-green/20'
                             }`}>
                               🤖 {item.aiSeverityScore || item.ai_severity_score}/100
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-on-surface-variant font-medium bg-surface-container px-2 py-0.5 rounded w-fit">
+                              Pending AI Triage
                             </span>
                           )}
                         </div>

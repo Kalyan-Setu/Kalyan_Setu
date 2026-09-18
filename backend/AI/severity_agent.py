@@ -24,11 +24,17 @@ def location_risk(location_count: int) -> float:
 
 
 @tool
-def urgency_risk(priority: str | None) -> float:
-    """Convert the citizen or triage urgency into a 0-100 score."""
-    return {"critical": 100.0, "high": 85.0, "medium": 60.0, "low": 30.0}.get(
-        (priority or "medium").lower(), 60.0
-    )
+def incident_impact_risk(title: str | None, description: str | None) -> float:
+    """Assess real-world incident impact and service disruption scale from complaint details."""
+    text = f"{title or ''} {description or ''}".lower()
+    high_impact = ("collapse", "fatal", "fire", "casualty", "blast", "emergency", "flood", "crisis", "burst", "hospital", "contamination")
+    moderate_impact = ("blocked", "overflow", "outage", "injury", "danger", "accident", "broken", "severe", "traffic", "crack")
+    
+    if any(w in text for w in high_impact):
+        return 90.0
+    if any(w in text for w in moderate_impact):
+        return 72.0
+    return 50.0
 
 
 @tool
@@ -61,7 +67,7 @@ def _fallback_score(state: SeverityState) -> dict[str, Any]:
     complaint = state["complaint"]
     factors = {
         "location": location_risk.invoke({"location_count": state.get("location_count", 1)}),
-        "urgency": urgency_risk.invoke({"priority": complaint.get("priority")}),
+        "incident_impact": incident_impact_risk.invoke({"title": complaint.get("title"), "description": complaint.get("description")}),
         "density": min(100.0, state.get("location_count", 1) * 20.0),
         "problem_type": problem_type_risk.invoke({"category": complaint.get("category"), "title": complaint.get("title")}),
         "description": description_risk.invoke({"description": complaint.get("description")}),
@@ -94,7 +100,7 @@ async def _llm_node(state: SeverityState) -> SeverityState:
     prompt = (
         "You are a civic risk triage agent. Use only the five supplied factors. "
         "Return JSON only with integer score 0-100 and concise rationale. "
-        "The score must reflect location, urgency, co-located complaint density, problem type, and detailed description.\n"
+        "The score must reflect location, incident impact scale, co-located complaint density, problem type, and detailed description.\n"
         f"Complaint: {json.dumps(complaint, default=str)}\n"
         f"Factor scores: {json.dumps(factors)}\n"
         'Schema: {"score": 0, "rationale": "..."}'

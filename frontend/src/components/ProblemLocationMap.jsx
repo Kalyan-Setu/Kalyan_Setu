@@ -675,8 +675,8 @@ export default function ProblemLocationMap({
                         <span className="font-mono text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
                           #{selectedProblemId}
                         </span>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-                          {problem?.priority || 'Normal'}
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant">
+                          {problem?.category || 'Civic Issue'}
                         </span>
                       </div>
                       <h4 className="font-bold text-sm text-primary line-clamp-2">
