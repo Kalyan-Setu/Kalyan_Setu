@@ -224,12 +224,12 @@ export default function AuthModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant w-full max-w-4xl overflow-hidden flex flex-col md:flex-row relative max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-primary/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant w-full max-w-4xl overflow-hidden flex flex-col md:flex-row relative max-h-[94vh]">
         {/* Close Button */}
         <button
           onClick={() => { resetForm(); setAuthModalOpen(false); }}
-          className="absolute top-3 right-3 z-20 text-on-surface-variant hover:text-primary bg-surface/80 p-1.5 rounded-full hover:bg-surface-container transition-colors"
+          className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-30 text-on-surface-variant hover:text-primary bg-surface/90 p-2 rounded-full hover:bg-surface-container shadow-sm transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
           aria-label="Close dialog"
         >
           <span className="material-symbols-outlined text-[20px]">close</span>
@@ -266,7 +266,7 @@ export default function AuthModal() {
         </div>
 
         {/* Right Side: Auth Form */}
-        <div className="w-full md:w-1/2 p-lg sm:p-xl overflow-y-auto bg-surface flex flex-col justify-center">
+        <div className="w-full md:w-1/2 p-4 sm:p-6 md:p-8 overflow-y-auto bg-surface flex flex-col justify-start">
           <div className="max-w-md mx-auto w-full">
             {/* User Type Switcher (Citizen vs Official) */}
             <div className="relative grid grid-cols-2 gap-1 p-1 bg-surface-container rounded-md mb-md border border-outline-variant/60">
@@ -733,7 +733,7 @@ export default function AuthModal() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 bg-primary-container text-on-primary rounded font-label-md text-sm font-bold shimmer-btn shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50"
+                className="w-full py-3 px-4 bg-primary-container text-on-primary rounded font-label-md text-sm font-bold shimmer-btn shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 min-h-[44px]"
               >
                 <span className="material-symbols-outlined text-sm">{loading ? 'sync' : 'lock_open'}</span>
                 <span>

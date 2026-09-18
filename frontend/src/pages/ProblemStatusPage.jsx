@@ -43,26 +43,26 @@ export default function ProblemStatusPage() {
   if (!complaint) return null;
 
   return (
-    <div className="flex-grow w-full max-w-container-max mx-auto px-lg py-xl flex flex-col gap-lg">
+    <div className="flex-grow w-full max-w-container-max mx-auto px-3 sm:px-lg py-4 sm:py-xl flex flex-col gap-md sm:gap-lg">
       {/* Breadcrumb & Search Tracker */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-md border-b border-outline-variant pb-md">
         <div>
-          <div className="flex items-center gap-sm text-on-surface-variant font-body-sm text-xs mb-1">
+          <div className="flex items-center gap-sm text-on-surface-variant font-body-sm text-xs mb-1 flex-wrap">
             <button onClick={() => navigateTo('citizen_dashboard')} className="hover:text-primary hover:underline">
               Citizen Dashboard
             </button>
             <span className="material-symbols-outlined text-[14px]">chevron_right</span>
             <span className="text-on-surface font-semibold">Grievance Status Timeline</span>
           </div>
-          <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary flex items-center gap-2">
-            <span>Tracking Problem #{complaint.id}</span>
+          <h1 className="font-headline-lg text-xl sm:text-2xl md:text-3xl font-bold text-primary flex items-center gap-2 flex-wrap">
+            <span>Tracking Problem <span className="font-mono text-gov-navy">#{complaint.id}</span></span>
           </h1>
         </div>
 
         {/* Quick ID Lookup Search */}
         <form onSubmit={handleSearch} className="flex items-center gap-2 w-full md:w-auto">
           <div className="relative flex-grow md:w-60">
-            <span className="material-symbols-outlined absolute left-2.5 top-2 text-on-surface-variant text-base">
+            <span className="material-symbols-outlined absolute left-2.5 top-2.5 text-on-surface-variant text-base">
               search
             </span>
             <input
@@ -70,12 +70,12 @@ export default function ProblemStatusPage() {
               value={searchIdInput}
               onChange={(e) => setSearchIdInput(e.target.value)}
               placeholder="Enter ID (e.g. PP24891)"
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-surface-container-lowest border border-outline-variant rounded focus:border-primary outline-none"
+              className="w-full pl-8 pr-3 py-2 text-xs bg-surface-container-lowest border border-outline-variant rounded focus:border-primary outline-none"
             />
           </div>
           <button
             type="submit"
-            className="bg-primary-container text-on-primary text-xs font-bold px-4 py-1.5 rounded hover:bg-primary transition-colors"
+            className="bg-primary-container text-on-primary text-xs font-bold px-4 py-2 rounded hover:bg-primary transition-colors min-h-[38px] shrink-0"
           >
             Track
           </button>
@@ -83,11 +83,11 @@ export default function ProblemStatusPage() {
       </div>
 
       {/* Grid Layout: Left Column Details & Timeline, Right Column Officer & Evidence */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-md sm:gap-lg">
         {/* Left Column (8 cols) */}
-        <div className="lg:col-span-8 flex flex-col gap-lg">
+        <div className="lg:col-span-8 flex flex-col gap-md sm:gap-lg">
           {/* Summary Card */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient">
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 sm:p-lg shadow-ambient">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-md mb-md border-b border-outline-variant pb-md">
               <div>
                 <div className="flex items-center gap-sm mb-1">
@@ -144,8 +144,8 @@ export default function ProblemStatusPage() {
           </div>
 
           {/* 5-Step Progress Timeline */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient">
-            <h3 className="font-headline-sm text-base font-bold text-primary mb-lg pb-sm border-b border-outline-variant flex items-center justify-between">
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 sm:p-lg shadow-ambient">
+            <h3 className="font-headline-sm text-sm sm:text-base font-bold text-primary mb-md sm:mb-lg pb-sm border-b border-outline-variant flex items-center justify-between">
               <span>Redressal Milestone Progression</span>
               <span className="text-xs font-normal text-on-surface-variant font-mono">
                 Stage {complaint.timeline.filter(t => t.completed).length} of 5
@@ -160,7 +160,7 @@ export default function ProblemStatusPage() {
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 mb-2 shadow-sm font-bold text-xs ${
                     step.completed
                       ? 'bg-primary-container text-on-primary border-primary-container'
-                      : 'bg-surface-container text-outline border-outline-variant'
+                       : 'bg-surface-container text-outline border-outline-variant'
                   } ${step.current ? 'ring-4 ring-primary-container/20 animate-bounce' : ''}`}>
                     {step.completed ? (
                       <span className="material-symbols-outlined text-sm">check</span>
@@ -197,8 +197,8 @@ export default function ProblemStatusPage() {
                     {step.completed ? <span className="material-symbols-outlined text-xs">check</span> : step.step}
                   </div>
 
-                  <div className="flex-grow">
-                    <div className="flex justify-between items-center flex-wrap">
+                  <div className="flex-grow min-w-0">
+                    <div className="flex justify-between items-center flex-wrap gap-1">
                       <span className={`text-xs font-bold ${step.completed ? 'text-on-surface' : 'text-on-surface-variant'}`}>
                         {step.step}. {step.title}
                       </span>
@@ -216,8 +216,8 @@ export default function ProblemStatusPage() {
           </div>
 
           {/* Citizen Comments & Updates Thread */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient">
-            <h3 className="font-headline-sm text-base font-bold text-primary mb-md pb-2 border-b border-outline-variant flex items-center gap-2">
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 sm:p-lg shadow-ambient">
+            <h3 className="font-headline-sm text-sm sm:text-base font-bold text-primary mb-md pb-2 border-b border-outline-variant flex items-center gap-2">
               <span className="material-symbols-outlined text-lg">forum</span>
               <span>Grievance Updates & Citizen Notes</span>
             </h3>
@@ -225,7 +225,7 @@ export default function ProblemStatusPage() {
             <div className="flex flex-col gap-3 mb-md">
               {commentsList.map((item) => (
                 <div key={item.id} className="bg-surface p-3 rounded border border-outline-variant flex flex-col gap-1">
-                  <div className="flex justify-between items-center text-xs">
+                  <div className="flex justify-between items-center text-xs flex-wrap gap-1">
                     <span className="font-bold text-primary">{item.author} ({item.role})</span>
                     <span className="text-[10px] text-on-surface-variant">{item.time}</span>
                   </div>
@@ -234,28 +234,28 @@ export default function ProblemStatusPage() {
               ))}
             </div>
 
-            <form onSubmit={handleAddComment} className="flex gap-2">
+            <form onSubmit={handleAddComment} className="flex flex-col sm:flex-row gap-2">
               <input
                 type="text"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder="Post a question or location update for the engineer..."
-                className="flex-grow px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
+                className="flex-grow px-3 py-2.5 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
               />
               <button
                 type="submit"
-                className="bg-primary-container text-on-primary text-xs font-bold px-4 py-2 rounded hover:bg-primary transition-colors shrink-0"
+                className="bg-primary-container text-on-primary text-xs font-bold px-4 py-2.5 rounded hover:bg-primary transition-colors shrink-0 min-h-[40px]"
               >
-                Send
+                Send Note
               </button>
             </form>
           </div>
         </div>
 
         {/* Right Column: Citizen Evidence Container (4 cols) */}
-        <div className="lg:col-span-4 flex flex-col gap-lg">
+        <div className="lg:col-span-4 flex flex-col gap-md sm:gap-lg">
           {/* Citizen Evidence Container */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient flex flex-col gap-md">
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 sm:p-lg shadow-ambient flex flex-col gap-md">
             <h3 className="font-headline-sm text-sm font-bold text-primary border-b border-outline-variant pb-2 flex items-center gap-2">
               <span className="material-symbols-outlined text-base">fact_check</span>
               <span>Citizen Evidence Container</span>
@@ -314,7 +314,7 @@ export default function ProblemStatusPage() {
 
             <button
               onClick={() => showNotification("Evidence details verified and locked in audit trail.")}
-              className="text-xs bg-primary-container/10 text-primary font-bold border border-primary/30 hover:bg-primary-container/20 py-2 rounded transition-colors text-center mt-2 flex items-center justify-center gap-1"
+              className="text-xs bg-primary-container/10 text-primary font-bold border border-primary/30 hover:bg-primary-container/20 py-2.5 px-4 rounded transition-colors text-center mt-2 flex items-center justify-center gap-1 min-h-[44px]"
             >
               <span className="material-symbols-outlined text-sm">download</span>
               <span>Download Evidence Acknowledgement</span>

@@ -268,21 +268,21 @@ export default function SubmitProblemPage() {
   };
 
   return (
-    <div className="flex-grow w-full max-w-container-max mx-auto px-lg py-xl flex flex-col gap-xl">
+    <div className="flex-grow w-full max-w-container-max mx-auto px-4 sm:px-lg py-6 sm:py-xl flex flex-col gap-6 sm:gap-xl">
       {/* Header & Stepper */}
-      <section className="flex flex-col gap-md items-center text-center max-w-3xl mx-auto w-full">
-        <span className="font-label-sm text-xs text-primary-container uppercase tracking-wider font-bold">
+      <section className="flex flex-col gap-2.5 sm:gap-md items-center text-center max-w-3xl mx-auto w-full px-2">
+        <span className="font-label-sm text-[11px] sm:text-xs text-primary-container uppercase tracking-wider font-bold">
           Step-by-Step Grievance Registration
         </span>
-        <h1 className="font-display-lg text-3xl sm:text-4xl font-bold text-primary">
+        <h1 className="font-display-lg text-2xl sm:text-4xl font-bold text-primary">
           Submit a New Problem
         </h1>
-        <p className="font-body-lg text-sm text-on-surface-variant max-w-2xl">
+        <p className="font-body-lg text-xs sm:text-sm text-on-surface-variant max-w-2xl leading-relaxed">
           Please provide details of the civic issue. Your submission helps maintain and improve our urban infrastructure.
         </p>
 
         {/* Stepper */}
-        <div className="w-full mt-md flex items-center justify-between relative max-w-xl">
+        <div className="w-full mt-2 sm:mt-md flex items-center justify-between relative max-w-xl px-4">
           <div className="absolute left-[15%] right-[15%] top-1/2 -translate-y-1/2 h-1 bg-outline-variant -z-0">
             <div
               className="h-full bg-primary-container transition-all duration-300"
@@ -337,20 +337,20 @@ export default function SubmitProblemPage() {
 
       {/* STEP 1: Classification & Method Selection */}
       {currentStep === 1 && (
-        <div className="max-w-3xl mx-auto w-full flex flex-col gap-lg bg-surface-container-lowest p-lg sm:p-xl rounded-lg border border-outline-variant shadow-ambient">
+        <div className="max-w-3xl mx-auto w-full flex flex-col gap-6 sm:gap-lg bg-surface-container-lowest p-4 sm:p-lg md:p-xl rounded-lg border border-outline-variant shadow-ambient">
           <div className="text-center">
-            <h2 className="text-xl font-bold text-primary mb-1">Choose Reporting Evidence Format</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-primary mb-1">Choose Reporting Evidence Format</h2>
             <p className="text-xs text-on-surface-variant">
               Select how you would like to describe the issue for optimal field dispatch.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-md">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-md">
             {/* Text Option */}
             <button
               type="button"
               onClick={() => setEvidenceMethod('text')}
-              className={`p-lg rounded-lg border-2 flex flex-col items-center text-center gap-3 transition-all ${
+              className={`p-4 sm:p-lg rounded-lg border-2 flex flex-col items-center text-center gap-2.5 sm:gap-3 transition-all ${
                 evidenceMethod === 'text'
                   ? 'border-primary bg-primary-fixed/20 shadow-md scale-102'
                   : 'border-outline-variant hover:border-primary/50 bg-surface'
@@ -424,10 +424,10 @@ export default function SubmitProblemPage() {
 
       {/* STEP 2: Problem Details & Evidence Input */}
       {currentStep === 2 && (
-        <div className="max-w-4xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-lg">
+        <div className="max-w-4xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-lg">
           {/* Left / Top Side: Evidence Input (Voice / Photo / Text Preview) */}
-          <div className="lg:col-span-5 bg-surface-container-lowest p-lg rounded-lg border border-outline-variant shadow-ambient flex flex-col gap-md">
-            <h2 className="text-base font-bold text-primary border-b border-outline-variant pb-2 flex items-center gap-2">
+          <div className="lg:col-span-5 bg-surface-container-lowest p-4 sm:p-lg rounded-lg border border-outline-variant shadow-ambient flex flex-col gap-md">
+            <h2 className="text-sm sm:text-base font-bold text-primary border-b border-outline-variant pb-2 flex items-center gap-2">
               <span className="material-symbols-outlined text-lg text-primary">
                 {evidenceMethod === 'voice' ? 'mic' : evidenceMethod === 'photo' ? 'photo_camera' : 'edit_note'}
               </span>
@@ -438,7 +438,7 @@ export default function SubmitProblemPage() {
 
             {/* Voice Mode */}
             {evidenceMethod === 'voice' && (
-              <div className="flex flex-col items-center justify-center py-4 gap-4 text-center">
+              <div className="flex flex-col items-center justify-center py-3 sm:py-4 gap-3 sm:gap-4 text-center">
 
                 {/* Language Selector */}
                 <div className="w-full flex flex-col gap-1">
@@ -469,23 +469,23 @@ export default function SubmitProblemPage() {
                   </div>
                 </div>
 
-                <div className="relative flex items-center justify-center w-28 h-28">
+                <div className="relative flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28">
                   <div className={`absolute inset-0 rounded-full border-4 border-primary/20 ${isRecording ? 'pulse-recording' : ''}`}></div>
                   <button
                     type="button"
                     onClick={toggleRecording}
-                    className={`w-20 h-20 rounded-full flex items-center justify-center text-white transition-all shadow-lg z-10 ${
+                    className={`w-18 h-18 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-white transition-all shadow-lg z-10 ${
                       isRecording ? 'bg-error scale-105' : 'bg-primary-container hover:bg-primary'
                     }`}
                   >
-                    <span className="material-symbols-outlined text-3xl">
+                    <span className="material-symbols-outlined text-2xl sm:text-3xl">
                       {isRecording ? 'stop' : 'mic'}
                     </span>
                   </button>
                 </div>
 
                 <div>
-                  <div className="text-xl font-mono font-bold text-primary">
+                  <div className="text-lg sm:text-xl font-mono font-bold text-primary">
                     {formatTime(recordingTime)}
                   </div>
                   <p className="text-xs text-on-surface-variant mt-0.5">
@@ -494,7 +494,7 @@ export default function SubmitProblemPage() {
                 </div>
 
                 {/* Animated Waveform */}
-                <div className="w-full flex items-center justify-center gap-1 h-10 px-4">
+                <div className="w-full flex items-center justify-center gap-1 h-10 px-2 sm:px-4">
                   {[4, 8, 16, 24, 12, 28, 36, 18, 30, 22, 14, 8, 20, 32, 10].map((h, i) => (
                     <div
                       key={i}
@@ -508,7 +508,7 @@ export default function SubmitProblemPage() {
 
                 {/* Pipeline Stage 1: STT */}
                 {isTranscribing && (
-                  <div className="w-full text-center bg-primary-fixed/20 p-3 rounded border border-primary/30 text-xs flex items-center justify-center gap-2 text-primary font-bold animate-pulse">
+                  <div className="w-full text-center bg-primary-fixed/20 p-2.5 sm:p-3 rounded border border-primary/30 text-xs flex items-center justify-center gap-2 text-primary font-bold animate-pulse">
                     <span className="material-symbols-outlined text-base animate-spin">sync</span>
                     <span>Stage 1/2: Transcribing voice via Sarvam AI saaras:v3...</span>
                   </div>
@@ -516,28 +516,49 @@ export default function SubmitProblemPage() {
 
                 {/* Pipeline Stage 2: Groq LLM Description Generator */}
                 {isGenerating && (
-                  <div className="w-full text-center bg-purple-500/10 p-3 rounded border border-purple-500/30 text-xs flex items-center justify-center gap-2 text-purple-700 dark:text-purple-300 font-bold animate-pulse">
+                  <div className="w-full text-center bg-purple-500/10 p-2.5 sm:p-3 rounded border border-purple-500/30 text-xs flex items-center justify-center gap-2 text-purple-700 dark:text-purple-300 font-bold animate-pulse">
                     <span className="material-symbols-outlined text-base animate-spin">auto_awesome</span>
-                    <span>Stage 2/2: Groq LLM compiling formal grievance description...</span>
+                    <span>Stage 2/2: Groq Llama 3.3 expanding into formal ticket...</span>
                   </div>
                 )}
 
-                {voiceTranscript && !isTranscribing && !isGenerating && (
-                  <div className="w-full text-left bg-surface p-3 rounded border border-gov-green/30 text-xs flex flex-col gap-1">
-                    <span className="font-bold text-gov-green flex items-center gap-1">
-                      <span className="material-symbols-outlined text-xs">verified</span>
-                      AI Pipeline Complete (Speech STT → Groq Formal Description):
-                    </span>
-                    <p className="text-on-surface font-medium italic bg-surface-container/50 p-2 rounded border border-outline-variant/60">
-                      "{voiceTranscript}"
+                {/* Live Speech Recognition Feedback (real-time as user speaks) */}
+                {isRecording && (
+                  <div className="w-full text-left bg-surface p-2.5 rounded border border-outline-variant text-xs">
+                    <span className="text-[10px] uppercase font-bold text-on-surface-variant block mb-1">Live Transcription Preview:</span>
+                    <p className="text-on-surface italic min-h-[20px]">{voiceTranscript || 'Listening to your speech...'}</p>
+                  </div>
+                )}
+
+                {/* Transcription failed error message with manual fallback guidance */}
+                {transcribeFailed && !isTranscribing && (
+                  <div className="w-full text-left bg-amber-50 border border-amber-300 rounded p-2.5 text-xs text-amber-900">
+                    <div className="flex items-center gap-1.5 font-bold mb-1">
+                      <span className="material-symbols-outlined text-sm text-amber-600">info</span>
+                      <span>Audio processed — please review description</span>
+                    </div>
+                    <p className="text-[11px] text-amber-800 leading-relaxed">
+                      If the auto-transcript is incomplete, you can type your complaint details directly into the <strong>Description</strong> field on the right.
                     </p>
                   </div>
                 )}
 
-                {transcribeFailed && !isTranscribing && !isGenerating && !voiceTranscript && (
-                  <div className="w-full text-center bg-amber-500/10 p-3 rounded border border-amber-500/30 text-xs text-amber-700 dark:text-amber-300 flex items-center justify-center gap-2">
-                    <span className="material-symbols-outlined text-sm">mic_off</span>
-                    <span>No clear speech captured. Please speak again or type your complaint manually.</span>
+                {/* Final saved transcript note */}
+                {!isRecording && !isTranscribing && !isGenerating && recordedAudio && voiceTranscript && (
+                  <div className="w-full text-left bg-surface p-2.5 rounded border border-outline-variant text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] uppercase font-bold text-on-surface-variant">Processed Transcript:</span>
+                      <button
+                        type="button"
+                        onClick={() => generateFromTranscript(voiceTranscript, voiceLang)}
+                        className="text-[10px] text-purple-700 font-bold underline flex items-center gap-0.5 hover:text-purple-900"
+                        title="Re-run Groq LLM expansion"
+                      >
+                        <span className="material-symbols-outlined text-xs">refresh</span>
+                        Re-expand
+                      </button>
+                    </div>
+                    <p className="text-on-surface leading-relaxed text-xs">{voiceTranscript}</p>
                   </div>
                 )}
               </div>
@@ -546,37 +567,43 @@ export default function SubmitProblemPage() {
             {/* Photo Mode */}
             {evidenceMethod === 'photo' && (
               <div className="flex flex-col gap-3">
-                <label className="border-2 border-dashed border-outline-variant hover:border-primary p-6 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer bg-surface hover:bg-surface-container transition-colors">
-                  <span className="material-symbols-outlined text-3xl text-primary mb-2">cloud_upload</span>
-                  <span className="text-xs font-bold text-primary">Click to upload photo or take picture</span>
-                  <span className="text-[10px] text-on-surface-variant mt-1">Supports JPG, PNG up to 10MB</span>
-                  <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                <input
+                  type="file"
+                  id="photoUpload"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="photoUpload"
+                  className="border-2 border-dashed border-outline-variant hover:border-primary rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center gap-2 cursor-pointer bg-surface hover:bg-surface-container transition-all"
+                >
+                  <span className="material-symbols-outlined text-3xl text-primary">cloud_upload</span>
+                  <span className="text-xs font-bold text-on-surface text-center">Click or Drag Photo Here</span>
+                  <span className="text-[10px] text-on-surface-variant text-center">Supports JPG, PNG (Max 10MB)</span>
                 </label>
 
                 {photoPreview && (
-                  <div className="relative rounded overflow-hidden border border-outline-variant">
-                    <img src={photoPreview} alt="Preview" className="w-full h-40 object-cover" />
+                  <div className="relative rounded-lg overflow-hidden border border-outline-variant">
+                    <img src={photoPreview} alt="Preview" className="w-full h-40 sm:h-48 object-cover" />
                     <button
                       type="button"
-                      onClick={() => setPhotoPreview(null)}
+                      onClick={() => { setPhotoPreview(null); setSelectedFile(null); }}
                       className="absolute top-2 right-2 bg-error text-white p-1 rounded-full shadow"
                     >
-                      <span className="material-symbols-outlined text-xs">delete</span>
+                      <span className="material-symbols-outlined text-sm">close</span>
                     </button>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Text Mode Info */}
+            {/* Text Summary Mode Hint */}
             {evidenceMethod === 'text' && (
-              <div className="bg-surface p-4 rounded text-xs text-on-surface-variant flex flex-col gap-2">
-                <div className="flex items-center gap-1 text-primary font-bold">
-                  <span className="material-symbols-outlined text-sm">tips_and_updates</span>
-                  <span>Reporting Tips</span>
-                </div>
-                <p>• Include specific landmarks (e.g. Near Gate 3, Opposite Metro Pillar #124).</p>
-                <p>• Mention if safety is immediately at risk for pedestrians or traffic.</p>
+              <div className="text-xs text-on-surface-variant bg-surface p-3 sm:p-4 rounded border border-outline-variant flex flex-col gap-2">
+                <p className="font-bold text-on-surface">Tips for accurate grievance redressal:</p>
+                <p>• Specify the exact landmark (e.g. Near Metro Pillar 128, Opp. Primary Health Centre).</p>
+                <p>• Mention if the hazard is active (exposed live wire, open manhole, water pipe burst).</p>
                 <p>• Provide accurate contact info for engineer callback verification.</p>
               </div>
             )}
@@ -584,7 +611,7 @@ export default function SubmitProblemPage() {
             <button
               type="button"
               onClick={() => setEvidenceMethod(evidenceMethod === 'text' ? 'photo' : evidenceMethod === 'photo' ? 'voice' : 'text')}
-              className="text-xs text-primary underline font-bold mt-auto self-start flex items-center gap-1"
+              className="text-xs text-primary underline font-bold mt-auto self-start flex items-center gap-1 py-1"
             >
               <span className="material-symbols-outlined text-sm">swap_horiz</span>
               Switch evidence format
@@ -592,12 +619,12 @@ export default function SubmitProblemPage() {
           </div>
 
           {/* Right Side: Form Inputs */}
-          <div className="lg:col-span-7 bg-surface-container-lowest p-lg sm:p-xl rounded-lg border border-outline-variant shadow-ambient">
-            <h2 className="text-base font-bold text-primary mb-md pb-2 border-b border-outline-variant">
+          <div className="lg:col-span-7 bg-surface-container-lowest p-4 sm:p-lg md:p-xl rounded-lg border border-outline-variant shadow-ambient">
+            <h2 className="text-sm sm:text-base font-bold text-primary mb-md pb-2 border-b border-outline-variant">
               Grievance Specifics
             </h2>
 
-            <div className="flex flex-col gap-md">
+            <div className="flex flex-col gap-3 sm:gap-md">
               {/* Category */}
               <div>
                 <label className="block text-xs font-bold text-on-surface mb-1">
@@ -699,53 +726,31 @@ export default function SubmitProblemPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-bold text-on-surface">
-                    Pincode *
+                    Pincode (6-digit PIN) *
                   </label>
-                  <span className={`text-[10px] font-mono font-medium ${
-                    pincode.length === 6 ? 'text-gov-green font-bold' :
-                    pincode.length > 0 ? 'text-error' : 'text-on-surface-variant'
-                  }`}>
+                  <span className="text-[10px] text-on-surface-variant">
                     {pincode.length}/6 digits
                   </span>
                 </div>
                 <div className="relative">
-                  <span className={`material-symbols-outlined absolute left-3 top-2 text-base ${
-                    pincode.length === 6 ? 'text-gov-green' :
-                    pincode.length > 0 ? 'text-error' : 'text-on-surface-variant'
-                  }`}>
-                    pin_drop
-                  </span>
                   <input
                     type="text"
                     required
-                    maxLength={6}
                     inputMode="numeric"
-                    pattern="[0-9]{6}"
+                    maxLength={6}
                     value={pincode}
-                    onKeyDown={(e) => {
-                      const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Enter'];
-                      if (!allowed.includes(e.key) && !/^[0-9]$/.test(e.key)) {
-                        e.preventDefault();
-                      }
-                    }}
-                    onPaste={(e) => {
-                      e.preventDefault();
-                      const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-                      setPincode(pasted);
-                      setStepError('');
-                    }}
                     onChange={(e) => {
-                      const digits = e.target.value.replace(/\D/g, '').slice(0, 6);
-                      setPincode(digits);
+                      const numericOnly = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setPincode(numericOnly);
                       setStepError('');
                     }}
-                    placeholder="Enter 6-digit pincode"
-                    className={`w-full pl-9 pr-8 py-2 text-xs bg-surface border rounded focus:ring-1 outline-none transition-colors ${
+                    placeholder="e.g. 110001 or 751030"
+                    className={`w-full px-3 py-2 text-xs bg-surface border rounded focus:border-primary outline-none font-mono ${
                       pincode.length === 6
-                        ? 'border-gov-green focus:border-gov-green focus:ring-gov-green'
-                        : pincode.length > 0
-                        ? 'border-error focus:border-error focus:ring-error'
-                        : 'border-outline-variant focus:border-primary focus:ring-primary'
+                        ? 'border-gov-green/80 bg-gov-green/5'
+                        : pincode.length > 0 && pincode.length < 6
+                        ? 'border-error/80 bg-error/5'
+                        : 'border-outline-variant'
                     }`}
                   />
                   {pincode.length === 6 && (
@@ -810,14 +815,14 @@ export default function SubmitProblemPage() {
               )}
 
               {/* Stepper navigation */}
-              <div className="flex justify-between pt-md border-t border-outline-variant mt-2">
+              <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-md border-t border-outline-variant mt-2">
                 <button
                   type="button"
                   onClick={() => {
                     setStepError('');
                     setCurrentStep(1);
                   }}
-                  className="text-xs font-bold text-on-surface-variant hover:text-primary px-4 py-2"
+                  className="text-xs font-bold text-on-surface-variant hover:text-primary px-4 py-2.5 border sm:border-0 border-outline-variant rounded text-center"
                 >
                   Back
                 </button>
@@ -856,7 +861,7 @@ export default function SubmitProblemPage() {
                     if (!description) setDescription(voiceTranscript || `Civic issue reported in ${category} for immediate inspection.`);
                     setCurrentStep(3);
                   }}
-                  className="bg-primary-container text-on-primary font-bold text-xs px-6 py-2.5 rounded hover:bg-primary transition-all flex items-center gap-2"
+                  className="bg-primary-container text-on-primary font-bold text-xs px-6 py-3 sm:py-2.5 rounded hover:bg-primary transition-all flex items-center justify-center gap-2"
                 >
                   <span>Review Submission</span>
                   <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -869,18 +874,18 @@ export default function SubmitProblemPage() {
 
       {/* STEP 3: Review & Submit */}
       {currentStep === 3 && (
-        <div className="max-w-2xl mx-auto w-full bg-surface-container-lowest p-lg sm:p-xl rounded-lg border border-outline-variant shadow-ambient flex flex-col gap-md">
-          <div className="border-b border-outline-variant pb-md">
+        <div className="max-w-2xl mx-auto w-full bg-surface-container-lowest p-4 sm:p-lg md:p-xl rounded-lg border border-outline-variant shadow-ambient flex flex-col gap-md">
+          <div className="border-b border-outline-variant pb-3 sm:pb-md">
             <span className="text-xs font-bold text-gov-green uppercase tracking-wider block mb-1">
               Final Step
             </span>
-            <h2 className="text-xl font-bold text-primary">Review Grievance Information</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-primary">Review Grievance Information</h2>
             <p className="text-xs text-on-surface-variant mt-0.5">
               Please verify the information before official filing into the central queue.
             </p>
           </div>
 
-          <div className="bg-surface p-md rounded-lg border border-outline-variant flex flex-col gap-3 text-xs">
+          <div className="bg-surface p-3 sm:p-md rounded-lg border border-outline-variant flex flex-col gap-3 text-xs">
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Category</span>
@@ -927,15 +932,15 @@ export default function SubmitProblemPage() {
           </div>
 
           <div className="flex items-center gap-2 p-3 bg-gov-green/10 rounded border border-gov-green/30 text-[11px] text-gov-green font-medium">
-            <span className="material-symbols-outlined text-base">verified_user</span>
+            <span className="material-symbols-outlined text-base shrink-0">verified_user</span>
             <span>A digital acknowledgement tracking token will be issued immediately upon submission.</span>
           </div>
 
-          <div className="flex justify-between pt-md border-t border-outline-variant">
+          <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-md border-t border-outline-variant">
             <button
               type="button"
               onClick={() => setCurrentStep(2)}
-              className="text-xs font-bold text-on-surface-variant hover:text-primary px-4 py-2"
+              className="text-xs font-bold text-on-surface-variant hover:text-primary px-4 py-2.5 border sm:border-0 border-outline-variant rounded text-center"
             >
               Edit Details
             </button>
@@ -943,7 +948,7 @@ export default function SubmitProblemPage() {
             <button
               type="button"
               onClick={handleFinalSubmit}
-              className="bg-primary-container text-on-primary font-bold text-xs px-8 py-3 rounded hover:bg-primary transition-all shadow-md active:scale-95 flex items-center gap-2"
+              className="bg-primary-container text-on-primary font-bold text-xs px-6 sm:px-8 py-3 rounded hover:bg-primary transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined text-base">send</span>
               <span>Confirm & File Grievance</span>

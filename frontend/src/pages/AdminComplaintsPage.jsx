@@ -87,14 +87,14 @@ export default function AdminComplaintsPage() {
   };
 
   return (
-    <div className="flex-grow w-full flex bg-surface min-h-[calc(100vh-5rem)]">
+    <div className="flex-grow w-full flex flex-col md:flex-row bg-surface min-h-[calc(100vh-5rem)]">
       <AdminSidebar />
 
-      <main className="flex-1 p-lg md:p-xl overflow-y-auto max-w-7xl">
+      <main className="flex-1 p-3 sm:p-6 md:p-xl overflow-y-auto max-w-7xl w-full">
         {/* Header & Primary Actions */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md mb-lg border-b border-outline-variant pb-md">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md mb-md sm:mb-lg border-b border-outline-variant pb-md">
           <div>
-            <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary">
+            <h1 className="font-headline-lg text-xl sm:text-2xl md:text-3xl font-bold text-primary">
               Complaints Management
             </h1>
             <p className="font-body-md text-xs text-on-surface-variant mt-1">
@@ -102,10 +102,10 @@ export default function AdminComplaintsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
             <button
               onClick={exportReport}
-              className="bg-surface-container-lowest border border-outline-variant text-primary font-bold text-xs px-3.5 py-2 rounded hover:bg-surface-container transition-colors flex items-center gap-1.5 shadow-ambient"
+              className="flex-1 sm:flex-initial bg-surface-container-lowest border border-outline-variant text-primary font-bold text-xs px-3.5 py-2.5 rounded hover:bg-surface-container transition-colors flex items-center justify-center gap-1.5 shadow-ambient min-h-[38px]"
             >
               <span className="material-symbols-outlined text-sm">download</span>
               <span>Export CSV</span>
@@ -114,7 +114,7 @@ export default function AdminComplaintsPage() {
             {selectedIds.length > 0 && (
               <button
                 onClick={() => setBulkModalOpen(true)}
-                className="bg-gov-saffron text-primary font-bold text-xs px-4 py-2 rounded hover:bg-gov-saffron/90 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 animate-pulse"
+                className="flex-1 sm:flex-initial bg-gov-saffron text-primary font-bold text-xs px-4 py-2.5 rounded hover:bg-gov-saffron/90 transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 animate-pulse min-h-[38px]"
               >
                 <span className="material-symbols-outlined text-sm">group_add</span>
                 <span>Bulk Assign ({selectedIds.length})</span>
@@ -124,8 +124,8 @@ export default function AdminComplaintsPage() {
         </div>
 
         {/* Filters Bar */}
-        <div className="bg-surface-container-lowest p-md rounded-lg border border-outline-variant shadow-ambient mb-md flex flex-col gap-md">
-          <div className="flex flex-col md:flex-row gap-md justify-between items-stretch md:items-center">
+        <div className="bg-surface-container-lowest p-3 sm:p-md rounded-lg border border-outline-variant shadow-ambient mb-md flex flex-col gap-md">
+          <div className="flex flex-col md:flex-row gap-2.5 sm:gap-md justify-between items-stretch md:items-center">
             {/* Search */}
             <div className="relative flex-grow md:max-w-md">
               <span className="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-base">
@@ -135,17 +135,17 @@ export default function AdminComplaintsPage() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by ID, keyword, citizen name, location..."
-                className="w-full pl-9 pr-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
+                placeholder="Search by ID, keyword, citizen, location..."
+                className="w-full pl-9 pr-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none min-h-[38px]"
               />
             </div>
 
             {/* Dropdowns */}
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="grid grid-cols-2 sm:flex items-center gap-2">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-2 text-on-surface focus:border-primary outline-none"
+                className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-2 text-on-surface focus:border-primary outline-none min-h-[38px]"
               >
                 <option value="ALL">All Categories</option>
                 <option value="Road">Road Infrastructure</option>
@@ -158,7 +158,7 @@ export default function AdminComplaintsPage() {
               <select
                 value={selectedPriority}
                 onChange={(e) => setSelectedPriority(e.target.value)}
-                className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-2 text-on-surface focus:border-primary outline-none"
+                className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-2 text-on-surface focus:border-primary outline-none min-h-[38px]"
               >
                 <option value="ALL">All Priorities</option>
                 <option value="Critical">Critical</option>
@@ -170,14 +170,14 @@ export default function AdminComplaintsPage() {
           </div>
 
           {/* Status Tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto border-t border-outline-variant pt-2">
+          <div className="flex items-center gap-1.5 overflow-x-auto border-t border-outline-variant pt-2 pb-1 no-scrollbar">
             {['ALL', 'Submitted', 'Under Review', 'Action Assigned', 'In Progress', 'Resolved', 'Rejected', 'Deleted'].map((st) => (
               <button
                 key={st}
                 onClick={() => setSelectedStatus(st)}
-                className={`px-3 py-1 text-xs font-label-md rounded transition-all whitespace-nowrap ${
+                className={`px-3 py-1.5 text-xs font-label-md rounded transition-all whitespace-nowrap min-h-[32px] ${
                   selectedStatus === st
-                    ? 'bg-primary-container text-white font-bold'
+                    ? 'bg-primary-container text-white font-bold shadow-sm'
                     : 'text-on-surface-variant hover:bg-surface-container'
                 }`}
               >
@@ -187,9 +187,119 @@ export default function AdminComplaintsPage() {
           </div>
         </div>
 
-        {/* Complaints Data Table */}
+        {/* Complaints Data Table & Mobile Cards */}
         <div className="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-ambient">
-          <div className="overflow-x-auto">
+          {/* Mobile Card List (< sm) */}
+          <div className="block sm:hidden divide-y divide-outline-variant/60">
+            {filteredComplaints.length === 0 ? (
+              <div className="p-6 text-center text-xs text-on-surface-variant">
+                No complaints match the selected filters.
+              </div>
+            ) : (
+              filteredComplaints.map((item) => (
+                <div
+                  key={item.id}
+                  className={`p-3 flex flex-col gap-2 transition-colors ${
+                    selectedIds.includes(item.id) ? 'bg-primary-fixed/20' : ''
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(item.id)}
+                        onChange={() => toggleSelectOne(item.id)}
+                        className="rounded border-outline-variant"
+                      />
+                      <button
+                        onClick={() => navigateTo('admin_action', item.id)}
+                        className="font-mono font-bold text-primary hover:underline text-xs"
+                      >
+                        #{item.id}
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                        item.priority === 'Critical'
+                          ? 'bg-error-container text-on-error-container font-extrabold'
+                          : item.priority === 'High'
+                          ? 'bg-secondary-container text-on-secondary-container'
+                          : 'bg-surface-container-high text-on-surface-variant'
+                      }`}>
+                        {item.priority}
+                      </span>
+                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                        item.status === 'Resolved'
+                          ? 'bg-gov-green/15 text-gov-green border border-gov-green/30'
+                          : item.status === 'Rejected'
+                          ? 'bg-error/15 text-error border border-error/30 font-extrabold'
+                          : item.status === 'Deleted'
+                          ? 'bg-error/10 text-error/80 border border-error/20 line-through'
+                          : item.status === 'In Progress' || item.status === 'Action Assigned'
+                          ? 'bg-secondary-container/30 text-on-secondary-fixed-variant'
+                          : 'bg-surface-container-high text-on-surface-variant'
+                      }`}>
+                        {item.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xs font-bold text-on-surface line-clamp-2">{item.title}</h3>
+                    <div className="text-[10px] text-on-surface-variant mt-0.5 flex items-center justify-between">
+                      <span>{item.category}</span>
+                      <span>By {item.reportedBy}</span>
+                    </div>
+                    <div className="text-[10px] text-on-surface-variant mt-0.5 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px] text-primary">location_on</span>
+                      <span className="truncate">{item.location}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1.5 border-t border-outline-variant/40 text-[10px]">
+                    <div className="truncate max-w-[130px] text-on-surface-variant">
+                      {item.assignedOfficer || 'Officer Unassigned'}
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      {item.status !== 'Deleted' && item.status !== 'Rejected' && (
+                        <button
+                          onClick={() => navigateTo('admin_ai', item.id || item.display_id)}
+                          className="bg-gov-saffron/10 text-gov-saffron font-bold text-[10px] px-2 py-1 rounded flex items-center gap-0.5 min-h-[30px]"
+                        >
+                          <span className="material-symbols-outlined text-xs">smart_toy</span>
+                          <span>AI</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          setEditingComplaint(item);
+                          setNewStatus(item.status);
+                          setStatusNote('');
+                        }}
+                        className="p-1.5 text-primary hover:bg-surface-container rounded transition-colors min-h-[30px] min-w-[30px] flex items-center justify-center border border-outline-variant"
+                        title="Update Status"
+                      >
+                        <span className="material-symbols-outlined text-sm">edit_note</span>
+                      </button>
+                      {item.status !== 'Deleted' && (
+                        <button
+                          onClick={() => navigateTo('admin_action', item.id)}
+                          className="bg-primary-container text-on-primary font-bold text-[10px] px-2.5 py-1 rounded hover:bg-primary flex items-center gap-0.5 min-h-[30px]"
+                        >
+                          <span>Act</span>
+                          <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table (sm+) */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-surface-container border-b border-outline-variant text-on-surface-variant font-bold">
@@ -366,12 +476,12 @@ export default function AdminComplaintsPage() {
 
         {/* Quick Edit Status Modal */}
         {editingComplaint && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/50 backdrop-blur-sm">
-            <div className="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-2xl max-w-md w-full">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-primary/50 backdrop-blur-sm">
+            <div className="bg-surface-container-lowest p-4 sm:p-lg rounded-xl border border-outline-variant shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-md border-b border-outline-variant pb-2">
                 <h3 className="font-bold text-sm text-primary">Update Status: #{editingComplaint.id}</h3>
-                <button onClick={() => setEditingComplaint(null)} className="text-on-surface-variant">
-                  <span className="material-symbols-outlined text-sm">close</span>
+                <button onClick={() => setEditingComplaint(null)} className="text-on-surface-variant p-1 rounded hover:bg-surface-container">
+                  <span className="material-symbols-outlined text-base">close</span>
                 </button>
               </div>
 
@@ -381,7 +491,7 @@ export default function AdminComplaintsPage() {
                   <select
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
-                    className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none font-bold"
+                    className="w-full p-2.5 bg-surface border border-outline-variant rounded focus:border-primary outline-none font-bold"
                   >
                     <option value="Submitted">Submitted (Pending Review)</option>
                     <option value="Under Review">Under Review</option>
@@ -400,7 +510,7 @@ export default function AdminComplaintsPage() {
                     value={statusNote}
                     onChange={(e) => setStatusNote(e.target.value)}
                     placeholder="e.g. Work crew deployed with heavy machinery..."
-                    className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none resize-none"
+                    className="w-full p-2.5 bg-surface border border-outline-variant rounded focus:border-primary outline-none resize-none"
                   ></textarea>
                 </div>
 
@@ -408,13 +518,13 @@ export default function AdminComplaintsPage() {
                   <button
                     type="button"
                     onClick={() => setEditingComplaint(null)}
-                    className="px-3 py-1.5 text-on-surface-variant font-bold"
+                    className="px-3 py-2 text-on-surface-variant font-bold rounded hover:bg-surface-container min-h-[40px]"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="bg-primary-container text-on-primary font-bold px-4 py-1.5 rounded hover:bg-primary"
+                    className="bg-primary-container text-on-primary font-bold px-4 py-2 rounded hover:bg-primary transition-colors min-h-[40px]"
                   >
                     Save & Update
                   </button>
@@ -426,12 +536,12 @@ export default function AdminComplaintsPage() {
 
         {/* Bulk Assign Modal */}
         {bulkModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/50 backdrop-blur-sm">
-            <div className="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-2xl max-w-md w-full">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-primary/50 backdrop-blur-sm">
+            <div className="bg-surface-container-lowest p-4 sm:p-lg rounded-xl border border-outline-variant shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-md border-b border-outline-variant pb-2">
                 <h3 className="font-bold text-sm text-primary">Bulk Assign ({selectedIds.length} Complaints)</h3>
-                <button onClick={() => setBulkModalOpen(false)} className="text-on-surface-variant">
-                  <span className="material-symbols-outlined text-sm">close</span>
+                <button onClick={() => setBulkModalOpen(false)} className="text-on-surface-variant p-1 rounded hover:bg-surface-container">
+                  <span className="material-symbols-outlined text-base">close</span>
                 </button>
               </div>
 
@@ -444,7 +554,7 @@ export default function AdminComplaintsPage() {
                     value={bulkDept}
                     onChange={(e) => setBulkDept(e.target.value)}
                     placeholder="e.g. Public Works Department (PWD)"
-                    className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none"
+                    className="w-full p-2.5 bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                   />
                 </div>
 
@@ -454,7 +564,7 @@ export default function AdminComplaintsPage() {
                     type="text"
                     value={bulkOfficer}
                     onChange={(e) => setBulkOfficer(e.target.value)}
-                    className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none"
+                    className="w-full p-2.5 bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                   />
                 </div>
 
@@ -462,13 +572,13 @@ export default function AdminComplaintsPage() {
                   <button
                     type="button"
                     onClick={() => setBulkModalOpen(false)}
-                    className="px-3 py-1.5 text-on-surface-variant font-bold"
+                    className="px-3 py-2 text-on-surface-variant font-bold rounded hover:bg-surface-container min-h-[40px]"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="bg-gov-saffron text-primary font-bold px-4 py-1.5 rounded hover:bg-gov-saffron/90"
+                    className="bg-gov-saffron text-primary font-bold px-4 py-2 rounded hover:bg-gov-saffron/90 transition-colors min-h-[40px]"
                   >
                     Dispatch All
                   </button>

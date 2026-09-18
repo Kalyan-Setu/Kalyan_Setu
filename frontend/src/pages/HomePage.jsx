@@ -12,7 +12,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col flex-grow w-full">
       {/* Hero Section */}
-      <section className="relative w-full min-h-[560px] flex items-center bg-surface-variant">
+      <section className="relative w-full min-h-[480px] sm:min-h-[560px] flex items-center bg-surface-variant">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img
@@ -23,33 +23,33 @@ export default function HomePage() {
           <div className="absolute inset-0 hero-overlay"></div>
         </div>
 
-        <div className="relative z-10 w-full max-w-container-max mx-auto px-lg py-xl">
+        <div className="relative z-10 w-full max-w-container-max mx-auto px-4 sm:px-lg py-10 sm:py-xl">
           <div className="max-w-3xl">
-            <span className="inline-block bg-white/15 backdrop-blur-sm text-primary-fixed text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 border border-white/20">
+            <span className="inline-block bg-white/15 backdrop-blur-sm text-primary-fixed text-[11px] sm:text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3 sm:mb-4 border border-white/20">
               Official National Grievance Portal
             </span>
-            <h1 className="font-display-lg text-4xl sm:text-5xl lg:text-display-lg text-white mb-sm leading-tight font-bold">
+            <h1 className="font-display-lg text-3xl sm:text-5xl lg:text-display-lg text-white mb-2 sm:mb-sm leading-tight font-bold">
               Kalyan Setu
             </h1>
-            <p className="font-headline-sm text-lg sm:text-headline-sm text-gov-saffron mb-lg uppercase tracking-wide font-semibold">
+            <p className="font-headline-sm text-base sm:text-headline-sm text-gov-saffron mb-3 sm:mb-lg uppercase tracking-wide font-semibold">
               Your Voice. Our Priority.
             </p>
-            <p className="font-body-lg text-base sm:text-body-lg text-white/90 mb-xl max-w-2xl leading-relaxed">
+            <p className="font-body-lg text-sm sm:text-body-lg text-white/90 mb-6 sm:mb-xl max-w-2xl leading-relaxed">
               Report problems in your area and track how they are being addressed. A direct, transparent channel between citizens and administration to build better communities together.
             </p>
-            <div className="flex flex-col sm:flex-row gap-md">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-md w-full sm:w-auto">
               <button
                 onClick={() => navigateTo('submit')}
-                className="font-label-md text-sm bg-gov-saffron text-primary font-bold rounded px-lg py-md hover:bg-white hover:text-primary transition-all flex items-center justify-center gap-sm shadow-lg active:scale-95"
+                className="font-label-md text-sm bg-gov-saffron text-primary font-bold rounded px-6 sm:px-lg py-3 sm:py-md hover:bg-white hover:text-primary transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 w-full sm:w-auto"
               >
-                <span className="material-symbols-outlined filled-icon">report_problem</span>
+                <span className="material-symbols-outlined filled-icon text-xl">report_problem</span>
                 Report a Problem
               </button>
               <button
                 onClick={() => navigateTo('track')}
-                className="font-label-md text-sm bg-transparent border-2 border-white text-white font-bold rounded px-lg py-md hover:bg-white/10 transition-all flex items-center justify-center gap-sm active:scale-95"
+                className="font-label-md text-sm bg-transparent border-2 border-white text-white font-bold rounded px-6 sm:px-lg py-3 sm:py-md hover:bg-white/10 transition-all flex items-center justify-center gap-2 active:scale-95 w-full sm:w-auto"
               >
-                <span className="material-symbols-outlined">my_location</span>
+                <span className="material-symbols-outlined text-xl">my_location</span>
                 Track My Problem
               </button>
             </div>
@@ -58,30 +58,30 @@ export default function HomePage() {
       </section>
 
       {/* Live Metrics Counter Bar */}
-      <section className="w-full bg-primary-container text-white py-lg border-b border-outline-variant">
-        <div className="max-w-container-max mx-auto px-lg grid grid-cols-2 md:grid-cols-4 gap-lg text-center">
-          <div className="p-3 border-r border-white/10">
-            <div className="font-display-lg text-3xl font-bold text-gov-saffron">2,48,910+</div>
-            <div className="font-label-sm text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">Citizen Issues Logged</div>
+      <section className="w-full bg-primary-container text-white py-6 sm:py-lg border-b border-outline-variant">
+        <div className="max-w-container-max mx-auto px-4 sm:px-lg grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-lg text-center">
+          <div className="p-2.5 sm:p-3 border-r border-white/10">
+            <div className="font-display-lg text-2xl sm:text-3xl font-bold text-gov-saffron">2,48,910+</div>
+            <div className="font-label-sm text-[11px] sm:text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">Citizen Issues Logged</div>
           </div>
-          <div className="p-3 border-r border-white/10">
-            <div className="font-display-lg text-3xl font-bold text-gov-green">89.4%</div>
-            <div className="font-label-sm text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">Resolution Rate</div>
+          <div className="p-2.5 sm:p-3 md:border-r border-white/10">
+            <div className="font-display-lg text-2xl sm:text-3xl font-bold text-gov-green">89.4%</div>
+            <div className="font-label-sm text-[11px] sm:text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">Resolution Rate</div>
           </div>
-          <div className="p-3 border-r border-white/10">
-            <div className="font-display-lg text-3xl font-bold text-white">48 Hours</div>
-            <div className="font-label-sm text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">Avg Triage Speed</div>
+          <div className="p-2.5 sm:p-3 border-r border-white/10">
+            <div className="font-display-lg text-2xl sm:text-3xl font-bold text-white">48 Hours</div>
+            <div className="font-label-sm text-[11px] sm:text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">Avg Triage Speed</div>
           </div>
-          <div className="p-3">
-            <div className="font-display-lg text-3xl font-bold text-gov-saffron">750+</div>
-            <div className="font-label-sm text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">Districts Covered</div>
+          <div className="p-2.5 sm:p-3">
+            <div className="font-display-lg text-2xl sm:text-3xl font-bold text-gov-saffron">750+</div>
+            <div className="font-label-sm text-[11px] sm:text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">Districts Covered</div>
           </div>
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section className="w-full py-xxl bg-surface">
-        <div className="max-w-container-max mx-auto px-lg">
+      <section className="w-full py-10 sm:py-xxl bg-surface">
+        <div className="max-w-container-max mx-auto px-4 sm:px-lg">
           <div className="text-center mb-xl">
             <span className="font-label-sm text-xs text-primary-container uppercase tracking-[0.15em] font-bold block mb-1">
               Transparent Redressal Workflow
@@ -142,14 +142,14 @@ export default function HomePage() {
       </section>
 
       {/* Why Section (Bento Grid) */}
-      <section className="w-full py-xxl bg-surface-container-low border-y border-outline-variant">
-        <div className="max-w-container-max mx-auto px-lg">
-          <div className="flex flex-col md:flex-row gap-xl items-center">
-            <div className="md:w-1/3 flex flex-col justify-center">
+      <section className="w-full py-10 sm:py-xxl bg-surface-container-low border-y border-outline-variant">
+        <div className="max-w-container-max mx-auto px-4 sm:px-lg">
+          <div className="flex flex-col md:flex-row gap-8 sm:gap-xl items-center">
+            <div className="md:w-1/3 flex flex-col justify-center text-center md:text-left">
               <span className="font-label-sm text-xs text-primary-container uppercase tracking-[0.15em] font-bold block mb-1">
                 Institutional Integrity
               </span>
-              <h2 className="font-headline-lg text-2xl sm:text-headline-lg text-on-surface mb-md font-bold">
+              <h2 className="font-headline-lg text-2xl sm:text-headline-lg text-on-surface mb-2 sm:mb-md font-bold">
                 Why Kalyan Setu
               </h2>
               <p className="font-body-md text-sm text-on-surface-variant leading-relaxed">
@@ -157,14 +157,14 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="md:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-md">
+            <div className="md:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-md w-full">
               {/* Point 1 */}
-              <div className="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex gap-md items-start sm:col-span-2 shadow-ambient">
-                <div className="bg-surface-container p-sm rounded mt-xs text-primary-container">
-                  <span className="material-symbols-outlined">support_agent</span>
+              <div className="bg-surface-container-lowest p-4 sm:p-md rounded-lg border border-outline-variant flex gap-3 sm:gap-md items-start sm:col-span-2 shadow-ambient">
+                <div className="bg-surface-container p-2 sm:p-sm rounded mt-0.5 text-primary-container shrink-0">
+                  <span className="material-symbols-outlined text-xl sm:text-2xl">support_agent</span>
                 </div>
                 <div>
-                  <h4 className="font-headline-sm text-base font-bold text-on-surface mb-xs">
+                  <h4 className="font-headline-sm text-sm sm:text-base font-bold text-on-surface mb-1">
                     Multi-Channel Reporting
                   </h4>
                   <p className="font-body-md text-xs text-on-surface-variant leading-relaxed">
@@ -174,12 +174,12 @@ export default function HomePage() {
               </div>
 
               {/* Point 2 */}
-              <div className="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex gap-md items-start shadow-ambient">
-                <div className="bg-surface-container p-sm rounded mt-xs text-primary-container">
-                  <span className="material-symbols-outlined">psychology</span>
+              <div className="bg-surface-container-lowest p-4 sm:p-md rounded-lg border border-outline-variant flex gap-3 sm:gap-md items-start shadow-ambient">
+                <div className="bg-surface-container p-2 sm:p-sm rounded mt-0.5 text-primary-container shrink-0">
+                  <span className="material-symbols-outlined text-xl sm:text-2xl">psychology</span>
                 </div>
                 <div>
-                  <h4 className="font-headline-sm text-base font-bold text-on-surface mb-xs">
+                  <h4 className="font-headline-sm text-sm sm:text-base font-bold text-on-surface mb-1">
                     AI-Driven Triage
                   </h4>
                   <p className="font-body-md text-xs text-on-surface-variant leading-relaxed">
@@ -189,12 +189,12 @@ export default function HomePage() {
               </div>
 
               {/* Point 3 */}
-              <div className="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex gap-md items-start shadow-ambient">
-                <div className="bg-surface-container p-sm rounded mt-xs text-primary-container">
-                  <span className="material-symbols-outlined">verified</span>
+              <div className="bg-surface-container-lowest p-4 sm:p-md rounded-lg border border-outline-variant flex gap-3 sm:gap-md items-start shadow-ambient">
+                <div className="bg-surface-container p-2 sm:p-sm rounded mt-0.5 text-primary-container shrink-0">
+                  <span className="material-symbols-outlined text-xl sm:text-2xl">verified</span>
                 </div>
                 <div>
-                  <h4 className="font-headline-sm text-base font-bold text-on-surface mb-xs">
+                  <h4 className="font-headline-sm text-sm sm:text-base font-bold text-on-surface mb-1">
                     Verified Resolution
                   </h4>
                   <p className="font-body-md text-xs text-on-surface-variant leading-relaxed">
@@ -208,9 +208,9 @@ export default function HomePage() {
       </section>
 
       {/* Featured Recent Grievances Feed */}
-      <section className="w-full py-xl bg-surface">
-        <div className="max-w-container-max mx-auto px-lg">
-          <div className="flex justify-between items-end mb-lg">
+      <section className="w-full py-8 sm:py-xl bg-surface">
+        <div className="max-w-container-max mx-auto px-4 sm:px-lg">
+          <div className="flex justify-between items-end mb-4 sm:mb-lg">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-primary-container">
                 Transparent Public Feed
@@ -221,12 +221,12 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-md">
             {complaints.slice(0, 3).map((item) => (
               <div
                 key={item.id}
                 onClick={() => navigateTo('track', item.id)}
-                className="bg-surface-container-lowest border border-outline-variant rounded-lg p-md hover:shadow-card hover:border-primary transition-all cursor-pointer flex flex-col justify-between"
+                className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 sm:p-md hover:shadow-card hover:border-primary transition-all cursor-pointer flex flex-col justify-between"
               >
                 <div>
                   <div className="flex justify-between items-center mb-2">
@@ -242,7 +242,7 @@ export default function HomePage() {
                     </span>
                   </div>
                   <h3 className="text-sm font-bold text-on-surface line-clamp-1 mb-1">{item.title}</h3>
-                  <p className="text-xs text-on-surface-variant line-clamp-2 mb-3">{item.description}</p>
+                  <p className="text-xs text-on-surface-variant line-clamp-2 mb-3 leading-relaxed">{item.description}</p>
                 </div>
 
                 <div className="border-t border-outline-variant pt-2 flex items-center justify-between text-[11px] text-on-surface-variant">
@@ -259,17 +259,17 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="w-full bg-gradient-to-r from-primary-container to-primary text-white py-xl text-center">
-        <div className="max-w-3xl mx-auto px-lg">
-          <h2 className="font-headline-lg text-2xl sm:text-headline-lg font-bold mb-sm">
+      <section className="w-full bg-gradient-to-r from-primary-container to-primary text-white py-10 sm:py-xl text-center">
+        <div className="max-w-3xl mx-auto px-4 sm:px-lg">
+          <h2 className="font-headline-lg text-2xl sm:text-headline-lg font-bold mb-2 sm:mb-sm">
             Make Your Ward a Better Place
           </h2>
-          <p className="text-sm text-primary-fixed-dim mb-lg max-w-xl mx-auto">
+          <p className="text-sm text-primary-fixed-dim mb-6 sm:mb-lg max-w-xl mx-auto leading-relaxed">
             Take a picture, record a note, or write a description. Our automated routing system assigns it directly to the responsible engineer in your district.
           </p>
           <button
             onClick={() => navigateTo('submit')}
-            className="bg-gov-saffron text-primary font-bold px-8 py-3 rounded text-sm hover:bg-white transition-all shadow-lg active:scale-95 inline-flex items-center gap-2"
+            className="bg-gov-saffron text-primary font-bold px-6 sm:px-8 py-3 rounded text-sm hover:bg-white transition-all shadow-lg active:scale-95 inline-flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <span className="material-symbols-outlined">add_circle</span>
             File Your Grievance Now
