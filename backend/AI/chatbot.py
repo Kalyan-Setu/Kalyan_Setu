@@ -6,13 +6,14 @@ import re
 import uuid
 import json
 from typing import Any, TypedDict
+import asyncio
 
 from langchain_core.documents import Document
 from langchain_core.tools import tool
 from langchain_groq import ChatGroq
 from langgraph.graph import END, StateGraph
 
-from config import GROQ_API_KEY, GROQ_PRIMARY_MODEL
+from config import GROQ_API_KEY, GROQ_PRIMARY_MODEL, GROQ_FAST_MODEL
 
 _conversations: dict[str, list[dict[str, str]]] = {}
 _active_documents: list[Document] = []
@@ -71,10 +72,16 @@ async def _answer_node(state: RagState) -> RagState:
     )
     try:
         llm = ChatGroq(model=GROQ_PRIMARY_MODEL, temperature=0.1, max_tokens=700)
-        response = await llm.ainvoke(prompt)
+        response = await asyncio.wait_for(llm.ainvoke(prompt), timeout=25)
         state["answer"] = response.content if isinstance(response.content, str) else str(response.content)
     except Exception:
-        state["answer"] = "The AI assistant could not reach Groq right now. Please retry while keeping the analysis page open."
+        # Fallback to fast model
+        try:
+            llm = ChatGroq(model=GROQ_FAST_MODEL, temperature=0.1, max_tokens=500)
+            response = await asyncio.wait_for(llm.ainvoke(prompt), timeout=15)
+            state["answer"] = response.content if isinstance(response.content, str) else str(response.content)
+        except Exception:
+            state["answer"] = "The AI assistant could not reach Groq right now. Please retry while keeping the analysis page open."
     return state
 
 

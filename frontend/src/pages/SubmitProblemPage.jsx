@@ -27,7 +27,7 @@ export default function SubmitProblemPage() {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);  // Stage 2: Groq description generation
   const [transcribeFailed, setTranscribeFailed] = useState(false);
-  const [voiceLang, setVoiceLang] = useState('unknown'); // 'unknown'=auto, 'hi-IN', 'en-IN'
+  const [voiceLang, setVoiceLang] = useState('od-IN'); // 'od-IN'=Odia, 'hi-IN'=Hindi, 'en-IN'=English
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordedAudio, setRecordedAudio] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
@@ -51,14 +51,19 @@ export default function SubmitProblemPage() {
   }, [isRecording]);
 
   // ── Helper: call Groq to generate formal title + description from a transcript ──
-  const generateFromTranscript = async (rawTranscript) => {
+  const generateFromTranscript = async (rawTranscript, selectedLang = voiceLang) => {
     setIsGenerating(true);
     try {
       const fd = new FormData();
       fd.append('transcript', rawTranscript);
       fd.append('category', category);
-      fd.append('location', location);
-      fd.append('district', district);
+      if (location && !location.toLowerCase().includes('central district') && !location.toLowerCase().includes('area')) {
+        fd.append('location', location);
+      }
+      if (district && !district.toLowerCase().includes('central district')) {
+        fd.append('district', district);
+      }
+      fd.append('language_code', selectedLang || 'od-IN');
       if (state) fd.append('state', state);
       if (pincode) fd.append('pincode', pincode);
       const res = await fetch(`${API_BASE}/problems/generate-description`, {
@@ -70,22 +75,21 @@ export default function SubmitProblemPage() {
         const genDesc = (data.description || '').trim();
         const genTitle = (data.title || '').trim();
         if (genDesc) setDescription(genDesc);
-        if (genTitle && !title) setTitle(genTitle);
-        else if (!title) setTitle(`Voice Report: ${category} issue in ${district}`);
-        if (!location) setLocation(`${district} Central Market Area`);
-        console.info(`[Pipeline] Stage 2 complete via ${data.model}`);
+        if (genTitle) setTitle(genTitle);
+        console.info(`[Pipeline] Stage 2 complete via ${data.model} in ${selectedLang}`);
       }
     } catch (err) {
       console.warn('[Pipeline] Stage 2 (Groq) failed, using raw transcript:', err);
-      // Graceful degradation — raw transcript is already set, just set title
-      if (!title) setTitle(`Voice Report: ${category} issue in ${district}`);
-      if (!location) setLocation(`${district} Central Market Area`);
+      if (rawTranscript && !description) setDescription(rawTranscript);
+      if (!title) {
+        setTitle(selectedLang === 'od-IN' ? `ଅଭିଯୋଗ: ${category} ସମସ୍ୟା` : `Voice Report: ${category} issue`);
+      }
     } finally {
       setIsGenerating(false);
     }
   };
 
-  // ── Stage 1: Transcribe audio blob via Sarvam AI → fallback Web Speech API ──
+  // ── Stage 1: Transcribe audio blob via Sarvam AI saaras:v3 ──
   const transcribeAudioBlob = async (blob) => {
     setIsTranscribing(true);
     setTranscribeFailed(false);
@@ -94,7 +98,7 @@ export default function SubmitProblemPage() {
     try {
       const formData = new FormData();
       formData.append('file', blob, 'voice_complaint.webm');
-      formData.append('language_code', voiceLang);
+      formData.append('language_code', voiceLang || 'od-IN');
       const res = await fetch(`${API_BASE}/problems/transcribe`, {
         method: 'POST',
         body: formData,
@@ -103,7 +107,7 @@ export default function SubmitProblemPage() {
         const data = await res.json();
         rawTranscript = (data.transcript || '').trim();
         if (rawTranscript) {
-          console.info(`[Pipeline] Stage 1 complete via Sarvam AI: ${rawTranscript.slice(0, 60)}...`);
+          console.info(`[Pipeline] Stage 1 complete via Sarvam AI (${voiceLang}): ${rawTranscript.slice(0, 60)}...`);
         }
       }
     } catch (err) {
@@ -112,26 +116,23 @@ export default function SubmitProblemPage() {
       setIsTranscribing(false);
     }
 
-    // Fallback: use Web Speech API live transcript if Sarvam returned nothing
-    if (!rawTranscript) {
+    // Fallback: use Web Speech API live transcript only if Sarvam returned nothing and language is English
+    if (!rawTranscript && voiceLang === 'en-IN') {
       rawTranscript = liveTranscriptRef.current.trim();
-      if (rawTranscript) {
-        console.info(`[Pipeline] Stage 1 using Web Speech API fallback: ${rawTranscript.slice(0, 60)}...`);
-      }
     }
 
     if (!rawTranscript) {
-      // Both STT providers returned nothing — show error, do not auto-fill
+      // Show failure message if no speech captured
       setTranscribeFailed(true);
       return;
     }
 
-    // Show raw transcript immediately so user sees something while Groq processes
+    // Show raw transcript immediately
     setVoiceTranscript(rawTranscript);
     setDescription(rawTranscript);
 
-    // ── Stage 2: Groq LLM → formal grievance title + description ──
-    await generateFromTranscript(rawTranscript);
+    // ── Stage 2: Groq LLM → formal grievance title + description in Odia/Hindi/English ──
+    await generateFromTranscript(rawTranscript, voiceLang);
   };
 
 
@@ -163,15 +164,14 @@ export default function SubmitProblemPage() {
         liveTranscriptRef.current = '';
         setVoiceTranscript('');
 
-        // Web Speech API for real-time live preview while user is speaking
+        // Web Speech API for real-time live preview ONLY when English is selected (browsers lack client Odia models)
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
+        if (SpeechRecognition && voiceLang === 'en-IN') {
           try {
             const recognition = new SpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = true;
-            // Sync with user's selected language; 'unknown' → use hi-IN as browser fallback
-            recognition.lang = voiceLang === 'unknown' ? 'hi-IN' : voiceLang;
+            recognition.lang = 'en-IN';
 
             recognition.onresult = (event) => {
               let fullTranscript = '';
@@ -179,7 +179,7 @@ export default function SubmitProblemPage() {
                 fullTranscript += event.results[i][0].transcript;
               }
               if (fullTranscript.trim()) {
-                liveTranscriptRef.current = fullTranscript; // save live result as fallback
+                liveTranscriptRef.current = fullTranscript;
                 setVoiceTranscript(fullTranscript);
                 setDescription(fullTranscript);
                 if (!title) setTitle(`Voice Report: ${category} issue in ${district}`);
@@ -447,7 +447,7 @@ export default function SubmitProblemPage() {
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { code: 'unknown', label: '🔍 Auto', sub: 'Auto-detect' },
+                      { code: 'od-IN',  label: 'ଓଡ଼ିଆ',   sub: 'Odia'        },
                       { code: 'hi-IN',  label: 'हि',      sub: 'Hindi'       },
                       { code: 'en-IN',  label: 'EN',      sub: 'English'     },
                     ].map(lang => (
@@ -462,7 +462,7 @@ export default function SubmitProblemPage() {
                             : 'border-outline-variant text-on-surface-variant hover:border-primary/50 bg-surface'
                         } ${isRecording ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
-                        <div className="text-base font-bold leading-none">{lang.label}</div>
+                        <div className="text-sm sm:text-base font-bold leading-none">{lang.label}</div>
                         <div className="text-[9px] mt-0.5 opacity-80">{lang.sub}</div>
                       </button>
                     ))}

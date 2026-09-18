@@ -56,7 +56,7 @@ async def update_status(
     """Update a problem's status, notes, officer, department, or budget."""
     _require_official(current_user)
 
-    problem = await fetch_one("SELECT * FROM problems WHERE display_id = $1", display_id)
+    problem = await fetch_one("SELECT * FROM problems WHERE display_id = $1 OR CAST(id AS TEXT) = $1", display_id)
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
 
@@ -79,7 +79,54 @@ async def update_status(
         body.status, action_notes, assigned_officer, assigned_department, budget, display_id
     )
 
+    # Invalidate AI workflow cache if status was changed to Deleted / Rejected
+    if (body.status or "").lower() in ("deleted", "rejected"):
+        try:
+            from routers.ai import _ANALYSIS_CACHE
+            _ANALYSIS_CACHE.pop(display_id, None)
+            if problem.get("display_id"):
+                _ANALYSIS_CACHE.pop(problem["display_id"], None)
+        except Exception:
+            pass
+
     return {"message": f"Problem {display_id} updated to {body.status}"}
+
+
+@router.delete("/problems/{display_id}")
+async def delete_problem(
+    display_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """Delete a problem (marks status as Deleted and excludes from AI analysis)."""
+    _require_official(current_user)
+
+    problem = await fetch_one("SELECT * FROM problems WHERE display_id = $1 OR CAST(id AS TEXT) = $1", display_id)
+    if not problem:
+        raise HTTPException(status_code=404, detail="Problem not found")
+
+    now = datetime.now(timezone.utc).strftime("%d %b %Y")
+    await execute(
+        """
+        UPDATE problems
+        SET status = 'Deleted',
+            action_notes = $1,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE display_id = $2 OR CAST(id AS TEXT) = $2
+        """,
+        f"Grievance deleted by government authority on {now}.",
+        display_id
+    )
+
+    # Clear from AI analysis cache
+    try:
+        from routers.ai import _ANALYSIS_CACHE
+        _ANALYSIS_CACHE.pop(display_id, None)
+        if problem.get("display_id"):
+            _ANALYSIS_CACHE.pop(problem["display_id"], None)
+    except Exception:
+        pass
+
+    return {"message": f"Problem {display_id} deleted successfully"}
 
 
 @router.get("/problems/all")
@@ -172,6 +219,7 @@ async def dashboard_stats(current_user: dict = Depends(get_current_user)):
         in_progress=status_counts.get("In Progress", 0),
         resolved=status_counts.get("Resolved", 0),
         rejected=status_counts.get("Rejected", 0),
+        deleted=status_counts.get("Deleted", 0),
         by_priority=priority_counts,
         by_category=category_counts,
     )

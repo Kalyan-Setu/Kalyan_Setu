@@ -3,7 +3,7 @@ import { useCivic } from '../context/CivicContext';
 import AdminSidebar from '../components/AdminSidebar';
 
 export default function AdminComplaintsPage() {
-  const { complaints, updateComplaintStatus, bulkAssign, navigateTo, showNotification } = useCivic();
+  const { complaints, updateComplaintStatus, deleteComplaint, bulkAssign, navigateTo, showNotification, setActiveTab, setActiveTrackId } = useCivic();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
@@ -171,7 +171,7 @@ export default function AdminComplaintsPage() {
 
           {/* Status Tabs */}
           <div className="flex items-center gap-1 overflow-x-auto border-t border-outline-variant pt-2">
-            {['ALL', 'Submitted', 'Under Review', 'Action Assigned', 'In Progress', 'Resolved', 'Rejected'].map((st) => (
+            {['ALL', 'Submitted', 'Under Review', 'Action Assigned', 'In Progress', 'Resolved', 'Rejected', 'Deleted'].map((st) => (
               <button
                 key={st}
                 onClick={() => setSelectedStatus(st)}
@@ -204,7 +204,7 @@ export default function AdminComplaintsPage() {
                   <th className="p-3">Grievance ID</th>
                   <th className="p-3">Issue Title & Category</th>
                   <th className="p-3">Location & Citizen</th>
-                  <th className="p-3">Priority</th>
+                  <th className="p-3">Priority & AI Score</th>
                   <th className="p-3">Assigned Cell</th>
                   <th className="p-3">Status</th>
                   <th className="p-3 text-right">Actions</th>
@@ -254,15 +254,29 @@ export default function AdminComplaintsPage() {
                       </td>
 
                       <td className="p-3">
-                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                          item.priority === 'Critical'
-                            ? 'bg-error-container text-on-error-container font-extrabold'
-                            : item.priority === 'High'
-                            ? 'bg-secondary-container text-on-secondary-container'
-                            : 'bg-surface-container-high text-on-surface-variant'
-                        }`}>
-                          {item.priority}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded w-fit ${
+                            item.priority === 'Critical'
+                              ? 'bg-error-container text-on-error-container font-extrabold'
+                              : item.priority === 'High'
+                              ? 'bg-secondary-container text-on-secondary-container'
+                              : 'bg-surface-container-high text-on-surface-variant'
+                          }`}>
+                            {item.priority}
+                          </span>
+                          {/* AI Severity Score pill */}
+                          {(item.aiSeverityScore || item.ai_severity_score) && (
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded w-fit ${
+                              (item.aiSeverityScore || item.ai_severity_score) >= 80
+                                ? 'bg-error/10 text-error border border-error/20'
+                                : (item.aiSeverityScore || item.ai_severity_score) >= 60
+                                ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                                : 'bg-gov-green/10 text-gov-green border border-gov-green/20'
+                            }`}>
+                              🤖 {item.aiSeverityScore || item.ai_severity_score}/100
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       <td className="p-3">
@@ -276,6 +290,8 @@ export default function AdminComplaintsPage() {
                             ? 'bg-gov-green/15 text-gov-green border border-gov-green/30'
                             : item.status === 'Rejected'
                             ? 'bg-error/15 text-error border border-error/30 font-extrabold'
+                            : item.status === 'Deleted'
+                            ? 'bg-error/10 text-error/80 border border-error/20 line-through font-extrabold'
                             : item.status === 'In Progress' || item.status === 'Action Assigned'
                             ? 'bg-secondary-container/30 text-on-secondary-fixed-variant border border-secondary-container/50'
                             : 'bg-surface-container-high text-on-surface-variant border border-outline-variant'
@@ -286,6 +302,17 @@ export default function AdminComplaintsPage() {
 
                       <td className="p-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Quick AI Analyze button (only for non-deleted problems) */}
+                          {item.status !== 'Deleted' && item.status !== 'Rejected' && (
+                            <button
+                              onClick={() => navigateTo('admin_ai', item.id || item.display_id)}
+                              title="Run AI Agentic Workflow"
+                              className="bg-gov-saffron/10 text-gov-saffron hover:bg-gov-saffron/20 font-bold text-[10px] px-2 py-1 rounded transition-colors flex items-center gap-0.5"
+                            >
+                              <span className="material-symbols-outlined text-xs">smart_toy</span>
+                              <span>AI</span>
+                            </button>
+                          )}
                           <button
                             onClick={() => {
                               setEditingComplaint(item);
@@ -297,14 +324,29 @@ export default function AdminComplaintsPage() {
                           >
                             <span className="material-symbols-outlined text-base">edit_note</span>
                           </button>
-                          <button
-                            onClick={() => navigateTo('admin_action', item.id)}
-                            title="Take Strategic Action"
-                            className="bg-primary-container text-on-primary font-bold text-[11px] px-2.5 py-1 rounded hover:bg-primary transition-all flex items-center gap-0.5"
-                          >
-                            <span>Act</span>
-                            <span className="material-symbols-outlined text-xs">arrow_forward</span>
-                          </button>
+                          {item.status !== 'Deleted' && (
+                            <button
+                              onClick={() => navigateTo('admin_action', item.id)}
+                              title="Take Strategic Action"
+                              className="bg-primary-container text-on-primary font-bold text-[11px] px-2.5 py-1 rounded hover:bg-primary transition-all flex items-center gap-0.5"
+                            >
+                              <span>Act</span>
+                              <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                            </button>
+                          )}
+                          {item.status !== 'Deleted' && (
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete grievance #${item.id}? It will be removed from AI analysis.`)) {
+                                  deleteComplaint(item.id || item.display_id);
+                                }
+                              }}
+                              title="Delete Grievance (Exclude from AI)"
+                              className="p-1 text-error/70 hover:text-error hover:bg-error/10 rounded transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-base">delete</span>
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -347,6 +389,7 @@ export default function AdminComplaintsPage() {
                     <option value="In Progress">In Progress (Field Repair)</option>
                     <option value="Resolved">Resolved (Completed)</option>
                     <option value="Rejected">Rejected</option>
+                    <option value="Deleted">Deleted (Removed by Govt)</option>
                   </select>
                 </div>
 

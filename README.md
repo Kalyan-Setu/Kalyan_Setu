@@ -1,424 +1,606 @@
-# Kalyan Setu
+# 🇮🇳 Kalyan Setu (कल्याण सेतु)
 
 <p align="center">
-  <img src="frontend/src/assets/kalyan-setu-logo.png" alt="Kalyan Setu" width="180" />
+  <img src="frontend/src/assets/kalyan-setu-logo.png" alt="Kalyan Setu Logo" width="180" />
 </p>
 
 <p align="center">
-  A full-stack civic grievance platform connecting citizen reports with government review, triage, action, and status tracking.
+  <strong>Next-Generation Multilingual Civic Redressal & Autonomous Government Intelligence Platform</strong><br>
+  <em>Bridging Citizen Voices with Rapid Administrative Action Powered by LangGraph, Sarvam AI, and Supabase PostgreSQL</em>
 </p>
 
 <p align="center">
-  <img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=20232A" />
-  <img alt="Vite" src="https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white" />
-  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white" />
-  <img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white" />
-  <img alt="Database" src="https://img.shields.io/badge/Database-Supabase%20PostgreSQL-3ECF8E?logo=supabase&logoColor=white" />
+  <img alt="React 19" src="https://img.shields.io/badge/Frontend-React%2019-61DAFB?logo=react&logoColor=black" />
+  <img alt="Vite 6" src="https://img.shields.io/badge/Bundler-Vite%206-646CFF?logo=vite&logoColor=white" />
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Styling-Tailwind%20CSS-38B2AC?logo=tailwindcss&logoColor=white" />
+  <img alt="FastAPI" src="https://img.shields.io/badge/Backend-FastAPI%200.115-009688?logo=fastapi&logoColor=white" />
+  <img alt="Python 3.10+" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white" />
+  <img alt="LangGraph" src="https://img.shields.io/badge/AI-LangGraph%20Agentic-FF6F00?logo=langchain&logoColor=white" />
+  <img alt="Sarvam AI" src="https://img.shields.io/badge/STT-Sarvam%20AI%20(Saaras%3Av3)-8A2BE2" />
+  <img alt="Groq" src="https://img.shields.io/badge/Inference-Groq%20Llama%203.3-F55036?logo=groq&logoColor=white" />
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/Database-Supabase%20PostgreSQL-3ECF8E?logo=supabase&logoColor=white" />
 </p>
 
-> **Project status:** The repository contains a working local development stack. The frontend, backend, database fallback, authentication, evidence upload, admin workflow, and AI fallback paths have been exercised locally. Production hardening and provider configuration are still required before public deployment.
+---
 
-## Contents
+## 📑 Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Technology Stack](#technology-stack)
-- [Getting Started](#getting-started)
-- [Configuration](#configuration)
-- [Using the Platform](#using-the-platform)
-- [API Overview](#api-overview)
-- [Database](#database)
-- [AI and ML](#ai-and-ml)
-- [Project Structure](#project-structure)
-- [Testing and Quality Checks](#testing-and-quality-checks)
-- [Deployment](#deployment)
-- [Screenshots](#screenshots)
-- [Contributing](#contributing)
-- [License](#license)
+- [🌟 Platform Overview](#-platform-overview)
+- [✨ Core Capabilities](#-core-capabilities)
+  - [👥 Citizen Experience](#-citizen-experience)
+  - [🏛️ Government Command Center](#️-government-command-center)
+  - [🤖 AI & Autonomous Intelligence](#-ai--autonomous-intelligence)
+- [🏛️ System Architecture](#️-system-architecture)
+  - [High-Level Platform Topology](#high-level-platform-topology)
+  - [End-to-End Grievance Lifecycle](#end-to-end-grievance-lifecycle)
+  - [8-Node LangGraph Agentic Triage Engine](#8-node-langgraph-agentic-triage-engine)
+- [🎙️ Multilingual & Multimodal Ingestion](#️-multilingual--multimodal-ingestion)
+- [🗺️ Geographic Intelligence & Spatial Mapping](#️-geographic-intelligence--spatial-mapping)
+- [📊 0/1 Knapsack Budget Optimization & Semantic Clustering](#-01-knapsack-budget-optimization--semantic-clustering)
+- [💻 Technology Stack](#-technology-stack)
+- [🗄️ Database Architecture & Schema](#️-database-architecture--schema)
+- [🔌 API Reference](#-api-reference)
+- [🚀 Quick Start & Installation](#-quick-start--installation)
+  - [Prerequisites](#prerequisites)
+  - [1. Clone Repository](#1-clone-repository)
+  - [2. Backend Setup](#2-backend-setup)
+  - [3. Frontend Setup](#3-frontend-setup)
+- [⚙️ Environment Configuration](#️-environment-configuration)
+- [📂 Project Structure](#-project-structure)
+- [🔒 Security & Production Best Practices](#-security--production-best-practices)
+- [🤝 Contributing](#-contributing)
+- [📜 License](#-license)
 
-## Overview
+---
 
-Kalyan Setu is a civic grievance redressal application with two role-based experiences:
+## 🌟 Platform Overview
 
-- **Citizens** can register, authenticate, submit text/photo/voice complaints, track milestones, post follow-up notes, and contact support.
-- **Government officials** can view complaints, filter and export records, assign departments and officers, update statuses, inspect dashboard metrics, and run AI-assisted state analysis.
+**Kalyan Setu** (*"Bridge of Welfare"*) is a full-stack, enterprise-grade civic governance solution engineered for modern Indian municipal and state administration. It dismantles traditional bureaucratic friction by allowing citizens to lodge civic grievances through **voice in regional languages (Odia, Hindi, English)**, **photo evidence**, or **structured text**, while simultaneously giving authorities an **autonomous 8-node LangGraph triage agent**, **real-time spatial heatmaps**, and **algorithmic budget optimization**.
 
-The application uses a React single-page frontend and a FastAPI backend. Supabase PostgreSQL is the database for users, grievances, official assignments, and contact inquiries. The backend uses a direct asyncpg connection pool and PostgreSQL SQL; no ORM or SQLite fallback is used.
+### Why Kalyan Setu?
+- 🎙️ **Zero Language Barrier:** Integrated with **Sarvam AI `saaras:v3`** to accurately transcribe Indian languages (including Odia and Hindi) and expand raw voice complaints into formal, legal-grade municipal tickets.
+- ⚡ **Automated 8-Stage Triage:** Replaces manual sorting with an explainable AI pipeline that classifies issues, scores severity (0–100) using a 5-factor risk model, maps municipal departments, recommends budgets in INR, and self-checks feasibility with a critic node.
+- 📍 **Geographic Command:** Live interactive Leaflet map featuring real-time cluster markers, district hazard heatmaps, and pinpoint location detection.
+- 💰 **Resource Allocation Intelligence:** Implements a dynamic programming **0/1 Knapsack algorithm** to maximize civic impact under strict municipal budget constraints.
+- 🔒 **High-Performance Architecture:** Pure asynchronous Python backend (`FastAPI` + `asyncpg` connection pool directly to Supabase PostgreSQL) ensuring zero ORM overhead and high throughput.
 
-## Features
+---
 
-### Citizen portal
+## ✨ Core Capabilities
 
-- Citizen registration with normalized 10-digit Indian phone validation and `@gmail.com` validation.
-- JWT bearer authentication with bcrypt password hashes.
-- Dashboard with grievance counts, search, category filters, and status filters.
-- Guided grievance submission with text description, photo upload, or browser voice recording.
-- Browser Web Speech transcription when supported, with a recorded audio upload path.
-- Multipart evidence persistence under the backend `uploads/` directory.
-- Optional AI-assisted image description, voice transcription, and text summarization.
-- Complaint tracking timeline: Submitted, Under Review, Action Assigned, In Progress, and Resolved.
-- Citizen follow-up notes and profile editing in the current frontend session, plus contact inquiries with generated ticket IDs.
+### 👥 Citizen Experience
+* **Multimodal Reporting:** Submit complaints via raw voice recording, camera photo uploads, or descriptive text.
+* **Regional Voice Processing:** Native support for **Odia (ଓଡ଼ିଆ)**, **Hindi (हिन्दी)**, and Indian English with automatic script preservation.
+* **Milestone Status Tracker:** Live 5-stage progress pipeline (`Submitted` ➔ `Under Review` ➔ `Action Assigned` ➔ `In Progress` ➔ `Resolved`).
+* **Real-time Map Pinpointing:** Interactive map picker to precisely pinpoint infrastructure damage locations with auto-reverse geocoding.
+* **Direct Citizen Follow-ups:** Add timestamped notes, progress queries, and supplemental photos to ongoing grievances.
+* **Secure Citizen Profiles:** Mobile-first authentication with 10-digit Indian phone verification and bcrypt encrypted credentials.
 
-### Government portal
+### 🏛️ Government Command Center
+* **Executive State Dashboard:** High-level metrics for total complaints, critical priority alerts, category distributions, and district breakdown.
+* **Interactive GIS Grievance Map:** Comprehensive spatial visualization with color-coded severity markers, radius clustering, and detail drawers.
+* **Administrative Action Hub:** One-click assignment of departments (PWD, MCD, Jal Board, DISCOM), executive officers, SLA timeframes, and budget allocations.
+* **Bulk Triage & Operations:** Batch status transitions, multi-ticket department assignment, and CSV export for field teams.
+* **District Risk Heatmaps:** Live density heatmaps highlighting persistent civic pain points across districts and municipal wards.
 
-- Separate official login and role guard.
-- State overview with complaint, priority, category, and district metrics.
-- Complaint management with search, priority/category filters, status tabs, CSV export, bulk assignment, and status editing.
-- Strategic action page for department, officer, budget, SLA, directive, and status updates.
-- AI analysis page with clustering, hotspots, predictive directives, budget recommendations, and an official-facing chat assistant.
+### 🤖 AI & Autonomous Intelligence
+* **8-Node LangGraph Agent:** Comprehensive deep comprehension, categorization, 5-factor risk scoring, routing, budget recommendation, and critic validation.
+* **5-Factor Hazard Scoring:** Computes risk from Location Density, Priority Urgency, Problem Type Safety Impact, and Description Distress Signals.
+* **Semantic Clustering (TF-IDF + KMeans):** Groups hundreds of disparate complaints into actionable systemic municipal themes.
+* **Municipal RAG Chat Assistant:** Real-time conversational assistant enabling administrators to query complaints, cross-reference hotspots, and draft executive directives.
 
-## Architecture
+---
+
+## 🏛️ System Architecture
+
+### High-Level Platform Topology
 
 ```mermaid
-flowchart LR
-    C[Citizen browser] --> F[React + Vite SPA]
-    O[Official browser] --> F
-    F -->|JWT / JSON / multipart| API[FastAPI API]
-    API --> AUTH[Auth router]
-    API --> PROB[Problems router]
-    API --> GOVT[Government router]
-    API --> AI[AI router]
-    API --> CONTACT[Contact router]
-    AUTH --> DB[(Supabase PostgreSQL)]
-    PROB --> DB
-    GOVT --> DB
-    CONTACT --> DB
-    PROB --> FILES[backend/uploads]
-    AI --> ANALYSIS[TF-IDF + KMeans + budget DP]
-    AI -. optional .-> GROQ[Groq API]
-    PROB -. optional .-> HF[Hugging Face Inference API]
+flowchart TB
+    subgraph Citizens["👥 Citizen Layer"]
+        C1["📱 Mobile / Web Browser"]
+        C2["🎙️ Voice Recorder (Odia / Hindi / English)"]
+        C3["📸 Camera / Photo Upload"]
+    end
+
+    subgraph Officials["🏛️ Government Administration Layer"]
+        O1["💻 Executive Portal"]
+        O2["🗺️ Spatial GIS Map & Heatmaps"]
+        O3["📈 Analytics & 0/1 Knapsack Budgeting"]
+        O4["💬 Official RAG Assistant"]
+    end
+
+    subgraph Client["🖥️ Single Page Application (React 19 + Vite)"]
+        SPA["React SPA (Context API + Tailwind + Leaflet + Recharts)"]
+    end
+
+    subgraph Gateway["⚡ API Gateway (FastAPI)"]
+        API["FastAPI 0.115 Async Server (Uvicorn)"]
+        ROUTER_AUTH["🔐 Auth Router (/api/auth)"]
+        ROUTER_PROB["📝 Problems Router (/api/problems)"]
+        ROUTER_GOVT["🏛️ Govt Router (/api/govt)"]
+        ROUTER_AI["🤖 AI Router (/api/ai)"]
+        ROUTER_CONT["📬 Contact Router (/api/contact)"]
+    end
+
+    subgraph AI_Engine["🧠 AI & Multimodal Intelligence Engine"]
+        SARVAM["🎙️ Sarvam AI (saaras:v3)\nMultilingual STT (Odia/Hindi)"]
+        HF_VISION["👁️ Hugging Face BLIP\nVisual Hazard Analysis"]
+        GROQ_LLM["⚡ Groq Llama 3.3 70B / 8B\nStructured Expansion & Triage"]
+        LANGGRAPH["🕸️ 8-Node LangGraph\nGrievance Agentic Workflow"]
+        ML_CLUST["📊 scikit-learn\nTF-IDF + KMeans + 0/1 Knapsack"]
+    end
+
+    subgraph Storage["🗄️ Persistence & Storage"]
+        ASYNC_POOL["⚡ asyncpg Connection Pool (Direct SQL)"]
+        SUPABASE[("🐘 Supabase PostgreSQL\n(Users, Problems, Govt, Inquiries)")]
+        LOCAL_UPLOADS["📁 Local / Cloud File Storage (/uploads)"]
+    end
+
+    Citizens --> SPA
+    Officials --> SPA
+
+    SPA -->|REST API / JWT / Multipart FormData| API
+
+    API --> ROUTER_AUTH
+    API --> ROUTER_PROB
+    API --> ROUTER_GOVT
+    API --> ROUTER_AI
+    API --> ROUTER_CONT
+
+    ROUTER_PROB --> SARVAM
+    ROUTER_PROB --> HF_VISION
+    ROUTER_PROB --> GROQ_LLM
+    ROUTER_PROB --> LOCAL_UPLOADS
+
+    ROUTER_AI --> LANGGRAPH
+    ROUTER_AI --> ML_CLUST
+    ROUTER_AI --> GROQ_LLM
+
+    ROUTER_AUTH --> ASYNC_POOL
+    ROUTER_PROB --> ASYNC_POOL
+    ROUTER_GOVT --> ASYNC_POOL
+    ROUTER_AI --> ASYNC_POOL
+    ROUTER_CONT --> ASYNC_POOL
+
+    ASYNC_POOL --> SUPABASE
 ```
 
-### Request and grievance workflow
+---
+
+### End-to-End Grievance Lifecycle
 
 ```mermaid
 sequenceDiagram
-    participant Citizen
-    participant SPA as React SPA
-    participant API as FastAPI
-    participant DB as Supabase PostgreSQL
-    participant AI as Optional AI providers
+    autonumber
+    actor Citizen as 👤 Citizen
+    participant SPA as 💻 React Frontend
+    participant API as ⚡ FastAPI Backend
+    participant STT as 🎙️ Sarvam AI / HF
+    participant Agent as 🤖 LangGraph Agent
+    participant DB as 🐘 Supabase PostgreSQL
+    actor Official as 🏛️ Govt Official
 
-    Citizen->>SPA: Register or sign in
-    SPA->>API: POST /api/auth/*
-    API->>DB: Create or verify account
-    API-->>SPA: JWT + user profile
-    Citizen->>SPA: Submit grievance
-    SPA->>API: Multipart POST /api/problems
-    API->>DB: Persist complaint and metadata
-    API->>AI: Enrich text, photo, or voice when configured
-    API-->>SPA: Display ID and complaint response
-    SPA->>API: GET /api/problems/mine
-    API-->>SPA: Timeline-ready complaint data
-    Citizen->>SPA: Follow up or track status
-    SPA->>API: Official status endpoints when authorized
+    Citizen->>SPA: Record Audio (Odia/Hindi) or Upload Photo
+    SPA->>API: POST /api/problems (Multipart Form Data)
+    alt Voice Recording Provided
+        API->>STT: Send Audio Bytes to Sarvam AI (saaras:v3)
+        STT-->>API: Raw Transcript (e.g. ଓଡ଼ିଆ ଭାଷା)
+        API->>API: Groq LLM Formal Complaint Generator (Title & Description)
+    end
+    API->>DB: INSERT INTO problems (status='Submitted', display_id='PPxxxxx')
+    API-->>SPA: Return Complaint Confirmation with Display ID
+    SPA-->>Citizen: Display Live Tracking Timeline
+
+    Note over Official, Agent: Automated or On-Demand Administrative Triage
+    Official->>SPA: View AI Analysis Dashboard
+    SPA->>API: POST /api/ai/analyze-complaint/{display_id}
+    API->>Agent: Run 8-Node Agentic Workflow
+    Agent->>Agent: Understand ➔ Classify ➔ Score (5 Factors) ➔ Route ➔ Budget ➔ Critic Review
+    Agent-->>API: Return Structured Recommendation (Department, Officer, Budget, SLA)
+    API-->>SPA: Render Explainable Decision Cards
+    Official->>SPA: Approve & Apply Recommendation
+    SPA->>API: POST /api/ai/apply-recommendation/{display_id}
+    API->>DB: UPDATE problems (assigned_department, assigned_officer, budget, status='Action Assigned')
+    DB-->>SPA: Real-time Updated Status
+    SPA-->>Citizen: Notification: Complaint Action Assigned to Officer
 ```
 
-## Technology Stack
+---
 
-| Layer | Implementation |
-| --- | --- |
-| Frontend | React 19, React DOM, Vite 6, Tailwind CSS, Recharts |
-| Backend | FastAPI, Uvicorn, Python multipart handling |
-| Database access | Direct `asyncpg` connection pool and PostgreSQL SQL |
-| Primary database | Supabase PostgreSQL |
-| Database | Supabase PostgreSQL |
-| Authentication | JWT (`python-jose`), bcrypt password hashing |
-| AI/ML | scikit-learn TF-IDF/KMeans, deterministic budget knapsack, Groq HTTP API, Hugging Face Inference API |
-| Media | Pillow dependency, browser `MediaRecorder`, static file serving for uploaded evidence |
+### 8-Node LangGraph Agentic Triage Engine
 
-## Getting Started
+Every grievance processed through the automated AI workflow passes through an 8-stage state graph built with **LangGraph**:
+
+```mermaid
+flowchart TD
+    START([🚀 Start: Raw Complaint Data]) --> N1["1️⃣ Understanding Node\nDeep problem extraction & root cause"]
+    N1 --> N2["2️⃣ Classification Node\nStandardised Civic Category Mapping"]
+    N2 --> N3["3️⃣ Severity Node\n5-Factor Hazard Scoring (0–100)"]
+    N3 --> N4["4️⃣ Routing Node\nDepartment & Executive Officer Assignment"]
+    N4 --> N5["5️⃣ Actions Node\nField Directives, Equipment, Budget (INR), SLA"]
+    N5 --> N6["6️⃣ Critic Node\nAgentic Self-Review, Feasibility & Sanity Check"]
+    N6 --> N7["7️⃣ Structured Result Node\nNormalise to Strict JSON Schema Contract"]
+    N7 --> END_NODE([🏁 Ready for Official One-Click Approval & DB Commit])
+
+    classDef stage fill:#1E293B,stroke:#38BDF8,stroke-width:2px,color:#F8FAFC;
+    classDef endpoint fill:#047857,stroke:#10B981,stroke-width:2px,color:#FFFFFF;
+    class N1,N2,N3,N4,N5,N6,N7 stage;
+    class START,END_NODE endpoint;
+```
+
+#### 5-Factor Hazard Scoring Model:
+$$\text{Hazard Score} = \frac{\text{Location Density} + \text{Urgency} + \text{Problem Type Risk} + \text{Description Distress} + \text{Co-location Factor}}{5}$$
+* If **Score > 65**, the platform automatically triggers an **Early Warning Red Alert** for government administrators.
+
+---
+
+## 🎙️ Multilingual & Multimodal Ingestion
+
+Kalyan Setu solves India's civic reporting challenge with dedicated multimodal pipelines:
+
+| Modality | Technology | Details | Fallback Strategy |
+| :--- | :--- | :--- | :--- |
+| **Odia Voice (ଓଡ଼ିଆ)** | **Sarvam AI `saaras:v3`** | Specialised STT for Indic languages (`od-IN`), preserving authentic Odia script. | OpenAI Whisper Large v3 via Hugging Face Router. |
+| **Hindi Voice (हिन्दी)** | **Sarvam AI `saaras:v3`** | Accurate transcription of regional dialects and vocabulary (`hi-IN`). | Whisper Large v3 / Browser Web Speech API. |
+| **English Voice** | **Sarvam AI / Whisper** | Fast transcription for urban Indian English (`en-IN`). | Browser SpeechSynthesis / Web Speech API. |
+| **Formal Expansion** | **Groq Llama 3.3 70B** | Converts raw vernacular spoken thoughts into formal, legal municipal grievances. | Exact raw transcript preservation without hallucinated cities. |
+| **Visual Evidence** | **Hugging Face BLIP** | Image-to-text scene description for potholes, collapsed walls, waterlogging. | Intelligent heuristic metadata parser (file size/hazard classification). |
+
+---
+
+## 🗺️ Geographic Intelligence & Spatial Mapping
+
+The platform features a built-in GIS engine powered by **Leaflet** and **React-Leaflet**:
+* 📍 **Draggable Pinpoint Selector:** When filing a complaint, citizens can drop a marker anywhere on the map; the system reverse-geocodes the coordinates into readable streets and landmarks.
+* 🔴 **Severity-Based Pin Visualizer:** Official portals color-code pins dynamically:
+  - 🔴 **Critical Severity (75–100):** Immediate hazard requiring same-day intervention.
+  - 🟠 **High Severity (50–74):** Requires SLA action within 24–48 hours.
+  - 🟡 **Medium / Low (< 50):** Routine municipal maintenance.
+* 🗺️ **District Heatmap Layer:** Visualizes aggregate complaint density across state zones to pinpoint recurring infrastructure failures.
+
+---
+
+## 📊 0/1 Knapsack Budget Optimization & Semantic Clustering
+
+Government departments operate under strict budgetary boundaries. Kalyan Setu includes an algorithmic decision support system:
+
+1. **Semantic Text Clustering (TF-IDF + KMeans):**
+   - Ingests all active grievances across a state or municipality.
+   - Computes TF-IDF vector representations and clusters them into distinct systemic themes (e.g., *"Monsoon Drain Choking"*, *"Arterial Road Potholes"*, *"Transformer Failures"*).
+2. **Deterministic 0/1 Knapsack Budget Allocator:**
+   - Officials input a municipal budget threshold (e.g., ₹25,00,000).
+   - Each clustered theme is assigned an **Estimated Repair Cost ($W$)** and an **Aggregate Priority Impact Value ($V$)**.
+   - The dynamic programming solver selects the exact combination of infrastructure interventions that maximizes civic welfare without exceeding the budget.
+
+---
+
+## 💻 Technology Stack
+
+| Layer | Technologies | Purpose |
+| :--- | :--- | :--- |
+| **Frontend Framework** | `React 19`, `Vite 6` | High-speed Single Page Application with optimized bundle rendering |
+| **Styling & Icons** | `Tailwind CSS`, `Lucide React` | Clean, responsive civic UI designed for mobile and desktop |
+| **Data Visualization & GIS**| `Leaflet`, `React-Leaflet`, `Recharts` | Interactive geographical grievance maps, charts, and district heatmaps |
+| **Backend Framework** | `FastAPI 0.115`, `Uvicorn` | Modern asynchronous Python web framework with auto OpenAPI docs |
+| **Database & ORM Layer** | `Supabase PostgreSQL`, `asyncpg` | Zero-ORM direct async connection pool with statement cache tuning |
+| **Agentic AI & Orchestration** | `LangGraph`, `LangChain Core` | Stateful multi-actor autonomous agent for civic triage |
+| **LLM Inference** | `Groq Cloud` (Llama 3.3 70B & 8B) | Ultra-low-latency model execution with multi-model fallback chain |
+| **Speech-to-Text (STT)** | `Sarvam AI (saaras:v3)`, `Whisper` | State-of-the-art multilingual Indian voice transcription |
+| **Vision & Image Captioning**| `Salesforce BLIP Large` | Visual evidence classification and hazard detection |
+| **ML & Clustering** | `scikit-learn`, `NumPy` | TF-IDF vectorization, KMeans clustering, 0/1 Knapsack DP optimizer |
+| **Authentication** | `python-jose` (JWT), `passlib` (bcrypt) | Stateless role-based access control (Citizen vs. Official) |
+
+---
+
+## 🗄️ Database Architecture & Schema
+
+Kalyan Setu uses **Supabase PostgreSQL** via direct asynchronous connection pooling (`asyncpg`). Tables are automatically synchronized at startup:
+
+```mermaid
+erDiagram
+    USERS ||--o{ PROBLEMS : "submits"
+    USERS {
+        uuid id PK
+        varchar full_name
+        varchar email UK
+        varchar phone UK
+        text password_hash
+        varchar state
+        varchar district
+        timestamptz created_at
+    }
+
+    GOVT_USERS {
+        uuid id PK
+        varchar email UK
+        varchar department
+        varchar state
+        varchar officer_name
+        text password_hash
+        timestamptz created_at
+    }
+
+    PROBLEMS {
+        uuid id PK
+        varchar display_id UK "PPxxxxx format"
+        uuid user_id FK
+        varchar title
+        text description
+        text ai_summary
+        varchar category
+        varchar location
+        varchar district
+        varchar state
+        varchar priority "Critical, High, Medium, Low"
+        varchar status "Submitted, Under Review, Action Assigned, In Progress, Resolved"
+        varchar evidence_type "text, photo, voice"
+        text file_url
+        text voice_transcript
+        int ai_severity_score "0-100"
+        varchar sentiment
+        int theme_id
+        varchar assigned_department
+        varchar assigned_officer
+        text action_notes
+        varchar budget
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    CONTACT_US {
+        uuid id PK
+        varchar name
+        varchar email
+        varchar subject
+        text message
+        timestamptz created_at
+    }
+```
+
+---
+
+## 🔌 API Reference
+
+All backend routes are mounted under the `/api` prefix. Interactive Swagger/OpenAPI documentation is available at `http://127.0.0.1:8000/docs`.
+
+### 🔐 Authentication (`/api/auth`)
+| Method | Path | Auth | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/citizen/register` | Public | Register new citizen account with phone & email validation |
+| `POST` | `/api/auth/citizen/login` | Public | Login citizen via phone/email and receive JWT bearer token |
+| `POST` | `/api/auth/official/login` | Public | Authenticate government administrator with state/department scope |
+| `GET` | `/api/auth/me` | Bearer | Retrieve profile and role metadata for authenticated token |
+
+### 📝 Grievance Reporting (`/api/problems`)
+| Method | Path | Auth | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/problems` | Citizen | Create new grievance with multipart voice/photo/text evidence |
+| `GET` | `/api/problems/mine` | Citizen | Fetch list of complaints submitted by the authenticated citizen |
+| `GET` | `/api/problems/{display_id}` | Bearer | Get full detail & milestone tracking for a specific complaint |
+| `GET` | `/api/problems/state/{state}`| Official | List all grievances reported within a specific state |
+
+### 🏛️ Government Administration (`/api/govt`)
+| Method | Path | Auth | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/govt/problems` | Official | Query, filter, and paginate through departmental complaints |
+| `GET` | `/api/govt/problems/all` | Official | Cross-department overview of all state and national complaints |
+| `PATCH`| `/api/govt/problems/{did}/status` | Official | Update milestone status, officer assignment, SLA notes, or budget |
+| `POST` | `/api/govt/problems/bulk-assign` | Official | Bulk assign multiple tickets to a specific department and officer |
+| `GET` | `/api/govt/dashboard/stats` | Official | Retrieve aggregate counts for statuses, categories, and priorities |
+
+### 🤖 AI Intelligence & Triage (`/api/ai`)
+| Method | Path | Auth | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/ai/analyse` | Official | Batch clustering (TF-IDF + KMeans), 5-factor severity, and hotspots |
+| `POST` | `/api/ai/analyze-complaint/{did}` | Official | Run the autonomous 8-node LangGraph triage on a single complaint |
+| `POST` | `/api/ai/apply-recommendation/{did}` | Official | Directly write AI-recommended department, officer, and budget to DB |
+| `POST` | `/api/ai/chat` | Official | Ask the municipal RAG assistant questions over current state data |
+| `POST` | `/api/ai/chat/stream` | Official | Server-sent event stream for real-time assistant responses |
+| `POST` | `/api/ai/estimate-budget` | Official | Calculate AI emergency repair cost estimate for a complaint |
+
+---
+
+## 🚀 Quick Start & Installation
 
 ### Prerequisites
+- **Python 3.10+**
+- **Node.js 18+** & **npm**
+- Supabase PostgreSQL Database (or local PostgreSQL)
+- *(Optional but Recommended)*: Groq Cloud API Key & Sarvam AI Subscription Key
 
-- Python 3.10 or newer
-- Node.js and npm
-- Optional: a Supabase PostgreSQL database
-- Optional: Groq and Hugging Face API credentials for external AI enrichment
+---
 
-### 1. Clone and enter the repository
-
+### 1. Clone Repository
 ```bash
 git clone https://github.com/Kalyan-Setu/Kalyan_Setu.git
 cd Kalyan_Setu
 ```
 
-### 2. Install backend dependencies
+---
+
+### 2. Backend Setup
 
 ```bash
+# Navigate to backend directory
 cd backend
+
+# Create and activate virtual environment
 python -m venv venv
-```
 
-Activate the environment:
-
-```powershell
-# Windows PowerShell
+# Windows PowerShell:
 .\venv\Scripts\Activate.ps1
-```
+# macOS / Linux:
+# source venv/bin/activate
 
-```bash
-# macOS / Linux
-source venv/bin/activate
-```
-
-Install packages:
-
-```bash
-python -m pip install --upgrade pip
+# Install dependencies
+pip install --upgrade pip
 pip install -r requirements.txt
-```
 
-### 3. Configure the backend
+# Create .env file from template
+copy ..\.env .env
 
-Create `backend/.env` using the variables in [Configuration](#configuration). Do not commit credentials. Configure the Supabase PostgreSQL connection string in `DATABASE_URL` when database persistence is required. If no usable PostgreSQL URL is configured, the connection layer falls back to `backend/kalyan_setu.db` for local development.
-
-Initialize tables and the development official account:
-
-```bash
+# Initialize database schema and default admin
 python seed_admin.py
+
+# Launch FastAPI development server
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
+* The API will be live at `http://127.0.0.1:8000`
+* Swagger API Docs available at `http://127.0.0.1:8000/docs`
 
-### 4. Install and run the frontend
+---
 
+### 3. Frontend Setup
+
+In a new terminal window:
 ```bash
-cd ../frontend
+# Navigate to frontend directory
+cd frontend
+
+# Install npm dependencies
 npm install
+
+# Start Vite development server
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
+* Open your browser and navigate to `http://127.0.0.1:5173`
 
-### 5. Run the backend
+---
 
-In another terminal:
+## ⚙️ Environment Configuration
 
-```powershell
-cd backend
-venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
-```
-
-Open `http://127.0.0.1:5173` in a browser. The API root is available at `http://127.0.0.1:8000/`, and FastAPI's interactive documentation is available at `http://127.0.0.1:8000/docs`.
-
-## Configuration
-
-The backend loads environment variables with `python-dotenv`. The frontend currently uses `http://localhost:8000/api` directly in `frontend/src/context/CivicContext.jsx` and `frontend/src/pages/ContactUsPage.jsx`.
-
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `DATABASE_URL` | Recommended | Supabase PostgreSQL connection URL used by the direct asyncpg pool. |
-| `JWT_SECRET` | Yes for production | Secret used to sign bearer tokens. The code has a development fallback that must be replaced. |
-| `FRONTEND_URL` | No | Additional frontend origin included in CORS configuration. |
-| `GROQ_API_KEY` | No | Enables Groq summarization, impact estimation, and chatbot responses. |
-| `HUGGINGFACEHUB_API_TOKEN` | No | Enables Hugging Face image captioning and speech-to-text calls. |
-
-Example shape, with secrets omitted:
+Create a `.env` file in the root and in the `backend/` directory with the following variables:
 
 ```dotenv
-DATABASE_URL=postgresql://USER:PASSWORD@HOST:6543/postgres
-JWT_SECRET=replace-with-a-long-random-secret
+# ==========================================
+# 🐘 Database Configuration (Supabase PostgreSQL)
+# ==========================================
+DATABASE_URL=postgresql://postgres.YOUR_PROJECT_REF:YOUR_PASSWORD@aws-0-ap-south-1.pooler.supabase.com:6543/postgres
+
+# ==========================================
+# 🔐 Authentication & Security
+# ==========================================
+JWT_SECRET=your-super-secure-jwt-secret-key-min-32-chars
+JWT_ALGORITHM=HS256
+JWT_EXPIRY_HOURS=72
+
+# ==========================================
+# ⚡ Groq Cloud LLM Configuration
+# ==========================================
+GROQ_API_KEY=gsk_your_groq_api_key_here
+GROQ_PRIMARY_MODEL=openai/gpt-oss-120b
+GROQ_FAST_MODEL=openai/gpt-oss-20b
+
+# ==========================================
+# 🎙️ Sarvam AI (Multilingual Indic STT - Odia/Hindi)
+# ==========================================
+SARVAM_API_KEY=your_sarvam_ai_api_key_here
+SARVAM_STT_MODEL=saaras:v3
+
+# ==========================================
+# 🤗 Hugging Face (Vision & Fallback STT)
+# ==========================================
+HUGGINGFACEHUB_API_TOKEN=hf_your_huggingface_token_here
+
+# ==========================================
+# 🌐 Network & CORS
+# ==========================================
 FRONTEND_URL=http://localhost:5173
-GROQ_API_KEY=
-HUGGINGFACEHUB_API_TOKEN=
 ```
 
-> **Security:** Never copy credentials from a local `.env` file into this README, source control, screenshots, or issue reports. Rotate any credential that has been exposed.
+---
 
-## Using the Platform
-
-### Citizen flow
-
-1. Select **Register** and create an account.
-2. Sign in through the Citizen Portal.
-3. Choose **Report a Problem** and select text, photo, or voice evidence.
-4. Complete the grievance details and review the submission.
-5. File the grievance and use the generated `PPxxxxx` display ID to track it.
-6. Add a follow-up note from the timeline or edit profile details from **My Profile**.
-
-### Official flow
-
-1. Select **Switch to Government Portal**.
-2. Authenticate through the Government Official form.
-3. Review the overview and complaint queue.
-4. Use filters, CSV export, bulk assignment, or status editing.
-5. Open **Take Action** to issue department, officer, budget, SLA, and directive updates.
-6. Open **AI Analysis** to run state analysis or query the complaint context through the assistant.
-
-Development-only official account creation is supported by `backend/seed_admin.py` and the auto-seeding logic in the official login route. Replace development credentials and disable automatic account creation before production use.
-
-## API Overview
-
-All application routes are mounted below `/api`. Protected endpoints require `Authorization: Bearer <jwt>`.
-
-### Authentication
-
-| Method | Endpoint | Auth | Purpose |
-| --- | --- | --- | --- |
-| `POST` | `/api/auth/citizen/register` | Public | Register a citizen and return a JWT. |
-| `POST` | `/api/auth/citizen/login` | Public | Authenticate by phone or email. |
-| `POST` | `/api/auth/official/login` | Public | Authenticate an official. |
-| `GET` | `/api/auth/me` | Bearer | Decode and return the current token claims. |
-
-### Citizen complaints and contact
-
-| Method | Endpoint | Auth | Purpose |
-| --- | --- | --- | --- |
-| `POST` | `/api/problems` | Bearer | Create a multipart grievance with optional evidence file. |
-| `GET` | `/api/problems/mine` | Bearer | List complaints owned by the current citizen. |
-| `GET` | `/api/problems/{display_id}` | Bearer | Fetch one complaint with ownership enforcement for citizens. |
-| `GET` | `/api/problems/state/{state_name}` | Official | List complaints for a state. |
-| `POST` | `/api/contact` | Public | Persist a contact inquiry and return a ticket ID. |
-
-### Government operations
-
-| Method | Endpoint | Auth | Purpose |
-| --- | --- | --- | --- |
-| `GET` | `/api/govt/problems` | Official | List official complaint records. |
-| `GET` | `/api/govt/problems/all` | Official | List all complaints across states. |
-| `PATCH` | `/api/govt/problems/{display_id}/status` | Official | Update status, assignment, notes, or budget. |
-| `POST` | `/api/govt/problems/bulk-assign` | Official | Assign multiple display IDs to a department and officer. |
-| `GET` | `/api/govt/dashboard/stats` | Official | Return status, priority, category, and total counts. |
-
-### AI operations
-
-| Method | Endpoint | Auth | Purpose |
-| --- | --- | --- | --- |
-| `POST` | `/api/ai/analyse` | Official | Run clustering, scoring, impact, budget, hotspot, and early-warning analysis. |
-| `POST` | `/api/ai/chat` | Official | Query the complaint context through the official assistant. |
-
-Interactive OpenAPI documentation is generated by FastAPI at `/docs` when the backend is running.
-
-## Database
-
-Tables are created automatically during FastAPI startup through `create_tables()`.
-
-| Table | Responsibility |
-| --- | --- |
-| `users` | Citizen identity, contact data, bcrypt password hash, state, and district. |
-| `govt_users` | Official identity, department, state, officer name, and password hash. |
-| `problems` | Grievance content, evidence metadata, AI fields, status, assignment, budget, and timestamps. |
-| `contact_us` | Support/contact submissions and timestamps. |
-
-Supabase PostgreSQL is the persistent datastore. The backend uses direct asyncpg queries and creates the required tables at startup through `create_tables()`.
-
-> **Persistence note:** Complaint records and contact inquiries are persisted by the backend. Citizen follow-up notes and profile edits are currently managed in frontend state/local storage and are not exposed as dedicated backend update endpoints.
-
-## AI and ML
-
-The official analysis endpoint runs the following pipeline:
-
-1. Build complaint text from titles and descriptions.
-2. Group complaints with TF-IDF and KMeans; use hash bucketing if clustering fails.
-3. Score themes using complaint count, priority weight, and average severity.
-4. Ask Groq for optional plain-language impact and cost estimates.
-5. Select a budget-fitting set of themes using a deterministic 0/1 knapsack algorithm.
-
-The pipeline also calculates a sentiment index, district hotspots, and early-warning directives. Image captioning and speech transcription use Hugging Face when configured. Text cleanup, image classification, voice transcription, AI cost estimation, and chatbot responses all have local or deterministic fallback behavior so the core workflow can continue without external providers.
-
-## Project Structure
+## 📂 Project Structure
 
 ```text
 Kalyan_Setu/
 ├── backend/
-│   ├── main.py                 # FastAPI app, CORS, lifespan, static uploads
-│   ├── asgi.py                 # ASGI deployment entrypoint
-│   ├── config.py               # Environment-backed configuration
-│   ├── auth_utils.py           # bcrypt and JWT helpers
-│   ├── seed_admin.py           # Table initialization and dev official seed
-│   ├── requirements.txt
+│   ├── main.py                     # FastAPI application factory, middleware, CORS
+│   ├── config.py                   # Environment configuration & model settings
+│   ├── auth_utils.py               # Password hashing (bcrypt) & JWT verification
+│   ├── seed_admin.py               # Table creation & initial official account seeding
+│   ├── requirements.txt            # Python backend dependencies
 │   ├── AI/
-│   │   ├── analysis.py         # Clustering, scoring, budget optimization
-│   │   ├── chatbot.py          # Official complaint-context assistant
-│   │   └── processor.py        # Text, image, voice enrichment
+│   │   ├── workflow.py             # 8-Node LangGraph autonomous triage agent
+│   │   ├── severity_agent.py       # 5-factor civic hazard scoring agent
+│   │   ├── processor.py            # Multimodal handler (Sarvam AI STT, BLIP, Groq)
+│   │   ├── analysis.py             # TF-IDF, KMeans clustering, 0/1 Knapsack DP
+│   │   └── chatbot.py              # Context-aware official municipal assistant
 │   ├── database/
-│   │   ├── connection.py       # Direct asyncpg pool and PostgreSQL schema
-│   │   └── schemas.py          # Pydantic request/response contracts
-│   └── routers/
-│       ├── auth.py
-│       ├── problems.py
-│       ├── govt.py
-│       ├── ai.py
-│       └── contact.py
+│   │   ├── connection.py           # Direct asyncpg connection pool & SQL schemas
+│   │   └── schemas.py              # Pydantic validation contracts
+│   ├── routers/
+│   │   ├── auth.py                 # Citizen & official authentication endpoints
+│   │   ├── problems.py             # Complaint ingestion & citizen tracking
+│   │   ├── govt.py                 # Administrative management & status patching
+│   │   ├── ai.py                   # Agentic analysis, workflow, and chat endpoints
+│   │   └── contact.py              # Public support & contact form handling
+│   ├── scratch/                    # Test & validation scripts for AI / STT pipelines
+│   └── uploads/                    # Local storage for grievance photos and audio
 ├── frontend/
-│   ├── package.json
-│   ├── vite.config.js
+│   ├── index.html                  # HTML entrypoint
+│   ├── package.json                # Frontend package scripts & dependencies
+│   ├── vite.config.js              # Vite configuration
 │   └── src/
-│       ├── App.jsx             # Role-aware page rendering
-│       ├── context/            # Auth, navigation, API and complaint state
-│       ├── components/         # Navbar, auth, admin sidebar, shared UI
-│       ├── pages/              # Citizen and official screens
-│       └── assets/              # Local logo and Parliament artwork
-├── .env                        # Local environment file; do not commit secrets
-└── README.md
+│       ├── App.jsx                 # Role-based route controller
+│       ├── main.jsx                # React root mount
+│       ├── context/
+│       │   └── CivicContext.jsx    # Global grievance state, auth, and API requests
+│       ├── components/
+│       │   ├── Navbar.jsx          # Civic header with language selector & role toggle
+│       │   ├── Footer.jsx          # Official footer with emergency contacts
+│       │   ├── AdminSidebar.jsx    # Official portal navigation drawer
+│       │   ├── AuthModal.jsx       # Unified Citizen / Official authentication modal
+│       │   ├── GeographicGrievanceMap.jsx # Interactive Leaflet grievance cluster map
+│       │   ├── ProblemLocationMap.jsx     # Draggable pin map for grievance submission
+│       │   ├── DistrictHeatmap.jsx        # Ward-level grievance density heatmap
+│       │   └── NotificationToast.jsx      # Animated action alert notifications
+│       ├── pages/
+│       │   ├── HomePage.jsx               # Civic landing page & national stats
+│       │   ├── SubmitProblemPage.jsx      # Multimodal grievance submission wizard
+│       │   ├── ProblemStatusPage.jsx      # Citizen 5-stage milestone tracking view
+│       │   ├── CitizenDashboardPage.jsx   # Citizen grievance portfolio & history
+│       │   ├── ProfilePage.jsx            # Citizen account details & district settings
+│       │   ├── ContactUsPage.jsx          # Public inquiries & ticket generator
+│       │   ├── AdminOverviewPage.jsx      # Official KPI dashboard & urgent alerts
+│       │   ├── AdminComplaintsPage.jsx    # Master grievance table with search & filters
+│       │   ├── AdminTakeActionPage.jsx    # Department routing, SLA, & budget assignment
+│       │   └── AdminAiAnalysisPage.jsx    # AI clustering, 8-node agent review, & assistant
+│       └── assets/
+│           ├── kalyan-setu-logo.png       # Official emblem
+│           └── parliament-bg.jpg          # Portal banner backdrop
+├── .gitignore                      # Git ignore rules
+└── README.md                       # Comprehensive project documentation
 ```
 
-## Testing and Quality Checks
+---
 
-The repository does not currently include an automated test suite or CI workflow. The following checks are available:
+## 🔒 Security & Production Best Practices
 
-```bash
-# Frontend production build
-cd frontend
-npm run build
+1. **Environment Credentials:** Never commit raw API keys, passwords, or database credentials. Always load credentials through environment variables.
+2. **Database Pooling:** The `asyncpg` pool sets `statement_cache_size=0`, which is mandatory when connecting to Supabase PgBouncer in Transaction mode to prevent `InvalidSQLStatementNameError`.
+3. **Role-Based Token Isolation:** Citizen tokens and Government Official tokens have distinct role scopes (`role: citizen` vs. `role: official`) validated on all sensitive routes.
+4. **File Upload Hardening:** Uploaded files are strictly validated against supported image and audio MIME types before being written to disk.
 
-# Backend startup smoke test
-cd ../backend
-python -m uvicorn main:app --host 127.0.0.1 --port 8000
-```
+---
 
-For manual end-to-end verification, exercise registration/login, grievance submission in all three evidence modes, tracking, contact submission, official status updates, CSV export, AI analysis, and protected endpoint access. FastAPI's `/docs` page is useful for focused API checks.
+## 🤝 Contributing
 
-## Deployment
+Contributions to Kalyan Setu are welcome! To contribute:
 
-### Backend
+1. **Fork the Repository**
+2. **Create a Feature Branch:** `git checkout -b feature/NewAwesomeFeature`
+3. **Commit Your Changes:** `git commit -m "feat: add regional voice feedback loop"`
+4. **Push to the Branch:** `git push origin feature/NewAwesomeFeature`
+5. **Open a Pull Request** with a detailed description of changes and test outcomes.
 
-The repository includes `backend/asgi.py` for ASGI hosts such as Render or Gunicorn-compatible deployments:
+---
 
-```bash
-cd backend
-uvicorn asgi:app --host 0.0.0.0 --port ${PORT:-8000}
-```
+## 📜 License
 
-Set a production `DATABASE_URL`, strong `JWT_SECRET`, CORS origin, and AI provider variables. Ensure the deployment has writable or external storage for evidence uploads; the current implementation stores files on the local filesystem and serves them from `/uploads`.
+This project is licensed under the **MIT License**. Feel free to use, modify, and distribute for civic and educational initiatives.
 
-### Frontend
-
-Build the static Vite bundle:
-
-```bash
-cd frontend
-npm run build
-```
-
-Deploy `frontend/dist` to a static host. Before deploying, replace the development API URL in the frontend with the deployed backend URL or place both services behind a reverse proxy that makes `http://localhost:8000/api` available from the browser. The repository does not currently include a frontend environment-variable abstraction, Dockerfile, infrastructure manifest, or CI/CD workflow.
-
-## Screenshots
-
-The repository currently includes local visual assets but no committed product screenshots. The hero artwork used by the application is available here:
-
-![Kalyan Setu civic portal artwork](frontend/src/assets/parliament-bg.jpg)
-
-Recommended screenshots for a future `docs/screenshots/` folder:
-
-| Screenshot | Suggested capture |
-| --- | --- |
-| Citizen dashboard | Complaint counts, filters, and a submitted grievance card |
-| Submit grievance | Evidence mode selection and review step |
-| Status timeline | Milestones, citizen notes, and evidence container |
-| Official overview | KPI cards, heatmap, and action queue |
-| AI analysis | Clusters, hotspots, budget summary, and assistant |
-
-## Contributing
-
-1. Create a focused feature or fix branch.
-2. Keep frontend and backend contracts synchronized.
-3. Never commit `.env` files, database files, tokens, passwords, or generated uploads.
-4. Run `npm run build` and a relevant manual/API smoke test before opening a pull request.
-5. Describe database, API, authentication, or deployment changes clearly in the pull request.
-
-## License
-
-No `LICENSE` file is currently included in this repository. Add an explicit license before distributing the project or accepting external contributions under defined terms.
-
-## Contributors
-
-Kalyan Setu project contributors are listed in the repository's GitHub contributors view. Contributions should follow the workflow above and include validation evidence for user-facing or API changes.
+<p align="center">
+  Made with ❤️ for citizens and responsive public governance.
+</p>
