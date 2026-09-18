@@ -1,2 +1,0 @@
-# Kalyan Setu - Root Requirements Pointer
--r backend/requirements.txt

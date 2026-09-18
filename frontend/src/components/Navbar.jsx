@@ -66,7 +66,7 @@ export default function Navbar() {
               </button>
               {langMenuOpen && (
                 <div className="absolute right-0 mt-1 bg-surface-container-lowest text-on-surface border border-outline-variant rounded shadow-lg py-1 w-24 z-50">
-                  {['English (EN)', 'हिंदी (HI)', 'বাংলা (BN)', 'मराठी (MR)', 'తెలుగు (TE)'].map((lang) => (
+                  {['English (EN)', 'हिंदी (HI)','ଓଡ଼ିଆ (ODIA)'].map((lang) => (
                     <button
                       key={lang}
                       onClick={() => {

@@ -1,7 +1,25 @@
 """Kalyan Setu — FastAPI application entry‑point."""
 
+import warnings
+
+# Suppress LangChain / LangGraph internal deprecation warnings
+try:
+    import langchain_core
+    import langchain
+    from langchain_core._api.deprecation import (
+        LangChainDeprecationWarning,
+        LangChainPendingDeprecationWarning,
+    )
+    warnings.filterwarnings("ignore", category=LangChainDeprecationWarning)
+    warnings.filterwarnings("ignore", category=LangChainPendingDeprecationWarning)
+    warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+except ImportError:
+    pass
+
 from contextlib import asynccontextmanager
 from pathlib import Path
+
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
