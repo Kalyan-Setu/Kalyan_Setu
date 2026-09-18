@@ -492,32 +492,69 @@ export default function AdminAiAnalysisPage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
-            {activePredictiveAlerts.map(alert => (
-              <div key={alert.id} className="bg-surface p-md rounded-lg border border-outline-variant flex flex-col justify-between gap-3 text-xs">
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-error flex items-center gap-1">
-                      <span className="material-symbols-outlined text-sm">warning</span>
-                      {alert.title}
-                    </span>
-                    <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                      Score: {alert.score}/100
-                    </span>
+            {activePredictiveAlerts.map(alert => {
+              const isSelected = selectedProblemId === alert.id || selectedComplaintId === alert.id;
+              return (
+                <div
+                  key={alert.id}
+                  onClick={() => {
+                    setSelectedComplaintId(alert.id);
+                    setSelectedProblemId(alert.id);
+                  }}
+                  className={`bg-surface p-md rounded-lg border transition-all cursor-pointer ${
+                    isSelected
+                      ? 'border-primary ring-2 ring-primary/30 shadow-md bg-primary/5'
+                      : 'border-outline-variant hover:border-primary/50'
+                  } flex flex-col justify-between gap-3 text-xs`}
+                >
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-bold text-error flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm">warning</span>
+                        {alert.title}
+                      </span>
+                      <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                        Score: {alert.score}/100
+                      </span>
+                    </div>
+                    <p className="text-on-surface-variant leading-relaxed mt-1">{alert.desc}</p>
                   </div>
-                  <p className="text-on-surface-variant leading-relaxed mt-1">{alert.desc}</p>
+                  <div className="flex justify-between items-center pt-2 border-t border-outline-variant text-[11px] gap-2 flex-wrap">
+                    <span className="text-on-surface font-semibold truncate flex-1">Action: {alert.action}</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedComplaintId(alert.id);
+                          setSelectedProblemId(alert.id);
+                          const mapEl = document.getElementById('problem-gis-map-section');
+                          if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="bg-surface border border-outline-variant hover:border-primary text-primary font-bold text-xs px-2.5 py-1 rounded flex items-center gap-1 shadow-sm transition-all"
+                        title="Locate on GIS map"
+                      >
+                        <span className="material-symbols-outlined text-sm text-error">location_on</span>
+                        <span>Map</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedComplaintId(alert.id);
+                          setSelectedProblemId(alert.id);
+                          runComplaintWorkflow(alert.id);
+                        }}
+                        className="bg-primary text-white hover:bg-primary/90 font-bold text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+                      >
+                        <span>AI Analyse</span>
+                        <span className="material-symbols-outlined text-sm">psychology</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-outline-variant text-[11px]">
-                  <span className="text-on-surface font-semibold">Action: {alert.action}</span>
-                  <button
-                    onClick={() => { setSelectedComplaintId(alert.id); runComplaintWorkflow(alert.id); }}
-                    className="bg-primary text-white hover:bg-primary/90 font-bold text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all cursor-pointer"
-                  >
-                    <span>AI Analyse</span>
-                    <span className="material-symbols-outlined text-sm">psychology</span>
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {activePredictiveAlerts.length === 0 && (
@@ -831,10 +868,14 @@ export default function AdminAiAnalysisPage() {
         </div>
 
         {/* ── Map ── */}
-        <div className="mb-lg">
+        <div id="problem-gis-map-section" className="mb-lg">
           <ProblemLocationMap
             problem={selectedProblem}
             alertProblems={crisisProblems}
+            onSelectProblem={(id) => {
+              setSelectedProblemId(id);
+              setSelectedComplaintId(id);
+            }}
             headerAction={
               <div className="flex items-center gap-1.5">
                 <label htmlFor="problem-location-select" className="text-xs font-bold text-on-surface-variant whitespace-nowrap">Problem:</label>
