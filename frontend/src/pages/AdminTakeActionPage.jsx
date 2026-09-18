@@ -5,12 +5,21 @@ import AdminSidebar from '../components/AdminSidebar';
 export default function AdminTakeActionPage() {
   const { complaints, activeTrackId, updateComplaintStatus, showNotification, navigateTo, authToken } = useCivic();
 
+  // Track which fields were pre-filled by AI recommendation
+  const [aiFilledFields, setAiFilledFields] = useState([]);
+  const [aiRecommendationApplied, setAiRecommendationApplied] = useState(false);
+
+  // Active complaints excluding Deleted / Rejected
+  const activeComplaints = React.useMemo(() => {
+    return complaints.filter(c => c.status !== 'Deleted' && c.status !== 'Rejected');
+  }, [complaints]);
+
   // Selected complaint for action, defaults to activeTrackId or first critical
   const [selectedId, setSelectedId] = useState(() => {
-    return activeTrackId || (complaints.find(c => c.priority === 'Critical') || complaints[0])?.id || 'PP24891';
+    return activeTrackId || (complaints.find(c => c.priority === 'Critical' && c.status !== 'Deleted' && c.status !== 'Rejected') || complaints[0])?.id || 'PP24891';
   });
 
-  const selectedComplaint = complaints.find(c => c.id === selectedId || c.display_id === selectedId) || complaints[0] || {};
+  const selectedComplaint = activeComplaints.find(c => c.id === selectedId || c.display_id === selectedId) || activeComplaints[0] || {};
   const selectedSeverity = selectedComplaint.aiSeverityScore ?? selectedComplaint.ai_severity_score;
 
   const [assignedDepartment, setAssignedDepartment] = useState(selectedComplaint.assignedDepartment || 'Public Works Department (PWD)');
@@ -25,6 +34,26 @@ export default function AdminTakeActionPage() {
   const [newStatus, setNewStatus] = useState('In Progress');
 
   const abortControllerRef = useRef(null);
+
+  // Load AI recommendation if pre-applied from AI Analysis page
+  useEffect(() => {
+    const stored = sessionStorage.getItem('ai_recommendation_applied');
+    if (stored) {
+      try {
+        const rec = JSON.parse(stored);
+        if (rec.display_id === selectedId || rec.display_id === (selectedComplaint.display_id || selectedComplaint.id)) {
+          if (rec.department) { setAssignedDepartment(rec.department); }
+          if (rec.officer) { setAssignedOfficer(rec.officer); }
+          if (rec.budget) { setBudget(rec.budget); }
+          if (rec.directive) { setDirectiveNote(rec.directive); }
+          if (rec.sla) { setDeadline(rec.sla); }
+          setAiFilledFields(rec.fields || []);
+          setAiRecommendationApplied(true);
+          sessionStorage.removeItem('ai_recommendation_applied');
+        }
+      } catch {}
+    }
+  }, [selectedId]);
 
   // Dynamically analyze the selected complaint and fetch AI-determined budget
   const fetchAiBudget = useCallback(async (complaint, forceRefresh = false) => {
@@ -174,11 +203,25 @@ export default function AdminTakeActionPage() {
       <AdminSidebar />
 
       <main className="flex-1 p-lg md:p-xl overflow-y-auto max-w-7xl">
+        {/* AI Recommendation Applied Banner */}
+        {aiRecommendationApplied && (
+          <div className="mb-md bg-teal-500/10 border border-teal-500/30 rounded-xl p-3 flex items-center gap-3 animate-in slide-in-from-top-2">
+            <div className="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined text-teal-600 text-base">smart_toy</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-bold text-teal-700">🤖 AI Agent Recommendation Applied</div>
+              <div className="text-[11px] text-teal-600 mt-0.5">Department, officer, budget and directive pre-filled from LangGraph analysis. Review and edit as needed before dispatching.</div>
+            </div>
+            <button onClick={() => setAiRecommendationApplied(false)} className="text-teal-500 hover:text-teal-700 text-sm p-1">✕</button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-lg border-b border-outline-variant pb-md">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-error mb-1">
             <span className="material-symbols-outlined text-sm">bolt</span>
-            <span>ALL Problems With Ranking Manner</span>
+            <span>All Problems — Ranked by AI Severity</span>
           </div>
           <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary">
             Take Strategic Action
@@ -198,7 +241,7 @@ export default function AdminTakeActionPage() {
             </h2>
 
             <div className="flex flex-col gap-3">
-              {[...complaints].sort((a, b) => {
+              {[...activeComplaints].sort((a, b) => {
                 const scoreA = a.aiSeverityScore || a.ai_severity_score || 0;
                 const scoreB = b.aiSeverityScore || b.ai_severity_score || 0;
                 return scoreB - scoreA;
@@ -263,26 +306,36 @@ export default function AdminTakeActionPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
                   <div>
-                    <label className="block font-bold text-on-surface mb-1">Nodal Department *</label>
+                    <label className="block font-bold text-on-surface mb-1 flex items-center gap-1.5">
+                      Nodal Department *
+                      {aiFilledFields.includes('department') && (
+                        <span className="text-[9px] bg-teal-500/10 text-teal-600 px-1 py-0.5 rounded font-bold">✨ AI</span>
+                      )}
+                    </label>
                     <input
                       type="text"
                       required
                       value={assignedDepartment}
                       onChange={(e) => setAssignedDepartment(e.target.value)}
                       placeholder="e.g. Public Works Department (PWD)"
-                      className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none font-medium"
+                      className={`w-full p-2 bg-surface border rounded focus:border-primary outline-none font-medium ${aiFilledFields.includes('department') ? 'border-teal-400/50' : 'border-outline-variant'}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block font-bold text-on-surface mb-1">Assigned Executive Engineer / Officer *</label>
+                    <label className="block font-bold text-on-surface mb-1 flex items-center gap-1.5">
+                      Assigned Executive Engineer / Officer *
+                      {aiFilledFields.includes('officer') && (
+                        <span className="text-[9px] bg-teal-500/10 text-teal-600 px-1 py-0.5 rounded font-bold">✨ AI</span>
+                      )}
+                    </label>
                     <input
                       type="text"
                       required
                       value={assignedOfficer}
                       onChange={(e) => setAssignedOfficer(e.target.value)}
                       placeholder="e.g. Er. Rajesh Kumar"
-                      className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none"
+                      className={`w-full p-2 bg-surface border rounded focus:border-primary outline-none ${aiFilledFields.includes('officer') ? 'border-teal-400/50' : 'border-outline-variant'}`}
                     />
                   </div>
                 </div>

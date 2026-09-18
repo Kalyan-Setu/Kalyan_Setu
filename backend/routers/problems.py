@@ -78,9 +78,10 @@ async def generate_description(
     category: Optional[str] = Form("General Civic Issue"),
     location: Optional[str] = Form(""),
     district: Optional[str] = Form(""),
+    language_code: Optional[str] = Form("od-IN"),
 ):
     """Stage 2 of the voice pipeline: expand raw transcript into a formal
-    grievance title + description using Groq LLM."""
+    grievance title + description using Groq LLM in the user's language."""
     if not transcript.strip():
         raise HTTPException(status_code=400, detail="Transcript cannot be empty")
     try:
@@ -90,6 +91,7 @@ async def generate_description(
             category=category or "General Civic Issue",
             location=location or "",
             district=district or "",
+            language_code=language_code or "od-IN",
         )
         if result:
             return {
@@ -97,6 +99,7 @@ async def generate_description(
                 "description": result["description"],
                 "source_transcript": transcript,
                 "model": "groq",
+                "language_code": language_code or "od-IN",
             }
         # Groq unavailable — return transcript as-is so frontend can still use it
         return {

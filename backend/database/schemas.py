@@ -128,6 +128,7 @@ class DashboardStats(BaseModel):
     in_progress: int
     resolved: int
     rejected: int
+    deleted: Optional[int] = 0
     by_priority: dict
     by_category: dict
 
@@ -209,3 +210,102 @@ class BudgetEstimateResponse(BaseModel):
     recommended_budget: int
     formatted_budget: str
     explanation: Optional[str] = None
+
+
+# ── Agentic Workflow (8-Stage LangGraph) ──────────────────
+
+class AgentUnderstanding(BaseModel):
+    core_problem: Optional[str] = None
+    affected_scope: Optional[str] = None
+    urgency_drivers: Optional[List[str]] = None
+    evidence_quality: Optional[str] = None
+    ai_enriched: Optional[bool] = False
+
+
+class AgentClassification(BaseModel):
+    primary_category: Optional[str] = None
+    sub_type: Optional[str] = None
+    confidence: Optional[str] = None
+    rationale: Optional[str] = None
+
+
+class AgentSeverity(BaseModel):
+    score: int = 50
+    risk_level: str = "Medium"
+    factors: Optional[dict] = None
+    rationale: Optional[str] = None
+    ai_reviewed: Optional[bool] = False
+
+
+class AgentRouting(BaseModel):
+    department: str = "Urban Affairs Cell"
+    officer_designation: str = "Nodal Officer"
+    routing_rationale: Optional[str] = None
+    priority_flag: Optional[str] = None
+
+
+class AgentActions(BaseModel):
+    immediate_directive: str = ""
+    action_steps: Optional[List[str]] = None
+    sla: str = "48 hours"
+    recommended_budget_inr: int = 50000
+    formatted_budget: str = "₹50,000"
+    equipment_list: Optional[List[str]] = None
+    budget_justification: Optional[str] = None
+    ai_generated: Optional[bool] = False
+
+
+class AgentCritic(BaseModel):
+    validation_status: str = "APPROVED"
+    confidence_pct: int = 80
+    feasibility: str = "High"
+    validation_notes: Optional[str] = None
+    issues: Optional[List[str]] = None
+    ai_reviewed: Optional[bool] = False
+
+
+class GrievanceAgentAnalysis(BaseModel):
+    display_id: str
+    title: Optional[str] = None
+    location: Optional[str] = None
+    district: Optional[str] = None
+    state_name: Optional[str] = None
+    understanding: Optional[AgentUnderstanding] = None
+    classification: Optional[AgentClassification] = None
+    severity: Optional[AgentSeverity] = None
+    routing: Optional[AgentRouting] = None
+    actions: Optional[AgentActions] = None
+    critic: Optional[AgentCritic] = None
+    workflow_stages_completed: Optional[List[str]] = None
+
+    class Config:
+        extra = "allow"
+
+
+class SingleComplaintAnalysisResponse(BaseModel):
+    display_id: str
+    analysis: GrievanceAgentAnalysis
+    cached: bool = False
+    status: str = "success"
+
+
+class ApplyRecommendationRequest(BaseModel):
+    apply_department: bool = True
+    apply_officer: bool = True
+    apply_budget: bool = True
+    apply_directive: bool = True
+    official_override_notes: Optional[str] = None
+
+
+class ApplyRecommendationResponse(BaseModel):
+    display_id: str
+    status: str
+    applied_fields: List[str]
+    message: str
+
+
+class WorkflowRunRequest(BaseModel):
+    display_id: Optional[str] = None   # single complaint; if None → batch
+    state: Optional[str] = None        # filter for batch mode
+    budget_limit: Optional[float] = 1_000_000.0
+

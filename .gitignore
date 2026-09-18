@@ -33,6 +33,10 @@ htmlcov/
 *.db
 *.sqlite3
 
+# Scratch / Temp
+scratch/
+backend/scratch/
+
 # IDE / OS
 .vscode/
 .idea/
@@ -40,3 +44,4 @@ htmlcov/
 Thumbs.db
 *.swp
 *.swo
+

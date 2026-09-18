@@ -139,7 +139,7 @@ function formatBackendProblem(p) {
     dateFiled: dateFormatted,
     timeFiled: timeFormatted,
     status: p.status || "Submitted",
-    statusLabel: p.status === "Resolved" ? "Solved" : (p.status === "In Progress" || p.status === "Action Assigned") ? "Proceed to Action" : "Pending Review",
+    statusLabel: p.status === "Resolved" ? "Solved" : p.status === "Rejected" ? "Rejected" : p.status === "Deleted" ? "Deleted" : (p.status === "In Progress" || p.status === "Action Assigned") ? "Proceed to Action" : "Pending Review",
     priority: p.priority || "High",
     assignedDepartment: p.assigned_department || "Urban Affairs Cell",
     assignedOfficer: p.assigned_officer || "Under Assignment",
@@ -376,12 +376,15 @@ export function CivicProvider({ children }) {
       else if (newStatus === "Under Review") statusIndex = 2;
       else if (newStatus === "Action Assigned") statusIndex = 3;
       else if (newStatus === "In Progress") statusIndex = 4;
-      else if (newStatus === "Resolved" || newStatus === "Rejected") statusIndex = 5;
+      else if (newStatus === "Resolved" || newStatus === "Rejected" || newStatus === "Deleted") statusIndex = 5;
 
       const updatedTimeline = c.timeline.map((stepItem, idx) => {
         const stepNum = idx + 1;
         if (newStatus === "Rejected" && stepNum === 5) {
           return { ...stepItem, title: "Grievance Rejected", completed: true, current: true, date: dateFormatted, time: timeFormatted, note: note || "Grievance reviewed and marked as rejected / duplicate by authority." };
+        }
+        if (newStatus === "Deleted" && stepNum === 5) {
+          return { ...stepItem, title: "Grievance Deleted", completed: true, current: true, date: dateFormatted, time: timeFormatted, note: note || "Grievance deleted by government authority." };
         }
         if (stepNum < statusIndex) {
           return { ...stepItem, completed: true, current: false };
@@ -395,7 +398,7 @@ export function CivicProvider({ children }) {
       return {
         ...c,
         status: newStatus,
-        statusLabel: newStatus === "Resolved" ? "Solved" : newStatus === "Rejected" ? "Rejected" : (newStatus === "In Progress" || newStatus === "Action Assigned") ? "Proceed to Action" : "Pending Review",
+        statusLabel: newStatus === "Resolved" ? "Solved" : newStatus === "Rejected" ? "Rejected" : newStatus === "Deleted" ? "Deleted" : (newStatus === "In Progress" || newStatus === "Action Assigned") ? "Proceed to Action" : "Pending Review",
         assignedOfficer: officer || c.assignedOfficer,
         assignedDepartment: department || c.assignedDepartment,
         budget: budget || c.budget,
@@ -405,6 +408,36 @@ export function CivicProvider({ children }) {
     }));
 
     showNotification(`Complaint #${id} updated to ${newStatus}`);
+  };
+
+  const deleteComplaint = async (id) => {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {})
+      };
+
+      await fetch(`${API_BASE}/govt/problems/${id}`, {
+        method: 'DELETE',
+        headers
+      });
+    } catch (e) {
+      console.warn("Backend delete failed:", e);
+    }
+
+    setComplaints(prev => prev.map(c => {
+      if (c.id !== id && c.display_id !== id) return c;
+      const now = new Date();
+      const dateFormatted = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      return {
+        ...c,
+        status: 'Deleted',
+        statusLabel: 'Deleted',
+        actionNotes: `Grievance deleted by government authority on ${dateFormatted}.`
+      };
+    }));
+
+    showNotification(`Complaint #${id} deleted and excluded from AI analysis.`);
   };
 
   const bulkAssign = async (ids, department, officer) => {
@@ -547,6 +580,7 @@ export function CivicProvider({ children }) {
       showNotification,
       addComplaint,
       updateComplaintStatus,
+      deleteComplaint,
       bulkAssign,
       fetchComplaints
     }}>

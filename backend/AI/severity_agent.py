@@ -12,7 +12,7 @@ from langchain_core.tools import tool
 from langchain_groq import ChatGroq
 from langgraph.graph import END, StateGraph
 
-from config import GROQ_API_KEY, GROQ_PRIMARY_MODEL
+from config import GROQ_API_KEY, GROQ_PRIMARY_MODEL, GROQ_FAST_MODEL
 
 SEVERITY_THRESHOLD = 65
 
@@ -100,8 +100,8 @@ async def _llm_node(state: SeverityState) -> SeverityState:
         'Schema: {"score": 0, "rationale": "..."}'
     )
     try:
-        llm = ChatGroq(model=GROQ_PRIMARY_MODEL, temperature=0, max_tokens=180)
-        parsed = _parse_result((await llm.ainvoke(prompt)).content)
+        llm = ChatGroq(model=GROQ_FAST_MODEL, temperature=0, max_tokens=180)
+        parsed = _parse_result((await asyncio.wait_for(llm.ainvoke(prompt), timeout=12)).content)
         if parsed:
             state["result"].update(parsed)
     except Exception:

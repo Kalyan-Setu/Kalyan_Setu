@@ -15,7 +15,7 @@ import httpx
 from typing import List
 from collections import Counter
 
-from config import GROQ_API_KEY, GROQ_PRIMARY_MODEL, GROQ_FALLBACK_MODELS
+from config import GROQ_API_KEY, GROQ_PRIMARY_MODEL, GROQ_FAST_MODEL, GROQ_FALLBACK_MODELS
 
 
 # ── Step 1: Group similar complaints ─────────────────────
@@ -119,15 +119,16 @@ async def _process_single_theme_impact(t: dict, headers: dict, models: list[str]
         "Return ONLY the 3 sentences, nothing else."
     )
 
+    models = [GROQ_FAST_MODEL] + [m for m in models if m != GROQ_FAST_MODEL]
     for model in models:
         try:
             payload = {
                 "model": model,
                 "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.4,
-                "max_tokens": 200,
+                "temperature": 0.3,
+                "max_tokens": 220,
             }
-            async with httpx.AsyncClient(timeout=3.0) as client:
+            async with httpx.AsyncClient(timeout=15.0) as client:
                 resp = await client.post(
                     "https://api.groq.com/openai/v1/chat/completions",
                     headers=headers,
@@ -165,7 +166,7 @@ async def estimate_impacts(themes: list[dict]) -> list[dict]:
         "Authorization": f"Bearer {GROQ_API_KEY}",
         "Content-Type": "application/json",
     }
-    models = [GROQ_PRIMARY_MODEL] + GROQ_FALLBACK_MODELS
+    models = [GROQ_FAST_MODEL, GROQ_PRIMARY_MODEL] + GROQ_FALLBACK_MODELS
 
     tasks = [_process_single_theme_impact(t, headers, models) for t in themes]
     await asyncio.gather(*tasks)

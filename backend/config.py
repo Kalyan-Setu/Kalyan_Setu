@@ -17,12 +17,16 @@ JWT_EXPIRY_HOURS: int = 72
 # ── Groq LLM ─────────────────────────────────────────────
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 GROQ_PRIMARY_MODEL: str = os.getenv("GROQ_PRIMARY_MODEL", "openai/gpt-oss-120b")
+GROQ_FAST_MODEL: str = os.getenv("GROQ_FAST_MODEL", "openai/gpt-oss-20b")
 GROQ_VISION_MODEL: str = "llama-3.2-11b-vision-preview"
 GROQ_FALLBACK_MODELS: list[str] = [
-    "qwen/qwen3-32b",
     "openai/gpt-oss-20b",
-    "llama-3.3-70b-versatile",
+    "qwen/qwen3.8-27b",
+    "groq/compound-mini",
 ]
+
+# Agentic workflow: max seconds each LangGraph node may spend on LLM calls
+WORKFLOW_NODE_TIMEOUT_SEC: int = int(os.getenv("WORKFLOW_NODE_TIMEOUT_SEC", "20"))
 
 # LangSmith tracing is enabled when both values are present. LangChain reads
 # these standard environment variables automatically.
@@ -32,6 +36,7 @@ LANGCHAIN_PROJECT: str = os.getenv("LANGCHAIN_PROJECT", "kalyan-setu-severity")
 
 # ── HuggingFace ───────────────────────────────────────────
 HF_API_TOKEN: str = os.getenv("HUGGINGFACEHUB_API_TOKEN", "").strip()
+HF_ROUTER_BASE: str = "https://router.huggingface.co/hf-inference/models"
 HF_IMAGE_MODEL: str = "Salesforce/blip-image-captioning-large"
 HF_SPEECH_MODEL: str = "openai/whisper-large-v3"
 
