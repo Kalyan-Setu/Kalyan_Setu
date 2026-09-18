@@ -251,9 +251,15 @@ export function CivicProvider({ children }) {
     formData.append('title', newGrievance.title || "Civic Grievance Report");
     formData.append('description', newGrievance.description || "");
     formData.append('category', newGrievance.category || "General Civic Issue");
-    formData.append('location', newGrievance.location || "Urban District");
-    formData.append('district', newGrievance.district || currentUser.district || "South District");
-    formData.append('state', currentUser.state || "Delhi NCR");
+    const formattedLocation = newGrievance.pincode
+      ? `${newGrievance.location || "Urban Area"} - ${newGrievance.pincode}`
+      : (newGrievance.location || "Urban District");
+    formData.append('location', formattedLocation);
+    formData.append('district', newGrievance.district || currentUser?.district || "South District");
+    formData.append('state', newGrievance.state || currentUser?.state || "Delhi NCR");
+    if (newGrievance.pincode) {
+      formData.append('pincode', newGrievance.pincode);
+    }
     formData.append('priority', newGrievance.priority || "High");
     formData.append('evidence_type', newGrievance.evidenceType || "text");
 
@@ -300,9 +306,11 @@ export function CivicProvider({ children }) {
       title: newGrievance.title || "Civic Grievance Report",
       description: newGrievance.description || "Reported by citizen via Kalyan Setu.",
       category: newGrievance.category || "General Civic Issue",
-      location: newGrievance.location || "Delhi Urban District",
-      district: newGrievance.district || "South District",
-      state: currentUser.state || "Delhi NCR",
+      location: newGrievance.pincode
+        ? `${newGrievance.location || "Urban Area"} - ${newGrievance.pincode}`
+        : (newGrievance.location || "Delhi Urban District"),
+      district: newGrievance.district || currentUser?.district || "South District",
+      state: newGrievance.state || currentUser?.state || "Delhi NCR",
       reportedBy: currentUser.full_name || currentUser.name || "Citizen",
       contactPhone: currentUser.phone || "+91 98765 43210",
       dateFiled: dateFormatted,

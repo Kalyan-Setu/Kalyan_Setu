@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCivic, API_BASE } from '../context/CivicContext';
+import { INDIAN_STATES, getDistrictsForState, isValidPincode } from '../data/indiaLocationData';
 
 export default function SubmitProblemPage() {
   const { addComplaint, navigateTo, currentUser } = useCivic();
@@ -11,9 +12,12 @@ export default function SubmitProblemPage() {
   const [category, setCategory] = useState('Road Infrastructure');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [state, setState] = useState(currentUser?.state || '');
+  const [district, setDistrict] = useState(currentUser?.district || '');
+  const [pincode, setPincode] = useState(currentUser?.pincode || '');
   const [location, setLocation] = useState('');
-  const [district, setDistrict] = useState('South District');
   const [priority, setPriority] = useState('High');
+  const [stepError, setStepError] = useState('');
   // Photo & file upload state
   const [photoPreview, setPhotoPreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -55,6 +59,8 @@ export default function SubmitProblemPage() {
       fd.append('category', category);
       fd.append('location', location);
       fd.append('district', district);
+      if (state) fd.append('state', state);
+      if (pincode) fd.append('pincode', pincode);
       const res = await fetch(`${API_BASE}/problems/generate-description`, {
         method: 'POST',
         body: fd,
@@ -239,8 +245,10 @@ export default function SubmitProblemPage() {
       title: title || `${category} issue in ${district}`,
       description: description || voiceTranscript || "Civic issue submitted by citizen.",
       category,
-      location: location || "Urban District",
+      location: location.trim(),
       district,
+      state: state || currentUser?.state || "Delhi NCR",
+      pincode: pincode.trim(),
       priority,
       evidenceType: evidenceMethod,
       file: selectedFile,
@@ -635,53 +643,180 @@ export default function SubmitProblemPage() {
                 ></textarea>
               </div>
 
-              {/* Location */}
+              {/* 4. State * */}
               <div>
-                <label className="block text-xs font-bold text-on-surface mb-1">Exact Location & Landmark *</label>
+                <label className="block text-xs font-bold text-on-surface mb-1">
+                  State / Union Territory *
+                </label>
+                <select
+                  required
+                  value={state}
+                  onChange={(e) => {
+                    setState(e.target.value);
+                    setDistrict('');
+                    setStepError('');
+                  }}
+                  className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none font-medium"
+                >
+                  <option value="">-- Select State / UT --</option>
+                  {INDIAN_STATES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 5. District * (Dependent Dropdown) */}
+              <div>
+                <label className="block text-xs font-bold text-on-surface mb-1">
+                  District *
+                </label>
+                <select
+                  required
+                  disabled={!state}
+                  value={district}
+                  onChange={(e) => {
+                    setDistrict(e.target.value);
+                    setStepError('');
+                  }}
+                  className={`w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none font-medium ${
+                    !state ? 'bg-surface-container-low text-on-surface-variant cursor-not-allowed opacity-60' : ''
+                  }`}
+                >
+                  <option value="">
+                    {state ? '-- Select District --' : '-- Select State first --'}
+                  </option>
+                  {getDistrictsForState(state).map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 6. Pincode * */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-on-surface">
+                    Pincode *
+                  </label>
+                  <span className={`text-[10px] font-mono font-medium ${
+                    pincode.length === 6 ? 'text-gov-green font-bold' :
+                    pincode.length > 0 ? 'text-error' : 'text-on-surface-variant'
+                  }`}>
+                    {pincode.length}/6 digits
+                  </span>
+                </div>
+                <div className="relative">
+                  <span className={`material-symbols-outlined absolute left-3 top-2 text-base ${
+                    pincode.length === 6 ? 'text-gov-green' :
+                    pincode.length > 0 ? 'text-error' : 'text-on-surface-variant'
+                  }`}>
+                    pin_drop
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    inputMode="numeric"
+                    pattern="[0-9]{6}"
+                    value={pincode}
+                    onKeyDown={(e) => {
+                      const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Enter'];
+                      if (!allowed.includes(e.key) && !/^[0-9]$/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                      setPincode(pasted);
+                      setStepError('');
+                    }}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setPincode(digits);
+                      setStepError('');
+                    }}
+                    placeholder="Enter 6-digit pincode"
+                    className={`w-full pl-9 pr-8 py-2 text-xs bg-surface border rounded focus:ring-1 outline-none transition-colors ${
+                      pincode.length === 6
+                        ? 'border-gov-green focus:border-gov-green focus:ring-gov-green'
+                        : pincode.length > 0
+                        ? 'border-error focus:border-error focus:ring-error'
+                        : 'border-outline-variant focus:border-primary focus:ring-primary'
+                    }`}
+                  />
+                  {pincode.length === 6 && (
+                    <span className="material-symbols-outlined absolute right-2.5 top-2 text-gov-green text-base">check_circle</span>
+                  )}
+                  {pincode.length > 0 && pincode.length < 6 && (
+                    <span className="material-symbols-outlined absolute right-2.5 top-2 text-error text-base">error</span>
+                  )}
+                </div>
+                {pincode.length > 0 && pincode.length < 6 ? (
+                  <p className="text-[10px] text-error mt-1 font-medium">
+                    ⚠ Pincode must be exactly 6 numeric digits ({pincode.length}/6 entered).
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-on-surface-variant mt-1">
+                    Enter 6-digit area postal code (e.g. 110001, 751030).
+                  </p>
+                )}
+              </div>
+
+              {/* 7. Exact Location & Landmark * */}
+              <div>
+                <label className="block text-xs font-bold text-on-surface mb-1">
+                  Exact Location & Landmark *
+                </label>
                 <input
                   type="text"
                   required
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g. Sector 4 Market Road, opposite Metro Pillar #45"
+                  onChange={(e) => {
+                    setLocation(e.target.value);
+                    setStepError('');
+                  }}
+                  placeholder="Enter area, village, road, landmark or nearby place"
                   className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                 />
               </div>
 
-              {/* District & Priority */}
-              <div className="grid grid-cols-2 gap-md">
-                <div>
-                  <label className="block text-xs font-bold text-on-surface mb-1">District *</label>
-                  <input
-                    type="text"
-                    required
-                    value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                    placeholder="Enter your district"
-                    className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-on-surface mb-1">Urgency / Severity</label>
-                  <select
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
-                  >
-                    <option>High</option>
-                    <option>Critical</option>
-                    <option>Medium</option>
-                    <option>Low</option>
-                  </select>
-                </div>
+              {/* 8. Urgency / Severity */}
+              <div>
+                <label className="block text-xs font-bold text-on-surface mb-1">
+                  Urgency / Severity
+                </label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
+                >
+                  <option>High</option>
+                  <option>Critical</option>
+                  <option>Medium</option>
+                  <option>Low</option>
+                </select>
               </div>
+
+              {/* Step 2 Validation Error Message */}
+              {stepError && (
+                <div className="p-2.5 bg-error/10 border border-error/30 rounded text-error text-xs font-medium flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm">error</span>
+                  <span>{stepError}</span>
+                </div>
+              )}
 
               {/* Stepper navigation */}
               <div className="flex justify-between pt-md border-t border-outline-variant mt-2">
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(1)}
+                  onClick={() => {
+                    setStepError('');
+                    setCurrentStep(1);
+                  }}
                   className="text-xs font-bold text-on-surface-variant hover:text-primary px-4 py-2"
                 >
                   Back
@@ -689,8 +824,35 @@ export default function SubmitProblemPage() {
                 <button
                   type="button"
                   onClick={() => {
+                    if (!state) {
+                      setStepError('Please select a State / Union Territory.');
+                      return;
+                    }
+                    if (!district) {
+                      setStepError('Please select a District.');
+                      return;
+                    }
+                    const validDistricts = getDistrictsForState(state);
+                    if (!validDistricts.includes(district)) {
+                      setStepError('Selected district does not belong to the selected state.');
+                      return;
+                    }
+                    const cleanPin = pincode.trim();
+                    if (!cleanPin) {
+                      setStepError('Pincode is required.');
+                      return;
+                    }
+                    if (!isValidPincode(cleanPin)) {
+                      setStepError('Pincode must be exactly 6 numeric digits (e.g. 110001, 751030).');
+                      return;
+                    }
+                    if (!location.trim()) {
+                      setStepError('Please enter the exact location & landmark.');
+                      return;
+                    }
+
+                    setStepError('');
                     if (!title) setTitle(`${category} issue in ${district}`);
-                    if (!location) setLocation(`${district} Central Area`);
                     if (!description) setDescription(voiceTranscript || `Civic issue reported in ${category} for immediate inspection.`);
                     setCurrentStep(3);
                   }}
@@ -742,15 +904,25 @@ export default function SubmitProblemPage() {
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Location</span>
-                <span className="text-on-surface font-medium">{location || 'Urban District'}, {district}</span>
+                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">State & District</span>
+                <span className="text-on-surface font-medium">{district}, {state}</span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Filing Citizen</span>
-                <span className="text-on-surface font-medium">
-                  {currentUser?.full_name || currentUser?.name || 'A. Sharma'} ({currentUser?.phone || '+91 98765 43210'})
-                </span>
+                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Pincode</span>
+                <span className="text-on-surface font-mono font-medium">{pincode}</span>
               </div>
+            </div>
+
+            <div>
+              <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Exact Location & Landmark</span>
+              <span className="text-on-surface font-medium">{location}</span>
+            </div>
+
+            <div>
+              <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Filing Citizen</span>
+              <span className="text-on-surface font-medium">
+                {currentUser?.full_name || currentUser?.name || 'A. Sharma'} ({currentUser?.phone || '+91 98765 43210'})
+              </span>
             </div>
           </div>
 

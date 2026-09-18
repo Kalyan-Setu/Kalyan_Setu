@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCivic, API_BASE } from '../context/CivicContext';
 import kalyanSetuLogo from '../assets/kalyan-setu-logo.png';
 import parliamentBackground from '../assets/parliament-bg.jpg';
+import { INDIAN_STATES, getDistrictsForState, isValidPincode } from '../data/indiaLocationData';
 
 export default function AuthModal() {
   const { 
@@ -30,8 +31,9 @@ export default function AuthModal() {
     fullName: '',
     phone: '',
     email: '',
-    state: 'Delhi NCR',
+    state: '',
     district: '',
+    pincode: '',
     officialEmail: '',
     officialPassword: '',
     officialDepartment: ''
@@ -115,6 +117,37 @@ export default function AuthModal() {
             return;
           }
 
+          if (!formData.state) {
+            setErrorMessage('Please select your State / Union Territory.');
+            return;
+          }
+
+          if (!formData.district) {
+            setErrorMessage('Please select your District / City.');
+            return;
+          }
+
+          const validDistricts = getDistrictsForState(formData.state);
+          if (!validDistricts.includes(formData.district)) {
+            setErrorMessage('Please select a valid district belonging to the selected state.');
+            return;
+          }
+
+          const pincodeClean = (formData.pincode || '').trim();
+          if (!pincodeClean) {
+            setErrorMessage('Pincode is required.');
+            return;
+          }
+          if (!isValidPincode(pincodeClean)) {
+            setErrorMessage('Pincode must be exactly 6 numeric digits.');
+            return;
+          }
+
+          if (!formData.password || formData.password.length < 6) {
+            setErrorMessage('Password must be at least 6 characters.');
+            return;
+          }
+
           const res = await fetch(`${API_BASE}/auth/citizen/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -123,8 +156,9 @@ export default function AuthModal() {
               phone: phoneClean,
               email: emailClean,
               password: formData.password,
-              state: formData.state || "Delhi NCR",
-              district: formData.district || "Central Delhi"
+              state: formData.state,
+              district: formData.district,
+              pincode: pincodeClean
             })
           });
 
@@ -142,7 +176,7 @@ export default function AuthModal() {
 
           const data = await res.json();
           setAuthToken(data.access_token);
-          setCurrentUser(data.user);
+          setCurrentUser({ ...data.user, pincode: pincodeClean });
           setUserRole('citizen');
           showNotification('Citizen registration completed successfully.');
           setAuthModalOpen(false);
@@ -494,18 +528,124 @@ export default function AuthModal() {
                           </p>
                         )}
                       </div>
+                      {/* State * */}
+                      <div>
+                        <label className="block text-xs font-bold text-on-surface mb-1">
+                          State / Union Territory *
+                        </label>
+                        <select
+                          required
+                          value={formData.state}
+                          onChange={(e) => {
+                            setFormData({
+                              ...formData,
+                              state: e.target.value,
+                              district: ''
+                            });
+                          }}
+                          className="w-full px-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
+                        >
+                          <option value="">-- Select State / UT --</option>
+                          {INDIAN_STATES.map((s) => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* District / City * (Dependent Dropdown) */}
                       <div>
                         <label className="block text-xs font-bold text-on-surface mb-1">
                           District / City *
                         </label>
-                        <input
-                          type="text"
+                        <select
                           required
+                          disabled={!formData.state}
                           value={formData.district}
                           onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                          placeholder="Enter your district name"
-                          className="w-full px-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
-                        />
+                          className={`w-full px-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none ${
+                            !formData.state ? 'bg-surface-container-low text-on-surface-variant cursor-not-allowed opacity-60' : ''
+                          }`}
+                        >
+                          <option value="">
+                            {formData.state ? '-- Select District / City --' : '-- Select State first --'}
+                          </option>
+                          {getDistrictsForState(formData.state).map((d) => (
+                            <option key={d} value={d}>
+                              {d}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Pincode * */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-xs font-bold text-on-surface">
+                            Pincode *
+                          </label>
+                          <span className={`text-[10px] font-mono font-medium ${
+                            formData.pincode.length === 6 ? 'text-gov-green font-bold' :
+                            formData.pincode.length > 0 ? 'text-error' : 'text-on-surface-variant'
+                          }`}>
+                            {formData.pincode.length}/6 digits
+                          </span>
+                        </div>
+                        <div className="relative">
+                          <span className={`material-symbols-outlined absolute left-3 top-2.5 text-lg ${
+                            formData.pincode.length === 6 ? 'text-gov-green' :
+                            formData.pincode.length > 0 ? 'text-error' : 'text-on-surface-variant'
+                          }`}>
+                            pin_drop
+                          </span>
+                          <input
+                            type="text"
+                            required
+                            maxLength={6}
+                            inputMode="numeric"
+                            pattern="[0-9]{6}"
+                            value={formData.pincode}
+                            onKeyDown={(e) => {
+                              const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Enter'];
+                              if (!allowed.includes(e.key) && !/^[0-9]$/.test(e.key)) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onPaste={(e) => {
+                              e.preventDefault();
+                              const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                              setFormData({ ...formData, pincode: pasted });
+                            }}
+                            onChange={(e) => {
+                              const digits = e.target.value.replace(/\D/g, '').slice(0, 6);
+                              setFormData({ ...formData, pincode: digits });
+                            }}
+                            placeholder="Enter 6-digit pincode"
+                            className={`w-full pl-10 pr-10 py-2 text-sm bg-white border rounded focus:ring-1 outline-none transition-colors ${
+                              formData.pincode.length === 6
+                                ? 'border-gov-green focus:border-gov-green focus:ring-gov-green'
+                                : formData.pincode.length > 0
+                                ? 'border-error focus:border-error focus:ring-error'
+                                : 'border-outline-variant focus:border-primary focus:ring-primary'
+                            }`}
+                          />
+                          {formData.pincode.length === 6 && (
+                            <span className="material-symbols-outlined absolute right-3 top-2.5 text-gov-green text-lg">check_circle</span>
+                          )}
+                          {formData.pincode.length > 0 && formData.pincode.length < 6 && (
+                            <span className="material-symbols-outlined absolute right-3 top-2.5 text-error text-lg">error</span>
+                          )}
+                        </div>
+                        {formData.pincode.length > 0 && formData.pincode.length < 6 ? (
+                          <p className="text-[10px] text-error mt-1 font-medium">
+                            ⚠ Pincode must be exactly 6 numeric digits ({formData.pincode.length}/6 entered).
+                          </p>
+                        ) : (
+                          <p className="text-[10px] text-on-surface-variant mt-1">
+                            Only 6 numeric digits allowed (e.g. 110001 or 751030).
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-on-surface mb-1">
