@@ -234,8 +234,8 @@ export default function HomePage() {
                     <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
                       item.status === 'Resolved' 
                         ? 'bg-gov-green/10 text-gov-green border border-gov-green/30'
-                        : item.priority === 'Critical'
-                        ? 'bg-error-container text-on-error-container'
+                        : item.status === 'Rejected'
+                        ? 'bg-error/10 text-error border border-error/30 font-bold'
                         : 'bg-secondary-container/30 text-on-secondary-fixed-variant'
                     }`}>
                       {item.status}

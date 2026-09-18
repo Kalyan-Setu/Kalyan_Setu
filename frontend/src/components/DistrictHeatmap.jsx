@@ -49,7 +49,7 @@ export default function DistrictHeatmap({ complaints = [] }) {
     }
 
     districtMap[distName].Total += 1;
-    if (c.priority === 'Critical') districtMap[distName].Critical += 1;
+    if ((c.aiSeverityScore || c.ai_severity_score || 0) >= 80) districtMap[distName].Critical += 1;
     if (c.status === 'Resolved') districtMap[distName].Resolved += 1;
     if (c.status === 'In Progress' || c.status === 'Action Assigned') districtMap[distName].In_Progress += 1;
 
@@ -59,19 +59,16 @@ export default function DistrictHeatmap({ complaints = [] }) {
 
   const chartData = Object.values(districtMap);
 
-  // Custom Tooltip component
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-surface-container-lowest border border-outline-variant p-3 rounded-lg shadow-lg text-xs z-50">
-          <div className="font-bold text-primary border-b border-outline-variant pb-1 mb-2">
-            📍 {data.district}
-          </div>
-          <div className="flex flex-col gap-1 text-on-surface-variant">
+        <div className="bg-surface-container-highest border border-outline-variant p-3 rounded shadow-elevation-2 text-xs">
+          <div className="font-bold text-primary mb-1 border-b border-outline-variant/60 pb-1">{label}</div>
+          <div className="space-y-1 text-on-surface">
             <div className="flex justify-between gap-4">
               <span>Total Grievances:</span>
-              <span className="font-bold text-on-surface">{data.Total}</span>
+              <span className="font-bold text-primary">{data.Total}</span>
             </div>
             <div className="flex justify-between gap-4">
               <span>Resolved:</span>
@@ -82,7 +79,7 @@ export default function DistrictHeatmap({ complaints = [] }) {
               <span className="font-bold text-gov-saffron">{data.In_Progress}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span>Critical Severity:</span>
+              <span>High Risk (AI ≥ 80):</span>
               <span className="font-bold text-error">{data.Critical}</span>
             </div>
           </div>

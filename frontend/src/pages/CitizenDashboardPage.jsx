@@ -178,11 +178,6 @@ export default function CitizenDashboardPage() {
                     <span className="material-symbols-outlined text-xs">calendar_today</span>
                     {item.dateFiled}
                   </span>
-                  {item.priority === 'Critical' && (
-                    <span className="text-[10px] bg-error-container text-on-error-container font-bold px-2 py-0.5 rounded uppercase">
-                      Critical Priority
-                    </span>
-                  )}
                 </div>
 
                 <h3 className="text-base font-bold text-on-surface hover:text-primary transition-colors cursor-pointer"
@@ -211,6 +206,8 @@ export default function CitizenDashboardPage() {
                 <span className={`text-xs font-bold uppercase px-3 py-1 rounded ${
                   item.status === 'Resolved'
                     ? 'bg-gov-green/15 text-gov-green border border-gov-green/30'
+                    : item.status === 'Rejected'
+                    ? 'bg-error/15 text-error border border-error/30 font-black'
                     : item.status === 'In Progress' || item.status === 'Action Assigned'
                     ? 'bg-secondary-container/30 text-on-secondary-fixed-variant border border-secondary-container/50'
                     : 'bg-surface-container-high text-on-surface-variant border border-outline-variant'

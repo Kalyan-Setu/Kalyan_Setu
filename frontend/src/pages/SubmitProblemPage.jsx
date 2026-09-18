@@ -16,7 +16,6 @@ export default function SubmitProblemPage() {
   const [district, setDistrict] = useState(currentUser?.district || '');
   const [pincode, setPincode] = useState(currentUser?.pincode || '');
   const [location, setLocation] = useState('');
-  const [priority, setPriority] = useState('High');
   const [stepError, setStepError] = useState('');
   // Photo & file upload state
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -249,7 +248,7 @@ export default function SubmitProblemPage() {
       district,
       state: state || currentUser?.state || "Delhi NCR",
       pincode: pincode.trim(),
-      priority,
+      priority: 'Pending Assessment',
       evidenceType: evidenceMethod,
       file: selectedFile,
       audioBlob: audioBlob,
@@ -784,22 +783,6 @@ export default function SubmitProblemPage() {
                 />
               </div>
 
-              {/* 8. Urgency / Severity */}
-              <div>
-                <label className="block text-xs font-bold text-on-surface mb-1">
-                  Urgency / Severity
-                </label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
-                >
-                  <option>High</option>
-                  <option>Critical</option>
-                  <option>Medium</option>
-                  <option>Low</option>
-                </select>
-              </div>
 
               {/* Step 2 Validation Error Message */}
               {stepError && (
@@ -887,8 +870,11 @@ export default function SubmitProblemPage() {
                 <span className="font-bold text-primary">{category}</span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Priority</span>
-                <span className="font-bold text-error">{priority}</span>
+                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Urgency / Triage</span>
+                <span className="font-bold text-primary flex items-center gap-1 text-[11px]">
+                  <span className="material-symbols-outlined text-xs">smart_toy</span>
+                  Assigned by Govt AI Triage
+                </span>
               </div>
             </div>
 

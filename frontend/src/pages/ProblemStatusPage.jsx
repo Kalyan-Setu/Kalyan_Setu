@@ -111,6 +111,8 @@ export default function ProblemStatusPage() {
                 <span className={`inline-block font-label-sm text-xs font-bold uppercase px-3 py-1.5 rounded ${
                   complaint.status === 'Resolved'
                     ? 'bg-gov-green/15 text-gov-green border border-gov-green/30'
+                    : complaint.status === 'Rejected'
+                    ? 'bg-error/15 text-error border border-error/30 font-black'
                     : complaint.status === 'In Progress' || complaint.status === 'Action Assigned'
                     ? 'bg-secondary-container/30 text-on-secondary-fixed-variant border border-secondary-container/50'
                     : 'bg-surface-container-high text-on-surface-variant'
@@ -120,7 +122,7 @@ export default function ProblemStatusPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-md text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-md text-xs">
               <div>
                 <div className="font-label-sm text-[11px] text-on-surface-variant mb-0.5">Category</div>
                 <div className="font-bold text-on-surface">{complaint.category}</div>
@@ -133,85 +135,115 @@ export default function ProblemStatusPage() {
                 <div className="font-label-sm text-[11px] text-on-surface-variant mb-0.5">Date Filed</div>
                 <div className="font-bold text-on-surface">{complaint.dateFiled}</div>
               </div>
-              <div>
-                <div className="font-label-sm text-[11px] text-on-surface-variant mb-0.5">Priority Level</div>
-                <div className="font-bold text-error flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">priority_high</span>
-                  {complaint.priority}
-                </div>
-              </div>
             </div>
           </div>
 
-          {/* 5-Step Progress Timeline */}
+          {/* Rejection Alert Notice */}
+          {complaint.status === 'Rejected' && (
+            <div className="bg-error/10 border-2 border-error/40 rounded-xl p-md sm:p-lg shadow-sm flex items-start gap-3 text-error animate-in fade-in">
+              <span className="material-symbols-outlined text-2xl text-error shrink-0 mt-0.5">cancel</span>
+              <div className="flex-1">
+                <h4 className="text-sm font-bold text-error">Grievance Rejected by Government Administration</h4>
+                <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                  This grievance was officially reviewed by administrative authorities and marked as <strong className="text-error">Rejected</strong>.
+                </p>
+                {complaint.actionNotes && (
+                  <div className="mt-2 text-xs bg-surface p-2.5 rounded border border-error/20 text-on-surface">
+                    <span className="font-bold text-error">Administrative Note / Reason: </span>
+                    <span>{complaint.actionNotes}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Redressal Milestone Progression Stepper */}
           <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient">
             <h3 className="font-headline-sm text-base font-bold text-primary mb-lg pb-sm border-b border-outline-variant flex items-center justify-between">
-              <span>Redressal Milestone Progression</span>
+              <span>Redressal Milestone Progression {complaint.status === 'Rejected' && <span className="text-error font-bold text-xs">(Grievance Rejected)</span>}</span>
               <span className="text-xs font-normal text-on-surface-variant font-mono">
-                Stage {complaint.timeline.filter(t => t.completed).length} of 5
+                Stage {complaint.timeline.filter(t => t.completed).length} of {complaint.timeline.length}
               </span>
             </h3>
 
             {/* Desktop Horizontal Stepper */}
             <div className="hidden md:flex justify-between items-start relative w-full mb-xl">
               <div className="absolute top-4 left-6 right-6 h-0.5 bg-outline-variant -z-0"></div>
-              {complaint.timeline.map((step, idx) => (
-                <div key={idx} className="flex flex-col items-center w-1/5 relative z-10 text-center px-1">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 mb-2 shadow-sm font-bold text-xs ${
-                    step.completed
-                      ? 'bg-primary-container text-on-primary border-primary-container'
-                      : 'bg-surface-container text-outline border-outline-variant'
-                  } ${step.current ? 'ring-4 ring-primary-container/20 animate-bounce' : ''}`}>
-                    {step.completed ? (
-                      <span className="material-symbols-outlined text-sm">check</span>
-                    ) : (
-                      step.step
-                    )}
+              {complaint.timeline.map((step, idx) => {
+                const isRejectedStep = step.isRejected || step.title?.toLowerCase().includes('reject');
+                return (
+                  <div key={idx} className={`flex flex-col items-center relative z-10 text-center px-1 ${complaint.status === 'Rejected' ? 'w-1/3' : 'w-1/5'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 mb-2 shadow-sm font-bold text-xs ${
+                      isRejectedStep
+                        ? 'bg-error text-white border-error ring-4 ring-error/20'
+                        : step.completed
+                        ? 'bg-primary-container text-on-primary border-primary-container'
+                        : 'bg-surface-container text-outline border-outline-variant'
+                    } ${step.current && !isRejectedStep ? 'ring-4 ring-primary-container/20 animate-bounce' : ''}`}>
+                      {isRejectedStep ? (
+                        <span className="material-symbols-outlined text-sm">close</span>
+                      ) : step.completed ? (
+                        <span className="material-symbols-outlined text-sm">check</span>
+                      ) : (
+                        step.step
+                      )}
+                    </div>
+                    <div className={`text-xs font-bold ${isRejectedStep ? 'text-error' : step.completed ? 'text-primary' : 'text-on-surface-variant'}`}>
+                      {step.title}
+                    </div>
+                    <div className="text-[10px] text-on-surface-variant mt-0.5">
+                      {step.date !== 'Pending' ? `${step.date}` : 'Pending'}
+                    </div>
                   </div>
-                  <div className={`text-xs font-bold ${step.completed ? 'text-primary' : 'text-on-surface-variant'}`}>
-                    {step.title}
-                  </div>
-                  <div className="text-[10px] text-on-surface-variant mt-0.5">
-                    {step.date !== 'Pending' ? `${step.date}` : 'Pending'}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Timeline Detailed Milestones List */}
             <div className="flex flex-col gap-md border-t border-outline-variant pt-md">
-              {complaint.timeline.map((step, idx) => (
-                <div
-                  key={idx}
-                  className={`flex items-start gap-3 p-3 rounded-lg border transition-all ${
-                    step.current
-                      ? 'bg-primary-fixed/20 border-primary shadow-sm'
-                      : step.completed
-                      ? 'bg-surface border-outline-variant/60'
-                      : 'bg-surface/40 border-dashed border-outline-variant opacity-60'
-                  }`}
-                >
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 mt-0.5 ${
-                    step.completed ? 'bg-gov-green text-white' : 'bg-surface-variant text-outline'
-                  }`}>
-                    {step.completed ? <span className="material-symbols-outlined text-xs">check</span> : step.step}
-                  </div>
-
-                  <div className="flex-grow">
-                    <div className="flex justify-between items-center flex-wrap">
-                      <span className={`text-xs font-bold ${step.completed ? 'text-on-surface' : 'text-on-surface-variant'}`}>
-                        {step.step}. {step.title}
-                      </span>
-                      <span className="text-[10px] font-mono text-on-surface-variant">
-                        {step.date !== 'Pending' ? `${step.date} • ${step.time}` : 'Pending Action'}
-                      </span>
+              {complaint.timeline.map((step, idx) => {
+                const isRejectedStep = step.isRejected || step.title?.toLowerCase().includes('reject');
+                return (
+                  <div
+                    key={idx}
+                    className={`flex items-start gap-3 p-3 rounded-lg border transition-all ${
+                      isRejectedStep
+                        ? 'bg-error/10 border-error/40 shadow-sm'
+                        : step.current
+                        ? 'bg-primary-fixed/20 border-primary shadow-sm'
+                        : step.completed
+                        ? 'bg-surface border-outline-variant/60'
+                        : 'bg-surface/40 border-dashed border-outline-variant opacity-60'
+                    }`}
+                  >
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 mt-0.5 ${
+                      isRejectedStep ? 'bg-error text-white' : step.completed ? 'bg-gov-green text-white' : 'bg-surface-variant text-outline'
+                    }`}>
+                      {isRejectedStep ? (
+                        <span className="material-symbols-outlined text-xs">close</span>
+                      ) : step.completed ? (
+                        <span className="material-symbols-outlined text-xs">check</span>
+                      ) : (
+                        step.step
+                      )}
                     </div>
-                    <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                      {step.note}
-                    </p>
+
+                    <div className="flex-grow">
+                      <div className="flex justify-between items-center flex-wrap">
+                        <span className={`text-xs font-bold ${isRejectedStep ? 'text-error' : step.completed ? 'text-on-surface' : 'text-on-surface-variant'}`}>
+                          {step.step}. {step.title}
+                        </span>
+                        <span className="text-[10px] font-mono text-on-surface-variant">
+                          {step.date !== 'Pending' ? `${step.date} • ${step.time}` : 'Pending Action'}
+                        </span>
+                      </div>
+                      <p className={`text-xs mt-1 leading-relaxed ${isRejectedStep ? 'text-error font-medium' : 'text-on-surface-variant'}`}>
+                        {step.note}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

@@ -109,20 +109,29 @@ function formatBackendProblem(p) {
   const dateFormatted = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   const timeFormatted = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-  let statusIndex = 1;
-  if (p.status === "Submitted") statusIndex = 1;
-  else if (p.status === "Under Review") statusIndex = 2;
-  else if (p.status === "Action Assigned") statusIndex = 3;
-  else if (p.status === "In Progress") statusIndex = 4;
-  else if (p.status === "Resolved") statusIndex = 5;
+  let timeline = [];
+  if (p.status === "Rejected") {
+    timeline = [
+      { step: 1, title: "Submitted", date: dateFormatted, time: timeFormatted, note: "Grievance received and registered.", completed: true, current: false },
+      { step: 2, title: "Under Review", date: dateFormatted, time: timeFormatted, note: "AI triage & administrative evaluation.", completed: true, current: false },
+      { step: 3, title: "Grievance Rejected", date: dateFormatted, time: timeFormatted, note: p.action_notes || "Grievance reviewed and marked as rejected by government authority.", completed: true, current: true, isRejected: true }
+    ];
+  } else {
+    let statusIndex = 1;
+    if (p.status === "Submitted") statusIndex = 1;
+    else if (p.status === "Under Review") statusIndex = 2;
+    else if (p.status === "Action Assigned") statusIndex = 3;
+    else if (p.status === "In Progress") statusIndex = 4;
+    else if (p.status === "Resolved") statusIndex = 5;
 
-  const timeline = [
-    { step: 1, title: "Submitted", date: dateFormatted, time: timeFormatted, note: "Grievance received and registered.", completed: statusIndex >= 1, current: statusIndex === 1 },
-    { step: 2, title: "Under Review", date: statusIndex >= 2 ? dateFormatted : "Pending", time: statusIndex >= 2 ? timeFormatted : "-", note: "AI triage & departmental routing.", completed: statusIndex >= 2, current: statusIndex === 2 },
-    { step: 3, title: "Action Assigned", date: statusIndex >= 3 ? dateFormatted : "Pending", time: statusIndex >= 3 ? timeFormatted : "-", note: p.action_notes || "Officer & budget allocation.", completed: statusIndex >= 3, current: statusIndex === 3 },
-    { step: 4, title: "In Progress", date: statusIndex >= 4 ? dateFormatted : "Pending", time: statusIndex >= 4 ? timeFormatted : "-", note: "On-ground execution.", completed: statusIndex >= 4, current: statusIndex === 4 },
-    { step: 5, title: "Resolved", date: statusIndex >= 5 ? dateFormatted : "Pending", time: statusIndex >= 5 ? timeFormatted : "-", note: "Verification & signoff completed.", completed: statusIndex >= 5, current: statusIndex === 5 }
-  ];
+    timeline = [
+      { step: 1, title: "Submitted", date: dateFormatted, time: timeFormatted, note: "Grievance received and registered.", completed: statusIndex >= 1, current: statusIndex === 1 },
+      { step: 2, title: "Under Review", date: statusIndex >= 2 ? dateFormatted : "Pending", time: statusIndex >= 2 ? timeFormatted : "-", note: "AI triage & departmental routing.", completed: statusIndex >= 2, current: statusIndex === 2 },
+      { step: 3, title: "Action Assigned", date: statusIndex >= 3 ? dateFormatted : "Pending", time: statusIndex >= 3 ? timeFormatted : "-", note: p.action_notes || "Officer & budget allocation.", completed: statusIndex >= 3, current: statusIndex === 3 },
+      { step: 4, title: "In Progress", date: statusIndex >= 4 ? dateFormatted : "Pending", time: statusIndex >= 4 ? timeFormatted : "-", note: "On-ground execution.", completed: statusIndex >= 4, current: statusIndex === 4 },
+      { step: 5, title: "Resolved", date: statusIndex >= 5 ? dateFormatted : "Pending", time: statusIndex >= 5 ? timeFormatted : "-", note: "Verification & signoff completed.", completed: statusIndex >= 5, current: statusIndex === 5 }
+    ];
+  }
 
   return {
     id: p.display_id || p.id,
@@ -140,7 +149,7 @@ function formatBackendProblem(p) {
     timeFiled: timeFormatted,
     status: p.status || "Submitted",
     statusLabel: p.status === "Resolved" ? "Solved" : p.status === "Rejected" ? "Rejected" : p.status === "Deleted" ? "Deleted" : (p.status === "In Progress" || p.status === "Action Assigned") ? "Proceed to Action" : "Pending Review",
-    priority: p.priority || "High",
+    priority: p.priority || "Pending Assessment",
     assignedDepartment: p.assigned_department || "Urban Affairs Cell",
     assignedOfficer: p.assigned_officer || "Under Assignment",
     budget: p.budget || "Allocating...",
@@ -371,29 +380,40 @@ export function CivicProvider({ children }) {
       const dateFormatted = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
       const timeFormatted = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-      let statusIndex = 1;
-      if (newStatus === "Submitted") statusIndex = 1;
-      else if (newStatus === "Under Review") statusIndex = 2;
-      else if (newStatus === "Action Assigned") statusIndex = 3;
-      else if (newStatus === "In Progress") statusIndex = 4;
-      else if (newStatus === "Resolved" || newStatus === "Rejected" || newStatus === "Deleted") statusIndex = 5;
+      let updatedTimeline = [];
+      if (newStatus === "Rejected") {
+        updatedTimeline = [
+          { step: 1, title: "Submitted", date: c.dateFiled || dateFormatted, time: c.timeFiled || timeFormatted, note: "Grievance received and registered.", completed: true, current: false },
+          { step: 2, title: "Under Review", date: dateFormatted, time: timeFormatted, note: "AI triage & administrative evaluation.", completed: true, current: false },
+          { step: 3, title: "Grievance Rejected", date: dateFormatted, time: timeFormatted, note: note || "Grievance reviewed and marked as rejected by government authority.", completed: true, current: true, isRejected: true }
+        ];
+      } else {
+        let statusIndex = 1;
+        if (newStatus === "Submitted") statusIndex = 1;
+        else if (newStatus === "Under Review") statusIndex = 2;
+        else if (newStatus === "Action Assigned") statusIndex = 3;
+        else if (newStatus === "In Progress") statusIndex = 4;
+        else if (newStatus === "Resolved" || newStatus === "Deleted") statusIndex = 5;
 
-      const updatedTimeline = c.timeline.map((stepItem, idx) => {
-        const stepNum = idx + 1;
-        if (newStatus === "Rejected" && stepNum === 5) {
-          return { ...stepItem, title: "Grievance Rejected", completed: true, current: true, date: dateFormatted, time: timeFormatted, note: note || "Grievance reviewed and marked as rejected / duplicate by authority." };
-        }
-        if (newStatus === "Deleted" && stepNum === 5) {
-          return { ...stepItem, title: "Grievance Deleted", completed: true, current: true, date: dateFormatted, time: timeFormatted, note: note || "Grievance deleted by government authority." };
-        }
-        if (stepNum < statusIndex) {
-          return { ...stepItem, completed: true, current: false };
-        } else if (stepNum === statusIndex) {
-          return { ...stepItem, completed: true, current: true, date: dateFormatted, time: timeFormatted, note: note || stepItem.note };
-        } else {
-          return { ...stepItem, completed: false, current: false };
-        }
-      });
+        const baseTimeline = (c.timeline && c.timeline.length === 5) ? c.timeline : [
+          { step: 1, title: "Submitted", note: "Grievance received and registered." },
+          { step: 2, title: "Under Review", note: "AI triage & departmental routing." },
+          { step: 3, title: "Action Assigned", note: "Officer & budget allocation." },
+          { step: 4, title: "In Progress", note: "On-ground execution." },
+          { step: 5, title: "Resolved", note: "Verification & signoff completed." }
+        ];
+
+        updatedTimeline = baseTimeline.map((stepItem, idx) => {
+          const stepNum = idx + 1;
+          if (stepNum < statusIndex) {
+            return { ...stepItem, completed: true, current: false, date: stepItem.date || dateFormatted, time: stepItem.time || timeFormatted };
+          } else if (stepNum === statusIndex) {
+            return { ...stepItem, completed: true, current: true, date: dateFormatted, time: timeFormatted, note: note || stepItem.note };
+          } else {
+            return { ...stepItem, completed: false, current: false, date: "Pending", time: "-" };
+          }
+        });
+      }
 
       return {
         ...c,

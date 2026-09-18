@@ -7,7 +7,7 @@ export default function AdminOverviewPage() {
   const { complaints, navigateTo } = useCivic();
 
   const total = complaints.length;
-  const criticalCount = complaints.filter(c => c.priority === 'Critical').length;
+  const criticalCount = complaints.filter(c => (c.aiSeverityScore || c.ai_severity_score || 0) >= 80).length;
   const resolvedCount = complaints.filter(c => c.status === 'Resolved').length;
   const inProgressCount = complaints.filter(c => c.status === 'In Progress' || c.status === 'Action Assigned').length;
   const slaRate = total > 0 ? Math.round((resolvedCount / total) * 100) : 94;
@@ -68,11 +68,11 @@ export default function AdminOverviewPage() {
 
           <div className="bg-surface-container-lowest border border-error-container p-md rounded-lg shadow-ambient border-l-4 border-l-error">
             <div className="flex justify-between items-center text-xs font-bold text-error mb-1">
-              <span>CRITICAL ALERTS</span>
-              <span className="material-symbols-outlined text-error text-xl">warning</span>
+              <span>HIGH SEVERITY (AI)</span>
+              <span className="material-symbols-outlined text-error text-xl">smart_toy</span>
             </div>
             <div className="text-3xl font-bold text-error">{criticalCount}</div>
-            <div className="text-[11px] text-error font-semibold mt-1">Requires immediate dispatch</div>
+            <div className="text-[11px] text-error font-semibold mt-1">Severity score ≥ 80/100</div>
           </div>
 
           <div className="bg-surface-container-lowest border border-outline-variant p-md rounded-lg shadow-ambient">
@@ -117,7 +117,7 @@ export default function AdminOverviewPage() {
             </div>
 
             <div className="flex flex-col gap-2.5 flex-grow">
-              {complaints.filter(c => c.priority === 'Critical' || c.priority === 'High').slice(0, 3).map((item) => (
+              {complaints.filter(c => c.status !== 'Deleted' && c.status !== 'Rejected').slice(0, 3).map((item) => (
                 <div
                   key={item.id}
                   onClick={() => navigateTo('admin_action', item.id)}
@@ -125,8 +125,8 @@ export default function AdminOverviewPage() {
                 >
                   <div className="flex justify-between items-center">
                     <span className="font-mono text-[11px] font-bold text-primary">#{item.id}</span>
-                    <span className="text-[10px] bg-error-container text-on-error-container font-bold px-1.5 py-0.5 rounded">
-                      {item.priority}
+                    <span className="text-[10px] bg-primary/10 text-primary font-bold px-1.5 py-0.5 rounded">
+                      {item.category}
                     </span>
                   </div>
                   <h3 className="text-xs font-bold text-on-surface line-clamp-1">{item.title}</h3>
