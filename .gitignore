@@ -33,9 +33,6 @@ htmlcov/
 *.db
 *.sqlite3
 
-# Scratch / Temp
-scratch/
-backend/scratch/
 
 # IDE / OS
 .vscode/
