@@ -44,26 +44,26 @@ export default function ContactUsPage() {
   };
 
   return (
-    <div className="flex-grow w-full max-w-container-max mx-auto px-lg py-xl flex flex-col gap-lg">
+    <div className="flex-grow w-full max-w-container-max mx-auto px-3 sm:px-lg py-4 sm:py-xl flex flex-col gap-md sm:gap-lg">
       {/* Header */}
       <div className="border-b border-outline-variant pb-md">
         <span className="font-label-sm text-xs text-primary-container uppercase tracking-wider font-bold">
-          Ministry of Rural Devlopement of INDIA
+          Ministry of Rural Development of INDIA
         </span>
-        <h1 className="font-headline-lg text-3xl font-bold text-primary mt-1">
+        <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary mt-1">
           Contact Us ☏
         </h1>
-        <p className="font-body-lg text-sm text-on-surface-variant mt-1 max-w-2xl">
+        <p className="font-body-lg text-xs sm:text-sm text-on-surface-variant mt-1 max-w-2xl leading-relaxed">
           Get in touch with our administrative support team for queries regarding grievance redressal, escalations, or portal technical assistance.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-lg">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-md sm:gap-lg">
         {/* Left Column: Official Details (5 cols) */}
         <div className="md:col-span-5 flex flex-col gap-md">
           {/* Department Card */}
-          <div className="bg-surface-container-lowest border border-outline-variant p-lg rounded-lg shadow-ambient">
-            <h2 className="font-headline-sm text-base font-bold text-primary mb-md border-b border-outline-variant pb-sm">
+          <div className="bg-surface-container-lowest border border-outline-variant p-4 sm:p-lg rounded-lg shadow-ambient">
+            <h2 className="font-headline-sm text-sm sm:text-base font-bold text-primary mb-md border-b border-outline-variant pb-sm">
               Official Headquarters
             </h2>
 
@@ -94,25 +94,25 @@ export default function ContactUsPage() {
           </div>
 
           {/* Support Channels Card */}
-          <div className="bg-surface-container-lowest border border-outline-variant p-lg rounded-lg shadow-ambient">
-            <h2 className="font-headline-sm text-base font-bold text-primary mb-md border-b border-outline-variant pb-sm">
+          <div className="bg-surface-container-lowest border border-outline-variant p-4 sm:p-lg rounded-lg shadow-ambient">
+            <h2 className="font-headline-sm text-sm sm:text-base font-bold text-primary mb-md border-b border-outline-variant pb-sm">
               Support Channels & Helplines
             </h2>
 
             <div className="flex items-center gap-md mb-md">
-              <span className="material-symbols-outlined text-primary text-2xl filled-icon">
+              <span className="material-symbols-outlined text-primary text-2xl filled-icon shrink-0">
                 mail
               </span>
-              <div>
+              <div className="min-w-0">
                 <p className="font-label-md text-xs font-bold text-on-surface">Official Support Email</p>
-                <p className="font-body-md text-xs text-primary font-semibold">
+                <p className="font-body-md text-xs text-primary font-semibold break-all">
                   support@kalyansetu.gov.in
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-md mb-md">
-              <span className="material-symbols-outlined text-primary text-2xl filled-icon">
+              <span className="material-symbols-outlined text-primary text-2xl filled-icon shrink-0">
                 support_agent
               </span>
               <div>
@@ -124,7 +124,7 @@ export default function ContactUsPage() {
             </div>
 
             <div className="flex items-center gap-md">
-              <span className="material-symbols-outlined text-primary text-2xl filled-icon">
+              <span className="material-symbols-outlined text-primary text-2xl filled-icon shrink-0">
                 emergency
               </span>
               <div>
@@ -139,13 +139,13 @@ export default function ContactUsPage() {
 
         {/* Right Column: Contact Message Form (7 cols) */}
         <div className="md:col-span-7">
-          <div className="bg-surface-container-lowest border border-outline-variant p-lg sm:p-xl rounded-lg shadow-ambient">
-            <h2 className="font-headline-sm text-base font-bold text-primary mb-md border-b border-outline-variant pb-sm">
+          <div className="bg-surface-container-lowest border border-outline-variant p-4 sm:p-lg md:p-xl rounded-lg shadow-ambient">
+            <h2 className="font-headline-sm text-sm sm:text-base font-bold text-primary mb-md border-b border-outline-variant pb-sm">
               Send Official Inquiry or Feedback
             </h2>
 
             {submitted ? (
-              <div className="p-lg bg-gov-green/10 border border-gov-green/30 rounded-lg text-center flex flex-col items-center gap-2">
+              <div className="p-4 sm:p-lg bg-gov-green/10 border border-gov-green/30 rounded-lg text-center flex flex-col items-center gap-2">
                 <span className="material-symbols-outlined text-4xl text-gov-green">check_circle</span>
                 <h3 className="text-sm font-bold text-on-surface">Inquiry Ticket #{ticketId} Created</h3>
                 <p className="text-xs text-on-surface-variant max-w-md">
@@ -153,7 +153,7 @@ export default function ContactUsPage() {
                 </p>
                 <button
                   onClick={() => setSubmitted(false)}
-                  className="mt-3 text-xs bg-primary-container text-on-primary px-4 py-2 rounded font-bold"
+                  className="mt-3 text-xs bg-primary-container text-on-primary px-4 py-2.5 rounded font-bold min-h-[44px]"
                 >
                   Send Another Message
                 </button>
@@ -169,7 +169,7 @@ export default function ContactUsPage() {
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                       placeholder="e.g. Aaditya Sharma"
-                      className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
+                      className="w-full px-3 py-2.5 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                     />
                   </div>
 
@@ -181,7 +181,7 @@ export default function ContactUsPage() {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="e.g. citizen@gmail.com"
-                      className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
+                      className="w-full px-3 py-2.5 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                     />
                   </div>
                 </div>
@@ -194,7 +194,7 @@ export default function ContactUsPage() {
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       placeholder="+91 90*** ****0"
-                      className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
+                      className="w-full px-3 py-2.5 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                     />
                   </div>
 
@@ -203,10 +203,12 @@ export default function ContactUsPage() {
                     <select
                       value={formData.department}
                       onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                      className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
+                      className="w-full px-3 py-2.5 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                     >
-                      <option>Rural devlopement Authority</option>
-                     
+                      <option>Rural Development Authority</option>
+                      <option>Public Works Department</option>
+                      <option>Water Supply & Sanitation</option>
+                      <option>Electricity & Power</option>
                     </select>
                   </div>
                 </div>
@@ -219,7 +221,7 @@ export default function ContactUsPage() {
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     placeholder="Brief summary of your query or grievance escalation..."
-                    className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
+                    className="w-full px-3 py-2.5 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                   />
                 </div>
 
@@ -231,13 +233,13 @@ export default function ContactUsPage() {
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     placeholder="Provide relevant details, complaint reference number if applicable..."
-                    className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none resize-none leading-relaxed"
+                    className="w-full px-3 py-2.5 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none resize-none leading-relaxed"
                   ></textarea>
                 </div>
 
                 <button
                   type="submit"
-                  className="bg-primary-container text-on-primary font-bold text-xs px-8 py-3 rounded hover:bg-primary transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 self-start"
+                  className="w-full sm:w-auto bg-primary-container text-on-primary font-bold text-xs px-8 py-3 rounded hover:bg-primary transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 self-start min-h-[44px]"
                 >
                   <span className="material-symbols-outlined text-sm">send</span>
                   <span>Submit Inquiry Message</span>

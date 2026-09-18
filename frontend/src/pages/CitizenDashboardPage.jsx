@@ -33,24 +33,24 @@ export default function CitizenDashboardPage() {
   const pendingCount = complaints.filter(c => c.status === 'Submitted' || c.status === 'Under Review').length;
 
   return (
-    <div className="flex-grow w-full max-w-container-max mx-auto px-lg py-xl flex flex-col gap-lg">
+    <div className="flex-grow w-full max-w-container-max mx-auto px-4 sm:px-lg py-6 sm:py-xl flex flex-col gap-4 sm:gap-lg">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-md border-b border-outline-variant pb-md">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-outline-variant pb-4">
         <div>
           <div className="flex items-center gap-2 text-xs text-on-surface-variant mb-1 font-label-sm uppercase tracking-wider">
-            <span>Welcome, {currentUser.name}</span>
+            <span>Welcome, {currentUser?.name || currentUser?.full_name || 'Citizen'}</span>
             <span>•</span>
             <span>Citizen Portal</span>
           </div>
-          <h1 className="font-headline-lg text-3xl font-bold text-primary">Citizen Dashboard</h1>
-          <p className="font-body-md text-sm text-on-surface-variant mt-1">
+          <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary">Citizen Dashboard</h1>
+          <p className="font-body-md text-xs sm:text-sm text-on-surface-variant mt-1">
             Track, manage, and verify all your submitted civic priority reports in real-time.
           </p>
         </div>
 
         <button
           onClick={() => navigateTo('submit')}
-          className="bg-primary-container text-on-primary font-label-md text-sm font-semibold px-lg py-md rounded hover:bg-primary transition-all flex items-center gap-2 shadow-sm active:scale-95 shrink-0"
+          className="w-full sm:w-auto justify-center bg-primary-container text-on-primary font-label-md text-sm font-semibold px-5 sm:px-lg py-2.5 sm:py-md rounded hover:bg-primary transition-all flex items-center gap-2 shadow-sm active:scale-95 shrink-0"
         >
           <span className="material-symbols-outlined text-[20px]">add_circle</span>
           Report New Problem
@@ -58,53 +58,53 @@ export default function CitizenDashboardPage() {
       </div>
 
       {/* Metric KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-md">
-        <div className="bg-surface-container-lowest border border-outline-variant p-md rounded-lg shadow-ambient">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-md">
+        <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-xs font-label-sm text-on-surface-variant uppercase">Total Filed</span>
-            <span className="material-symbols-outlined text-primary text-xl">folder</span>
+            <span className="text-[11px] sm:text-xs font-label-sm text-on-surface-variant uppercase">Total Filed</span>
+            <span className="material-symbols-outlined text-primary text-lg sm:text-xl">folder</span>
           </div>
-          <div className="text-2xl font-bold text-primary">{totalCount}</div>
-          <div className="text-[11px] text-on-surface-variant mt-1">Grievances logged</div>
+          <div className="text-xl sm:text-2xl font-bold text-primary">{totalCount}</div>
+          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">Grievances logged</div>
         </div>
 
-        <div className="bg-surface-container-lowest border border-outline-variant p-md rounded-lg shadow-ambient">
+        <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-xs font-label-sm text-on-surface-variant uppercase">In Progress</span>
-            <span className="material-symbols-outlined text-gov-saffron text-xl">engineering</span>
+            <span className="text-[11px] sm:text-xs font-label-sm text-on-surface-variant uppercase">In Progress</span>
+            <span className="material-symbols-outlined text-gov-saffron text-lg sm:text-xl">engineering</span>
           </div>
-          <div className="text-2xl font-bold text-on-secondary-fixed-variant">{inProgressCount}</div>
-          <div className="text-[11px] text-on-surface-variant mt-1">Under active field repair</div>
+          <div className="text-xl sm:text-2xl font-bold text-on-secondary-fixed-variant">{inProgressCount}</div>
+          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">Under field repair</div>
         </div>
 
-        <div className="bg-surface-container-lowest border border-outline-variant p-md rounded-lg shadow-ambient">
+        <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-xs font-label-sm text-on-surface-variant uppercase">Resolved</span>
-            <span className="material-symbols-outlined text-gov-green text-xl">task_alt</span>
+            <span className="text-[11px] sm:text-xs font-label-sm text-on-surface-variant uppercase">Resolved</span>
+            <span className="material-symbols-outlined text-gov-green text-lg sm:text-xl">task_alt</span>
           </div>
-          <div className="text-2xl font-bold text-gov-green">{resolvedCount}</div>
-          <div className="text-[11px] text-on-surface-variant mt-1">Successfully solved</div>
+          <div className="text-xl sm:text-2xl font-bold text-gov-green">{resolvedCount}</div>
+          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">Successfully solved</div>
         </div>
 
-        <div className="bg-surface-container-lowest border border-outline-variant p-md rounded-lg shadow-ambient">
+        <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-xs font-label-sm text-on-surface-variant uppercase">Pending Review</span>
-            <span className="material-symbols-outlined text-outline text-xl">pending_actions</span>
+            <span className="text-[11px] sm:text-xs font-label-sm text-on-surface-variant uppercase">Pending</span>
+            <span className="material-symbols-outlined text-outline text-lg sm:text-xl">pending_actions</span>
           </div>
-          <div className="text-2xl font-bold text-on-surface">{pendingCount}</div>
-          <div className="text-[11px] text-on-surface-variant mt-1">Department triage</div>
+          <div className="text-xl sm:text-2xl font-bold text-on-surface">{pendingCount}</div>
+          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">Department triage</div>
         </div>
       </div>
 
       {/* Filter & Search Section */}
-      <div className="bg-surface-container-lowest p-md rounded-lg border border-outline-variant shadow-ambient flex flex-col md:flex-row justify-between items-stretch md:items-center gap-md">
+      <div className="bg-surface-container-lowest p-3 sm:p-md rounded-lg border border-outline-variant shadow-ambient flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 sm:gap-md">
         {/* Status Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0">
           {statusFilters.map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 text-xs font-label-md rounded transition-all whitespace-nowrap ${
+              className={`px-3 py-1.5 text-xs font-label-md rounded transition-all whitespace-nowrap shrink-0 ${
                 statusFilter === st
                   ? 'bg-primary-container text-white font-bold shadow-sm'
                   : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
@@ -116,11 +116,11 @@ export default function CitizenDashboardPage() {
         </div>
 
         {/* Search input and Category select */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-1.5 text-on-surface focus:border-primary outline-none"
+            className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-2 sm:py-1.5 text-on-surface focus:border-primary outline-none"
           >
             <option value="ALL">All Categories</option>
             <option value="Road">Road Infrastructure</option>
@@ -130,7 +130,7 @@ export default function CitizenDashboardPage() {
             <option value="Safety">Public Safety</option>
           </select>
 
-          <div className="relative flex-grow md:w-64">
+          <div className="relative flex-grow sm:w-60 md:w-64">
             <span className="material-symbols-outlined absolute left-2.5 top-2 text-on-surface-variant text-base">
               search
             </span>
@@ -138,8 +138,8 @@ export default function CitizenDashboardPage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by ID, keyword, location..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-surface border border-outline-variant rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+              placeholder="Search ID, location..."
+              className="w-full pl-8 pr-3 py-2 sm:py-1.5 text-xs bg-surface border border-outline-variant rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none"
             />
           </div>
         </div>
@@ -202,8 +202,8 @@ export default function CitizenDashboardPage() {
               </div>
 
               {/* Status and Action Buttons */}
-              <div className="flex flex-col sm:flex-row md:flex-col items-start md:items-end gap-2 shrink-0 w-full md:w-auto pt-2 md:pt-0 border-t md:border-t-0 border-outline-variant">
-                <span className={`text-xs font-bold uppercase px-3 py-1 rounded ${
+              <div className="flex flex-col sm:flex-row md:flex-col items-stretch sm:items-center md:items-end gap-2 shrink-0 w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-outline-variant">
+                <span className={`text-center text-xs font-bold uppercase px-3 py-1.5 rounded self-start sm:self-auto ${
                   item.status === 'Resolved'
                     ? 'bg-gov-green/15 text-gov-green border border-gov-green/30'
                     : item.status === 'Rejected'
@@ -217,7 +217,7 @@ export default function CitizenDashboardPage() {
 
                 <button
                   onClick={() => navigateTo('track', item.id)}
-                  className="bg-primary-container text-on-primary text-xs font-bold px-4 py-2 rounded hover:bg-primary transition-all flex items-center gap-1 w-full md:w-auto justify-center shadow-sm"
+                  className="bg-primary-container text-on-primary text-xs font-bold px-4 py-2.5 rounded hover:bg-primary transition-all flex items-center gap-1.5 w-full sm:w-auto justify-center shadow-sm active:scale-95"
                 >
                   <span>Track Full Timeline</span>
                   <span className="material-symbols-outlined text-sm">arrow_forward</span>

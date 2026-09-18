@@ -20,20 +20,20 @@ export default function AdminOverviewPage() {
   ];
 
   return (
-    <div className="flex-grow w-full flex bg-surface min-h-[calc(100vh-5rem)]">
+    <div className="flex-grow w-full flex flex-col md:flex-row bg-surface min-h-[calc(100vh-5rem)]">
       {/* Admin Side Navigation */}
       <AdminSidebar />
 
       {/* Main Content Area */}
-      <main className="flex-1 p-lg md:p-xl overflow-y-auto max-w-7xl">
+      <main className="flex-1 p-3 sm:p-6 md:p-xl overflow-y-auto max-w-7xl w-full">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-md mb-lg border-b border-outline-variant pb-md">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-md mb-md sm:mb-lg border-b border-outline-variant pb-md">
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary-container mb-1">
               <span className="inline-block w-2 h-2 rounded-full bg-gov-green animate-pulse"></span>
               <span>Command & Analytics Centre</span>
             </div>
-            <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary">
+            <h1 className="font-headline-lg text-xl sm:text-2xl md:text-3xl font-bold text-primary">
               State Grievance Overview
             </h1>
             <p className="font-body-md text-xs text-on-surface-variant mt-1">
@@ -41,10 +41,10 @@ export default function AdminOverviewPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={() => navigateTo('admin_complaints')}
-              className="bg-primary-container text-on-primary font-bold text-xs px-4 py-2 rounded hover:bg-primary transition-all flex items-center gap-1.5"
+              className="w-full sm:w-auto bg-primary-container text-on-primary font-bold text-xs px-4 py-2.5 rounded hover:bg-primary transition-all flex items-center justify-center gap-1.5 min-h-[40px]"
             >
               <span className="material-symbols-outlined text-sm">list_alt</span>
               <span>View All Complaints</span>
@@ -53,14 +53,14 @@ export default function AdminOverviewPage() {
         </div>
 
         {/* Executive KPI Stat Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
-          <div className="bg-surface-container-lowest border border-outline-variant p-md rounded-lg shadow-ambient">
-            <div className="flex justify-between items-center text-xs font-bold text-on-surface-variant mb-1">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-md mb-md sm:mb-lg">
+          <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
+            <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold text-on-surface-variant mb-1">
               <span>TOTAL GRIEVANCES</span>
-              <span className="material-symbols-outlined text-primary text-xl">folder_managed</span>
+              <span className="material-symbols-outlined text-primary text-lg sm:text-xl">folder_managed</span>
             </div>
-            <div className="text-3xl font-bold text-primary">{total}</div>
-            <div className="text-[11px] text-gov-green font-semibold mt-1 flex items-center gap-1">
+            <div className="text-2xl sm:text-3xl font-bold text-primary">{total}</div>
+            <div className="text-[10px] sm:text-[11px] text-gov-green font-semibold mt-1 flex items-center gap-1">
               <span className="material-symbols-outlined text-xs">trending_up</span>
               Dynamic Database Query
             </div>
@@ -68,41 +68,41 @@ export default function AdminOverviewPage() {
 
           <div className="bg-surface-container-lowest border border-error-container p-md rounded-lg shadow-ambient border-l-4 border-l-error">
             <div className="flex justify-between items-center text-xs font-bold text-error mb-1">
-              <span>HIGH SEVERITY (AI)</span>
-              <span className="material-symbols-outlined text-error text-xl">smart_toy</span>
+              <span>CRITICAL ALERTS</span>
+              <span className="material-symbols-outlined text-error text-xl">warning</span>
             </div>
             <div className="text-3xl font-bold text-error">{criticalCount}</div>
-            <div className="text-[11px] text-error font-semibold mt-1">Severity score ≥ 80/100</div>
+            <div className="text-[11px] text-error font-semibold mt-1">Requires immediate dispatch</div>
           </div>
 
-          <div className="bg-surface-container-lowest border border-outline-variant p-md rounded-lg shadow-ambient">
-            <div className="flex justify-between items-center text-xs font-bold text-on-surface-variant mb-1">
+          <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
+            <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold text-on-surface-variant mb-1">
               <span>ACTIVE IN PROGRESS</span>
-              <span className="material-symbols-outlined text-gov-saffron text-xl">engineering</span>
+              <span className="material-symbols-outlined text-gov-saffron text-lg sm:text-xl">engineering</span>
             </div>
-            <div className="text-3xl font-bold text-on-secondary-fixed-variant">{inProgressCount}</div>
-            <div className="text-[11px] text-on-surface-variant mt-1">Field teams deployed</div>
+            <div className="text-2xl sm:text-3xl font-bold text-on-secondary-fixed-variant">{inProgressCount}</div>
+            <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-1">Field teams deployed</div>
           </div>
 
-          <div className="bg-surface-container-lowest border border-outline-variant p-md rounded-lg shadow-ambient">
-            <div className="flex justify-between items-center text-xs font-bold text-on-surface-variant mb-1">
+          <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
+            <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold text-on-surface-variant mb-1">
               <span>SLA RESOLUTION RATE</span>
-              <span className="material-symbols-outlined text-gov-green text-xl">verified</span>
+              <span className="material-symbols-outlined text-gov-green text-lg sm:text-xl">verified</span>
             </div>
-            <div className="text-3xl font-bold text-gov-green">{slaRate}%</div>
-            <div className="text-[11px] text-on-surface-variant mt-1">Within 48-hr mandate</div>
+            <div className="text-2xl sm:text-3xl font-bold text-gov-green">{slaRate}%</div>
+            <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-1">Within 48-hr mandate</div>
           </div>
         </div>
 
         {/* Two Column Layout: District Analytics & Urgent Escalations */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg mb-lg">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-md sm:gap-lg mb-md sm:mb-lg">
           {/* District Performance Heatmap (7 cols) */}
           <div className="lg:col-span-7">
             <DistrictHeatmap complaints={complaints} />
           </div>
 
           {/* Rapid Response Escalation Feed (5 cols) */}
-          <div className="lg:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient flex flex-col">
+          <div className="lg:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-lg p-4 sm:p-lg shadow-ambient flex flex-col">
             <div className="flex justify-between items-center mb-md border-b border-outline-variant pb-2">
               <h2 className="text-sm font-bold text-error flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-base">emergency</span>
@@ -110,7 +110,7 @@ export default function AdminOverviewPage() {
               </h2>
               <button
                 onClick={() => navigateTo('admin_action')}
-                className="text-[11px] text-primary font-bold hover:underline"
+                className="text-[11px] text-primary font-bold hover:underline py-1 px-2"
               >
                 Open Directives
               </button>
@@ -131,8 +131,8 @@ export default function AdminOverviewPage() {
                   </div>
                   <h3 className="text-xs font-bold text-on-surface line-clamp-1">{item.title}</h3>
                   <div className="text-[10px] text-on-surface-variant flex items-center justify-between mt-1">
-                    <span>{item.location}</span>
-                    <span className="text-primary font-semibold">Triage →</span>
+                    <span className="truncate pr-2">{item.location}</span>
+                    <span className="text-primary font-semibold shrink-0">Triage →</span>
                   </div>
                 </div>
               ))}
@@ -141,18 +141,18 @@ export default function AdminOverviewPage() {
         </div>
 
         {/* Department SLA Matrix */}
-        <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient">
+        <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 sm:p-lg shadow-ambient">
           <h2 className="text-sm font-bold text-primary mb-md border-b border-outline-variant pb-2 flex items-center gap-1.5">
             <span className="material-symbols-outlined text-base">corporate_fare</span>
             <span>Departmental Workload & Redressal Performance</span>
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-md">
             {departmentMetrics.map((dept) => (
-              <div key={dept.name} className="bg-surface p-md rounded-lg border border-outline-variant flex flex-col gap-2">
+              <div key={dept.name} className="bg-surface p-3 sm:p-md rounded-lg border border-outline-variant flex flex-col gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-xl">{dept.icon}</span>
-                  <h3 className="font-bold text-xs text-on-surface line-clamp-1">{dept.name}</h3>
+                  <span className="material-symbols-outlined text-primary text-xl shrink-0">{dept.icon}</span>
+                  <h3 className="font-bold text-xs text-on-surface truncate">{dept.name}</h3>
                 </div>
                 <div className="grid grid-cols-3 gap-1 text-center bg-white p-2 rounded border border-outline-variant/60 text-[11px]">
                   <div>

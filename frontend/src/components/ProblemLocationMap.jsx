@@ -504,13 +504,13 @@ export default function ProblemLocationMap({
   const isSelectedCrisis = crisisPoints.some((p) => p.id === selectedProblemId);
 
   return (
-    <div className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-md md:p-lg shadow-ambient mb-lg overflow-hidden flex flex-col">
+    <div className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-3 sm:p-md md:p-lg shadow-ambient mb-lg overflow-hidden flex flex-col">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-md border-b border-outline-variant pb-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 sm:gap-3 mb-3 sm:mb-md border-b border-outline-variant pb-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="material-symbols-outlined text-xl text-error">location_on</span>
-            <h2 className="text-base font-bold text-primary">
+            <h2 className="text-sm sm:text-base font-bold text-primary">
               Problem Location Map
             </h2>
 
@@ -530,16 +530,16 @@ export default function ProblemLocationMap({
               </span>
             )}
           </div>
-          <p className="text-xs text-on-surface-variant mt-1">
+          <p className="text-[11px] sm:text-xs text-on-surface-variant mt-0.5 sm:mt-1">
             GIS spatial mapping of crisis early warnings and selected civic problems.
           </p>
         </div>
 
         {/* Header Controls & Selected Problem Pill */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
           {headerAction}
           {problem && (
-            <div className="text-[11px] font-mono font-bold bg-surface border border-outline-variant px-3 py-1 rounded text-primary flex items-center gap-1.5">
+            <div className="text-[11px] font-mono font-bold bg-surface border border-outline-variant px-2.5 sm:px-3 py-1 rounded text-primary flex items-center gap-1.5">
               <span className="text-on-surface-variant">Inspecting:</span>
               <span className="text-primary font-black">#{selectedProblemId}</span>
             </div>
@@ -547,8 +547,8 @@ export default function ProblemLocationMap({
         </div>
       </div>
 
-      {/* Map Container with explicit height */}
-      <div className="relative w-full h-[440px] min-h-[440px] rounded-lg overflow-hidden border border-outline-variant bg-[#f1f4f9]">
+      {/* Map Container with responsive height */}
+      <div className="relative w-full h-[280px] sm:h-[380px] md:h-[440px] min-h-[280px] sm:min-h-[380px] md:min-h-[440px] rounded-lg overflow-hidden border border-outline-variant bg-[#f1f4f9]">
         {/* Loading Overlay */}
         {loading && (
           <div className="absolute top-2 right-2 z-[1000] bg-surface/90 backdrop-blur-sm border border-outline-variant px-3 py-1.5 rounded-md shadow-md flex items-center gap-2 text-xs font-semibold text-primary">

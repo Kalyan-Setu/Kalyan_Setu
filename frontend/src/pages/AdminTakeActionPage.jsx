@@ -225,31 +225,31 @@ export default function AdminTakeActionPage() {
   };
 
   return (
-    <div className="flex-grow w-full flex bg-surface min-h-[calc(100vh-5rem)]">
+    <div className="flex-grow w-full flex flex-col md:flex-row bg-surface min-h-[calc(100vh-5rem)]">
       <AdminSidebar />
 
-      <main className="flex-1 p-lg md:p-xl overflow-y-auto max-w-7xl">
+      <main className="flex-1 p-3 sm:p-6 md:p-xl overflow-y-auto max-w-7xl w-full">
         {/* AI Recommendation Applied Banner */}
         {aiRecommendationApplied && (
-          <div className="mb-md bg-teal-500/10 border border-teal-500/30 rounded-xl p-3 flex items-center gap-3 animate-in slide-in-from-top-2">
-            <div className="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center flex-shrink-0">
+          <div className="mb-md bg-teal-500/10 border border-teal-500/30 rounded-xl p-3 flex items-start sm:items-center gap-3 animate-in slide-in-from-top-2">
+            <div className="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
               <span className="material-symbols-outlined text-teal-600 text-base">smart_toy</span>
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-xs font-bold text-teal-700">🤖 AI Agent Recommendation Applied</div>
-              <div className="text-[11px] text-teal-600 mt-0.5">Department, officer, budget and directive pre-filled from LangGraph analysis. Review and edit as needed before dispatching.</div>
+              <div className="text-[11px] text-teal-600 mt-0.5 leading-relaxed">Department, officer, budget and directive pre-filled from LangGraph analysis. Review and edit as needed before dispatching.</div>
             </div>
-            <button onClick={() => setAiRecommendationApplied(false)} className="text-teal-500 hover:text-teal-700 text-sm p-1">✕</button>
+            <button onClick={() => setAiRecommendationApplied(false)} className="text-teal-500 hover:text-teal-700 text-sm p-1 shrink-0">✕</button>
           </div>
         )}
 
         {/* Header */}
-        <div className="mb-lg border-b border-outline-variant pb-md">
+        <div className="mb-md sm:mb-lg border-b border-outline-variant pb-md">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-error mb-1">
             <span className="material-symbols-outlined text-sm">bolt</span>
             <span>All Problems — Ranked by AI Severity</span>
           </div>
-          <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary">
+          <h1 className="font-headline-lg text-xl sm:text-2xl md:text-3xl font-bold text-primary">
             Take Strategic Action
           </h1>
           <p className="font-body-md text-xs text-on-surface-variant mt-1">
@@ -258,15 +258,19 @@ export default function AdminTakeActionPage() {
         </div>
 
         {/* Bento Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-md sm:gap-lg">
           {/* Left Column: Rapid Response Requests Queue (4 cols) */}
-          <section className="lg:col-span-4 flex flex-col gap-md">
-            <h2 className="font-headline-sm text-sm font-bold text-primary flex items-center gap-2 border-b border-outline-variant pb-2">
-              <span className="material-symbols-outlined text-error text-lg">warning</span>
-              <span>Rapid Response Queue</span>
+          <section className="lg:col-span-4 flex flex-col gap-sm sm:gap-md">
+            <h2 className="font-headline-sm text-xs sm:text-sm font-bold text-primary flex items-center justify-between border-b border-outline-variant pb-2">
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-error text-lg">warning</span>
+                <span>Rapid Response Queue</span>
+              </div>
+              <span className="text-[10px] text-on-surface-variant font-normal lg:hidden">Swipe to select →</span>
             </h2>
 
-            <div className="flex flex-col gap-3">
+            {/* Horizontal scroll on mobile (< lg), vertical stack on desktop (lg+) */}
+            <div className="flex lg:flex-col gap-2.5 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 no-scrollbar">
               {[...activeComplaints].sort((a, b) => {
                 const scoreA = a.aiSeverityScore || a.ai_severity_score || 0;
                 const scoreB = b.aiSeverityScore || b.ai_severity_score || 0;
@@ -277,7 +281,7 @@ export default function AdminTakeActionPage() {
                   onClick={() => {
                     setSelectedId(item.id || item.display_id);
                   }}
-                  className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                  className={`p-3 rounded-lg border cursor-pointer transition-all min-w-[240px] sm:min-w-[280px] lg:min-w-0 shrink-0 lg:shrink ${
                     selectedId === item.id
                       ? 'bg-primary-fixed/20 border-primary shadow-sm border-l-4 border-l-primary'
                       : 'bg-surface-container-lowest border-outline-variant hover:border-primary/60'
@@ -296,11 +300,11 @@ export default function AdminTakeActionPage() {
 
           {/* Right Column: Strategic Directive Form (8 cols) */}
           <section className="lg:col-span-8">
-            <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg sm:p-xl shadow-ambient flex flex-col gap-lg">
+            <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 sm:p-lg md:p-xl shadow-ambient flex flex-col gap-md sm:gap-lg">
               {/* Selected Grievance Overview Card */}
-              <div className="bg-surface p-md rounded-lg border border-outline-variant flex flex-col gap-2">
+              <div className="bg-surface p-3 sm:p-md rounded-lg border border-outline-variant flex flex-col gap-2">
                 <div className="flex justify-between items-center flex-wrap gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono text-xs font-bold text-primary bg-primary-fixed/40 px-2 py-0.5 rounded">
                       #{selectedComplaint.id}
                     </span>
@@ -342,7 +346,7 @@ export default function AdminTakeActionPage() {
                       value={assignedDepartment}
                       onChange={(e) => setAssignedDepartment(e.target.value)}
                       placeholder="e.g. Public Works Department (PWD)"
-                      className={`w-full p-2 bg-surface border rounded focus:border-primary outline-none font-medium ${aiFilledFields.includes('department') ? 'border-teal-400/50' : 'border-outline-variant'}`}
+                      className={`w-full p-2.5 bg-surface border rounded focus:border-primary outline-none font-medium text-xs ${aiFilledFields.includes('department') ? 'border-teal-400/50' : 'border-outline-variant'}`}
                     />
                   </div>
 
@@ -359,7 +363,7 @@ export default function AdminTakeActionPage() {
                       value={assignedOfficer}
                       onChange={(e) => setAssignedOfficer(e.target.value)}
                       placeholder="e.g. Er. Rajesh Kumar"
-                      className={`w-full p-2 bg-surface border rounded focus:border-primary outline-none ${aiFilledFields.includes('officer') ? 'border-teal-400/50' : 'border-outline-variant'}`}
+                      className={`w-full p-2.5 bg-surface border rounded focus:border-primary outline-none text-xs ${aiFilledFields.includes('officer') ? 'border-teal-400/50' : 'border-outline-variant'}`}
                     />
                   </div>
                 </div>
@@ -391,7 +395,7 @@ export default function AdminTakeActionPage() {
                         value={budget}
                         onChange={(e) => setBudget(e.target.value)}
                         placeholder={budgetLoading ? "Calculating AI Budget..." : "e.g. ₹85,000"}
-                        className={`w-full p-2 bg-surface border rounded focus:border-primary outline-none font-mono ${
+                        className={`w-full p-2.5 bg-surface border rounded focus:border-primary outline-none font-mono text-xs ${
                           budgetLoading ? 'bg-surface-container/60 cursor-wait border-primary/50' :
                           budgetError ? 'border-error text-error' : 'border-outline-variant'
                         }`}
@@ -420,7 +424,7 @@ export default function AdminTakeActionPage() {
                     <select
                       value={deadline}
                       onChange={(e) => setDeadline(e.target.value)}
-                      className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none"
+                      className="w-full p-2.5 bg-surface border border-outline-variant rounded focus:border-primary outline-none text-xs"
                     >
                       <option>12 Hours (Immediate Critical)</option>
                       <option>24 Hours (High Urgency)</option>
@@ -434,7 +438,7 @@ export default function AdminTakeActionPage() {
                     <select
                       value={newStatus}
                       onChange={(e) => setNewStatus(e.target.value)}
-                      className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none font-bold text-primary"
+                      className="w-full p-2.5 bg-surface border border-outline-variant rounded focus:border-primary outline-none font-bold text-primary text-xs"
                     >
                       <option value="Action Assigned">Action Assigned</option>
                       <option value="In Progress">In Progress (Field Deployed)</option>
@@ -451,7 +455,7 @@ export default function AdminTakeActionPage() {
                     value={directiveNote}
                     onChange={(e) => setDirectiveNote(e.target.value)}
                     placeholder="e.g. Deploy suction jetting crew immediately. Set up safety barricades around excavation site..."
-                    className="w-full p-2 bg-surface border border-outline-variant rounded focus:border-primary outline-none resize-none leading-relaxed"
+                    className="w-full p-2.5 bg-surface border border-outline-variant rounded focus:border-primary outline-none resize-none leading-relaxed text-xs"
                   ></textarea>
                 </div>
 
@@ -467,7 +471,7 @@ export default function AdminTakeActionPage() {
 
                   <button
                     type="submit"
-                    className="bg-primary-container text-on-primary font-bold px-6 py-2.5 rounded hover:bg-primary transition-all shadow-md active:scale-95 flex items-center gap-2 text-xs cursor-pointer"
+                    className="bg-primary-container text-on-primary font-bold px-6 py-2.5 rounded hover:bg-primary transition-all shadow-md active:scale-95 flex items-center gap-2"
                   >
                     <span className="material-symbols-outlined text-sm">send_and_archive</span>
                     <span>Issue Directive & Dispatch Crew</span>

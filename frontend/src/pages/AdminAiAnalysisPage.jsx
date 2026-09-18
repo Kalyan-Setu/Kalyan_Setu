@@ -439,39 +439,39 @@ export default function AdminAiAnalysisPage() {
   const selectedComplaintObj = activeComplaints.find(c => c.id === selectedComplaintId || c.display_id === selectedComplaintId);
 
   return (
-    <div className="flex-grow w-full flex bg-surface min-h-[calc(100vh-5rem)] relative">
+    <div className="flex-grow w-full flex flex-col md:flex-row bg-surface min-h-[calc(100vh-5rem)] relative">
       {!mobileMode && <AdminSidebar />}
 
-      <main className={`flex-1 p-lg md:p-xl overflow-y-auto ${mobileMode ? 'max-w-md mx-auto my-6 bg-surface border border-outline-variant rounded-2xl shadow-2xl p-4' : 'max-w-7xl'}`}>
+      <main className={`flex-1 p-3 sm:p-6 md:p-xl overflow-y-auto w-full ${mobileMode ? 'max-w-md mx-auto my-6 bg-surface border border-outline-variant rounded-2xl shadow-2xl p-4' : 'max-w-7xl'}`}>
 
         {/* ── Header ── */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md mb-lg border-b border-outline-variant pb-md">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md mb-md sm:mb-lg border-b border-outline-variant pb-md">
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary mb-1">
               <span className="material-symbols-outlined text-sm text-gov-saffron">psychology</span>
               <span>LangGraph Agentic AI — 8-Stage Workflow</span>
             </div>
-            <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary">
+            <h1 className="font-headline-lg text-xl sm:text-2xl md:text-3xl font-bold text-primary">
               AI Analysis & Intelligent Recommendations
             </h1>
             <p className="font-body-md text-xs text-on-surface-variant mt-1">
               Explainable multi-stage agentic pipeline powered by Groq + LangGraph. Human officials retain full control.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
             <button
               onClick={runLiveAiAnalysis}
               disabled={analyzing}
-              className="bg-gov-saffron text-white font-bold text-xs px-3.5 py-2 rounded flex items-center gap-1.5 shadow-md hover:brightness-105 disabled:opacity-50"
+              className="flex-1 sm:flex-initial bg-gov-saffron text-white font-bold text-xs px-3.5 py-2.5 rounded flex items-center justify-center gap-1.5 shadow-md hover:brightness-105 disabled:opacity-50 min-h-[38px]"
             >
               <span className="material-symbols-outlined text-sm">{analyzing ? 'sync' : 'batch_prediction'}</span>
               <span>{analyzing ? 'Running Batch...' : 'Batch AI Analysis'}</span>
             </button>
-            <button onClick={() => setChatOpen(!chatOpen)} className="bg-primary text-white font-bold text-xs px-3.5 py-2 rounded flex items-center gap-1.5 shadow-md hover:bg-primary/90">
+            <button onClick={() => setChatOpen(!chatOpen)} className="flex-1 sm:flex-initial bg-primary text-white font-bold text-xs px-3.5 py-2.5 rounded flex items-center justify-center gap-1.5 shadow-md hover:bg-primary/90 min-h-[38px]">
               <span className="material-symbols-outlined text-sm">chat</span>
               <span>AI Assistant</span>
             </button>
-            <button onClick={() => setMobileMode(!mobileMode)} className="bg-surface-container-lowest border border-outline-variant text-primary font-bold text-xs px-3 py-2 rounded flex items-center gap-1 shadow-ambient hover:bg-surface-container">
+            <button onClick={() => setMobileMode(!mobileMode)} className="hidden sm:flex bg-surface-container-lowest border border-outline-variant text-primary font-bold text-xs px-3 py-2.5 rounded items-center gap-1 shadow-ambient hover:bg-surface-container min-h-[38px]">
               <span className="material-symbols-outlined text-sm">{mobileMode ? 'desktop_windows' : 'smartphone'}</span>
               <span>{mobileMode ? 'Desktop' : 'Mobile'}</span>
             </button>
@@ -479,8 +479,8 @@ export default function AdminAiAnalysisPage() {
         </div>
 
         {/* ── Early Warning Directives (Live Predictive Feed) ── */}
-        <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient mb-lg">
-          <h2 className="text-sm font-bold text-primary mb-md border-b border-outline-variant pb-2 flex items-center justify-between">
+        <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 sm:p-lg shadow-ambient mb-md sm:mb-lg">
+          <h2 className="text-sm font-bold text-primary mb-md border-b border-outline-variant pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <span className="flex items-center gap-1.5">
               <span className="material-symbols-outlined text-base text-gov-saffron">crisis_alert</span>
               <span>Predictive Early Warning Directives (Next 48 Hours)</span>
@@ -491,7 +491,7 @@ export default function AdminAiAnalysisPage() {
             </span>
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-md">
             {activePredictiveAlerts.map(alert => {
               const isSelected = selectedProblemId === alert.id || selectedComplaintId === alert.id;
               return (
@@ -501,7 +501,7 @@ export default function AdminAiAnalysisPage() {
                     setSelectedComplaintId(alert.id);
                     setSelectedProblemId(alert.id);
                   }}
-                  className={`bg-surface p-md rounded-lg border transition-all cursor-pointer ${
+                  className={`bg-surface p-3 sm:p-md rounded-lg border transition-all cursor-pointer ${
                     isSelected
                       ? 'border-primary ring-2 ring-primary/30 shadow-md bg-primary/5'
                       : 'border-outline-variant hover:border-primary/50'
@@ -531,7 +531,7 @@ export default function AdminAiAnalysisPage() {
                           const mapEl = document.getElementById('problem-gis-map-section');
                           if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
                         }}
-                        className="bg-surface border border-outline-variant hover:border-primary text-primary font-bold text-xs px-2.5 py-1 rounded flex items-center gap-1 shadow-sm transition-all"
+                        className="bg-surface border border-outline-variant hover:border-primary text-primary font-bold text-xs px-2.5 py-1.5 rounded flex items-center gap-1 shadow-sm transition-all min-h-[32px]"
                         title="Locate on GIS map"
                       >
                         <span className="material-symbols-outlined text-sm text-error">location_on</span>
@@ -545,7 +545,7 @@ export default function AdminAiAnalysisPage() {
                           setSelectedProblemId(alert.id);
                           runComplaintWorkflow(alert.id);
                         }}
-                        className="bg-primary text-white hover:bg-primary/90 font-bold text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+                        className="bg-primary text-white hover:bg-primary/90 font-bold text-xs px-3 py-1.5 rounded flex items-center gap-1 shadow-sm transition-all cursor-pointer min-h-[32px]"
                       >
                         <span>AI Analyse</span>
                         <span className="material-symbols-outlined text-sm">psychology</span>
@@ -567,11 +567,11 @@ export default function AdminAiAnalysisPage() {
         </div>
 
         {/* ── 🤖 LangGraph Agentic Workflow Panel ── */}
-        <div className="bg-gradient-to-br from-surface-container-lowest to-primary/5 border border-primary/20 rounded-2xl p-lg shadow-ambient mb-lg">
+        <div className="bg-gradient-to-br from-surface-container-lowest to-primary/5 border border-primary/20 rounded-2xl p-4 sm:p-lg shadow-ambient mb-md sm:mb-lg">
           {/* Panel Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-lg border-b border-outline-variant pb-md">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-md sm:mb-lg border-b border-outline-variant pb-md">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-lg">
+              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-lg shrink-0">
                 <span className="material-symbols-outlined text-white text-base">account_tree</span>
               </div>
               <div>
@@ -579,13 +579,13 @@ export default function AdminAiAnalysisPage() {
                 <p className="text-[11px] text-on-surface-variant">Understanding → Classification → Severity → Routing → Actions → Critic → Review</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               {/* Complaint selector */}
               <select
                 id="workflow-complaint-select"
                 value={selectedComplaintId}
                 onChange={e => { setSelectedComplaintId(e.target.value); setWorkflowResult(null); setWorkflowStageIdx(-1); setWorkflowError(null); }}
-                className="flex-1 sm:w-64 text-xs bg-surface border border-outline-variant rounded-lg px-2.5 py-2 text-on-surface font-semibold outline-none focus:border-primary truncate"
+                className="w-full sm:w-64 text-xs bg-surface border border-outline-variant rounded-lg px-2.5 py-2.5 text-on-surface font-semibold outline-none focus:border-primary truncate min-h-[38px]"
               >
                 <option value="">— Select a grievance —</option>
                 {[...activeComplaints].sort((a, b) => (b.aiSeverityScore || b.ai_severity_score || 0) - (a.aiSeverityScore || a.ai_severity_score || 0)).map(c => (
@@ -597,7 +597,7 @@ export default function AdminAiAnalysisPage() {
               <button
                 onClick={() => runComplaintWorkflow(selectedComplaintId)}
                 disabled={!selectedComplaintId || workflowRunning}
-                className="bg-primary text-white font-bold text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-md hover:bg-primary/90 disabled:opacity-40 transition-all whitespace-nowrap"
+                className="bg-primary text-white font-bold text-xs px-4 py-2.5 rounded-lg flex items-center justify-center gap-1.5 shadow-md hover:bg-primary/90 disabled:opacity-40 transition-all whitespace-nowrap min-h-[38px]"
               >
                 <span className="material-symbols-outlined text-sm">{workflowRunning ? 'sync' : 'play_arrow'}</span>
                 <span>{workflowRunning ? 'Running...' : 'Run AI Workflow'}</span>
@@ -846,7 +846,7 @@ export default function AdminAiAnalysisPage() {
                 <button
                   onClick={applyRecommendation}
                   disabled={applyingRec}
-                  className="bg-primary text-white font-bold text-xs px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 disabled:opacity-50 transition-all whitespace-nowrap"
+                  className="w-full sm:w-auto bg-primary text-white font-bold text-xs px-5 py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 disabled:opacity-50 transition-all min-h-[44px]"
                 >
                   {applyingRec ? (
                     <><span className="material-symbols-outlined text-sm animate-spin">sync</span><span>Applying...</span></>
@@ -860,7 +860,7 @@ export default function AdminAiAnalysisPage() {
         </div>
 
         {/* ── Map ── */}
-        <div id="problem-gis-map-section" className="mb-lg">
+        <div id="problem-gis-map-section" className="mb-md sm:mb-lg">
           <ProblemLocationMap
             problem={selectedProblem}
             alertProblems={crisisProblems}
@@ -869,13 +869,13 @@ export default function AdminAiAnalysisPage() {
               setSelectedComplaintId(id);
             }}
             headerAction={
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
                 <label htmlFor="problem-location-select" className="text-xs font-bold text-on-surface-variant whitespace-nowrap">Problem:</label>
                 <select
                   id="problem-location-select"
                   value={selectedProblemId}
                   onChange={e => setSelectedProblemId(e.target.value)}
-                  className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-1 text-on-surface font-semibold outline-none focus:border-primary max-w-xs md:max-w-sm truncate"
+                  className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-1.5 text-on-surface font-semibold outline-none focus:border-primary max-w-full sm:max-w-xs md:max-w-sm truncate min-h-[36px]"
                 >
                   <option value="">-- Select a problem to view location --</option>
                   {activeComplaints.map(c => (
@@ -893,7 +893,7 @@ export default function AdminAiAnalysisPage() {
 
       {/* ── AI Chatbot Drawer ── */}
       {chatOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-96 bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant flex flex-col overflow-hidden">
+        <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-96 max-w-sm bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant flex flex-col overflow-hidden">
           <div className="bg-primary text-white p-3 flex justify-between items-center">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-gov-saffron text-base">psychology</span>
@@ -902,9 +902,9 @@ export default function AdminAiAnalysisPage() {
                 <p className="text-[10px] text-white/80">Querying {currentUser?.state || 'Delhi NCR'} Grievance Database</p>
               </div>
             </div>
-            <button onClick={() => setChatOpen(false)} className="text-white/80 hover:text-white text-sm p-1">✕</button>
+            <button onClick={() => setChatOpen(false)} className="text-white/80 hover:text-white text-sm p-1.5 rounded-full hover:bg-white/10">✕</button>
           </div>
-          <div className="h-80 p-3 overflow-y-auto flex flex-col gap-3 bg-surface text-xs">
+          <div className="h-72 sm:h-80 p-3 overflow-y-auto flex flex-col gap-3 bg-surface text-xs">
             {chatMessages.map((msg, i) => (
               <div key={i} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] p-2.5 rounded-lg leading-relaxed ${
@@ -930,9 +930,9 @@ export default function AdminAiAnalysisPage() {
               value={chatQuery}
               onChange={e => setChatQuery(e.target.value)}
               placeholder="Ask AI about grievances or budget..."
-              className="flex-1 px-3 py-1.5 text-xs bg-white border border-outline-variant rounded focus:border-primary outline-none"
+              className="flex-1 px-3 py-2 text-xs bg-white border border-outline-variant rounded focus:border-primary outline-none min-h-[38px]"
             />
-            <button type="submit" disabled={chatLoading} className="bg-primary text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-primary/90 disabled:opacity-50">
+            <button type="submit" disabled={chatLoading} className="bg-primary text-white text-xs font-bold px-3.5 py-2 rounded hover:bg-primary/90 disabled:opacity-50 min-h-[38px]">
               Send
             </button>
           </form>
