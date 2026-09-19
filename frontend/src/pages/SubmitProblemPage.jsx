@@ -232,12 +232,27 @@ export default function SubmitProblemPage() {
   };
 
   const handlePhotoUpload = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPhotoPreview(url);
     }
+  };
+  const handlePhotoChange = handlePhotoUpload;
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPhotoPreview(url);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
   };
 
   const handleFinalSubmit = async (e) => {
@@ -578,11 +593,13 @@ export default function SubmitProblemPage() {
                   type="file"
                   id="photoUpload"
                   accept="image/*"
-                  onChange={handlePhotoChange}
+                  onChange={handlePhotoUpload}
                   className="hidden"
                 />
                 <label
                   htmlFor="photoUpload"
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
                   className="border-2 border-dashed border-outline-variant hover:border-primary rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center gap-2 cursor-pointer bg-surface hover:bg-surface-container transition-all"
                 >
                   <span className="material-symbols-outlined text-3xl text-primary">cloud_upload</span>

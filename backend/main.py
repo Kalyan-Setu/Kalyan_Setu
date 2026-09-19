@@ -4,8 +4,6 @@ import warnings
 
 # Suppress LangChain / LangGraph internal deprecation warnings
 try:
-    import langchain_core
-    import langchain
     from langchain_core._api.deprecation import (
         LangChainDeprecationWarning,
         LangChainPendingDeprecationWarning,
