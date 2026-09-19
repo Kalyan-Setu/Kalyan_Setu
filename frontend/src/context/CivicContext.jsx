@@ -2,7 +2,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const CivicContext = createContext();
 
-const rawApiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const rawApiBase =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? 'https://kalyan-setu.onrender.com' : 'http://localhost:8000');
 export const API_BASE = rawApiBase.replace(/\/+$/, '') + '/api';
 
 const INITIAL_COMPLAINTS = [
