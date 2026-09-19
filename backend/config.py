@@ -49,6 +49,7 @@ _default_origins = [
     "http://localhost:5173",
     "http://localhost:3000",
     "http://127.0.0.1:5173",
+    "https://kalyan-setu-nikjxs3ax-subhampadhi33537-collabs-projects.vercel.app",
 ]
 _extra_origins = [
     origin.strip().rstrip("/")

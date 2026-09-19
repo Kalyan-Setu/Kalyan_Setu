@@ -21,6 +21,21 @@
   <img alt="PostgreSQL" src="https://img.shields.io/badge/Database-Supabase%20PostgreSQL-3ECF8E?logo=supabase&logoColor=white" />
 </p>
 
+<p align="center">
+  <a href="https://kalyan-setu-nikjxs3ax-subhampadhi33537-collabs-projects.vercel.app" target="_blank">
+    <img alt="Live Web App" src="https://img.shields.io/badge/🚀_Live_Demo-Vercel_Frontend-000000?style=for-the-badge&logo=vercel&logoColor=white" />
+  </a>
+  &nbsp;
+  <a href="https://kalyan-setu.onrender.com/health" target="_blank">
+    <img alt="API Backend" src="https://img.shields.io/badge/⚡_Live_API-Render_Backend-46E3B7?style=for-the-badge&logo=render&logoColor=white" />
+  </a>
+</p>
+
+<p align="center">
+  🌐 <strong>Live Frontend (Vercel):</strong> <a href="https://kalyan-setu-nikjxs3ax-subhampadhi33537-collabs-projects.vercel.app" target="_blank">kalyan-setu-nikjxs3ax-subhampadhi33537-collabs-projects.vercel.app</a><br/>
+  ⚡ <strong>Live Backend API (Render):</strong> <a href="https://kalyan-setu.onrender.com" target="_blank">https://kalyan-setu.onrender.com</a> (Health: <a href="https://kalyan-setu.onrender.com/health" target="_blank"><code>/health</code></a>)
+</p>
+
 ---
 
 ## 📑 Table of Contents
@@ -504,9 +519,13 @@ SARVAM_STT_MODEL=saaras:v3
 HUGGINGFACEHUB_API_TOKEN=hf_your_huggingface_token_here
 
 # ==========================================
-# 🌐 Network & CORS
+# 🌐 Network & CORS (Render Backend & Vercel Frontend)
 # ==========================================
-FRONTEND_URL=http://localhost:5173
+# Backend CORS allowed origin:
+FRONTEND_URL=https://kalyan-setu-nikjxs3ax-subhampadhi33537-collabs-projects.vercel.app
+
+# Frontend API base URL (configured on Vercel):
+VITE_API_BASE_URL=https://kalyan-setu.onrender.com
 ```
 
 ---
