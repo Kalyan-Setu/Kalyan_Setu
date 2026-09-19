@@ -871,6 +871,7 @@ export default function AdminAiAnalysisPage() {
           <ProblemLocationMap
             problem={selectedProblem}
             alertProblems={crisisProblems}
+            allProblems={activeComplaints}
             onSelectProblem={(id) => {
               setSelectedProblemId(id);
               setSelectedComplaintId(id);
