@@ -157,9 +157,14 @@ function formatBackendProblem(p) {
     assignedOfficer: p.assigned_officer || "Under Assignment",
     budget: p.budget || "Allocating...",
     evidenceType: p.evidence_type || "text",
-    imageUrl: p.file_url
+    imageUrl: p.file_url && !p.file_url.endsWith('.webm') && !p.file_url.endsWith('.wav') && !p.file_url.endsWith('.mp3')
       ? (p.file_url.startsWith('http') ? p.file_url : `${API_BASE.replace('/api', '')}${p.file_url}`)
       : "",
+    audioUrl: p.audio_url
+      ? (p.audio_url.startsWith('http') ? p.audio_url : `${API_BASE.replace('/api', '')}${p.audio_url}`)
+      : (p.file_url && (p.file_url.endsWith('.webm') || p.file_url.endsWith('.wav') || p.file_url.endsWith('.mp3'))
+        ? (p.file_url.startsWith('http') ? p.file_url : `${API_BASE.replace('/api', '')}${p.file_url}`)
+        : ""),
     audioLength: p.voice_transcript ? "Recorded" : "",
     voiceTranscript: p.voice_transcript || "",
     aiSeverityScore: p.ai_severity_score ?? null,
@@ -281,8 +286,14 @@ export function CivicProvider({ children }) {
 
     if (newGrievance.file) {
       formData.append('file', newGrievance.file);
-    } else if (newGrievance.audioBlob) {
-      formData.append('file', newGrievance.audioBlob, 'voice_complaint.webm');
+    }
+    if (newGrievance.audioBlob) {
+      if (!newGrievance.file) {
+        // Voice only: append as primary file for backend handlers
+        formData.append('file', newGrievance.audioBlob, 'voice_complaint.webm');
+      }
+      // Also send as dedicated audio_file for multimodal complaints
+      formData.append('audio_file', newGrievance.audioBlob, 'voice_complaint.webm');
     }
 
     try {
@@ -335,6 +346,7 @@ export function CivicProvider({ children }) {
       budget: "Allocating...",
       evidenceType: newGrievance.evidenceType || "text",
       imageUrl: newGrievance.imageUrl || "",
+      audioUrl: newGrievance.audioUrl || (newGrievance.audioBlob ? URL.createObjectURL(newGrievance.audioBlob) : ""),
       audioLength: newGrievance.audioLength || "",
       voiceTranscript: newGrievance.voiceTranscript || "",
       aiSeverityScore: Math.floor(65 + Math.random() * 30),

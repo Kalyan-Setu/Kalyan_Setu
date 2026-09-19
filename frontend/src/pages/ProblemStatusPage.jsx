@@ -299,39 +299,47 @@ export default function ProblemStatusPage() {
             </div>
 
             {/* Evidence Visual Content */}
-            {complaint.imageUrl ? (
-              <div className="rounded overflow-hidden border border-outline-variant">
-                <img src={complaint.imageUrl} alt="Evidence" className="w-full h-48 object-cover" />
-                <div className="p-2 bg-surface text-[11px] text-on-surface-variant flex justify-between">
-                  <span>{t('submit.methods.photo')}</span>
-                  <span className="text-gov-green font-bold flex items-center gap-0.5">
-                    <span className="material-symbols-outlined text-xs">verified</span>
-                    {t('common.verified')}
-                  </span>
-                </div>
-              </div>
-            ) : complaint.evidenceType === 'voice' ? (
-              <div className="bg-surface p-4 rounded border border-outline-variant text-xs flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-primary font-bold">
-                  <span className="material-symbols-outlined text-lg text-gov-saffron">mic</span>
-                  <span>{t('submit.voice.title')}</span>
-                </div>
-                <audio controls className="w-full h-8 mt-1">
-                  {complaint.imageUrl && <source src={complaint.imageUrl} type="audio/webm" />}
-                </audio>
-                {complaint.voiceTranscript && (
-                  <div className="bg-white p-2.5 rounded border border-outline-variant/60 mt-1">
-                    <span className="text-[10px] font-bold text-primary block mb-0.5">{t('submit.voice.transcriptLabel')}:</span>
-                    <p className="text-[11px] text-on-surface-variant italic">"{complaint.voiceTranscript}"</p>
+            <div className="flex flex-col gap-3">
+              {complaint.imageUrl && (
+                <div className="rounded overflow-hidden border border-outline-variant">
+                  <img src={complaint.imageUrl} alt="Evidence" className="w-full h-48 object-cover" />
+                  <div className="p-2 bg-surface text-[11px] text-on-surface-variant flex justify-between">
+                    <span>{t('submit.methods.photo')}</span>
+                    <span className="text-gov-green font-bold flex items-center gap-0.5">
+                      <span className="material-symbols-outlined text-xs">verified</span>
+                      {t('common.verified')}
+                    </span>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="bg-surface p-3 rounded border border-outline-variant text-xs text-on-surface-variant">
-                <span className="font-bold block text-primary mb-1">{t('submit.methods.text')}:</span>
-                <p className="leading-relaxed">{complaint.description}</p>
-              </div>
-            )}
+                </div>
+              )}
+
+              {(complaint.audioUrl || complaint.voiceTranscript || complaint.evidenceType === 'voice') && (
+                <div className="bg-surface p-4 rounded border border-outline-variant text-xs flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-primary font-bold">
+                    <span className="material-symbols-outlined text-lg text-gov-saffron">mic</span>
+                    <span>{t('submit.voice.title', 'Voice Grievance Recording')}</span>
+                  </div>
+                  {(complaint.audioUrl || (complaint.imageUrl && complaint.evidenceType === 'voice')) && (
+                    <audio controls className="w-full h-8 mt-1" src={complaint.audioUrl || complaint.imageUrl}>
+                      Your browser does not support audio playback.
+                    </audio>
+                  )}
+                  {complaint.voiceTranscript && (
+                    <div className="bg-white p-2.5 rounded border border-outline-variant/60 mt-1">
+                      <span className="text-[10px] font-bold text-primary block mb-0.5">{t('submit.voice.transcriptLabel', 'Recognized Transcript')}:</span>
+                      <p className="text-[11px] text-on-surface-variant italic">"{complaint.voiceTranscript}"</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!complaint.imageUrl && !complaint.audioUrl && !complaint.voiceTranscript && (
+                <div className="bg-surface p-3 rounded border border-outline-variant text-xs text-on-surface-variant">
+                  <span className="font-bold block text-primary mb-1">{t('submit.methods.text')}:</span>
+                  <p className="leading-relaxed">{complaint.description}</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

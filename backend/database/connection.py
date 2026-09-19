@@ -128,10 +128,20 @@ async def create_tables():
         );
         """
     ]
+    migrations = [
+        "ALTER TABLE problems ADD COLUMN IF NOT EXISTS audio_url TEXT;",
+        "ALTER TABLE problems ALTER COLUMN evidence_type TYPE VARCHAR(50);",
+    ]
     try:
         async with _pool.acquire() as conn:
             for q in queries:
                 await conn.execute(q)
+            for m in migrations:
+                try:
+                    await conn.execute(m)
+                except Exception as me:
+                    # Ignore if column already altered or permissions restricted
+                    pass
         print("[Database] Schema tables verified and ready.")
     except Exception as e:
         print(f"[Database Error] Table creation warning: {e}")

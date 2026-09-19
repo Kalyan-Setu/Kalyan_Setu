@@ -165,11 +165,23 @@
     "pageTitle": "File a Civic Grievance",
     "pageSubtitle": "Direct digital submission to state municipal and civic authority systems.",
     "steps": {
-      "step1": "Classification",
-      "step2": "Details & Evidence",
-      "step3": "Review & Submit"
+      "step1": "Problem & Description",
+      "step2": "Review & Submit"
     },
-    "evidenceMethodTitle": "Choose Submission Format",
+    "evidenceMethodTitle": "Unified Complaint Submission",
+    "unifiedTitle": "Describe Your Problem",
+    "unifiedSubtitle": "Submit your grievance using any combination of text, voice recording, or photos.",
+    "unifiedPlaceholder": "Describe your problem in detail (e.g. location, severity, duration, safety hazards)...",
+    "recordVoiceBtn": "Record Voice",
+    "addPhotoBtn": "Add Photo",
+    "cameraBtn": "Take Photo",
+    "atLeastOneRequired": "Please provide at least one input: describe your problem, record a voice note, or attach a photo.",
+    "attachedEvidence": "Attached Evidence",
+    "photoAttached": "Photo Attached",
+    "voiceRecorded": "Voice Recording",
+    "textEntered": "Text Description",
+    "deleteAttachment": "Remove",
+    "listenRecording": "Play Recording",
     "methods": {
       "photo": "Photo Evidence",
       "photoDesc": "Upload or capture geo-tagged image",
