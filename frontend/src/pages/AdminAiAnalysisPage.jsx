@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useCivic, API_BASE } from '../context/CivicContext';
+import { useLanguage } from '../context/LanguageContext';
 import AdminSidebar from '../components/AdminSidebar';
 import ProblemLocationMap from '../components/ProblemLocationMap';
 
@@ -82,13 +83,14 @@ function SeverityGauge({ score, factors }) {
   );
 }
 
-function StageTracker({ stages, activeIdx }) {
+function StageTracker({ stages, activeIdx, t }) {
   return (
     <div className="flex items-center gap-0 w-full overflow-x-auto pb-1">
-      {STAGE_LABELS.map((stage, idx) => {
+      {stages.map((stage, idx) => {
         const done = idx < activeIdx;
         const active = idx === activeIdx;
         const pending = idx > activeIdx;
+        const label = t ? t('admin.ai.' + stage.key, stage.label) : stage.label;
         return (
           <React.Fragment key={stage.key}>
             <div className="flex flex-col items-center gap-1 flex-shrink-0 min-w-[60px]">
@@ -104,9 +106,9 @@ function StageTracker({ stages, activeIdx }) {
               </div>
               <span className={`text-[9px] font-bold text-center leading-tight ${
                 done ? 'text-gov-green' : active ? 'text-primary' : 'text-on-surface-variant'
-              }`}>{stage.label}</span>
+              }`}>{label}</span>
             </div>
-            {idx < STAGE_LABELS.length - 1 && (
+            {idx < stages.length - 1 && (
               <div className={`flex-1 h-0.5 mx-0.5 transition-all duration-500 min-w-[12px] ${
                 idx < activeIdx ? 'bg-gov-green' : 'bg-outline-variant'
               }`} />
@@ -139,6 +141,7 @@ function ConfidenceBadge({ status, confidence, feasibility }) {
 
 export default function AdminAiAnalysisPage() {
   const { complaints, navigateTo, currentUser, authToken, fetchComplaints, activeTrackId } = useCivic();
+  const { t } = useLanguage();
   const [mobileMode, setMobileMode] = useState(false);
 
   // Batch analysis state
@@ -439,39 +442,39 @@ export default function AdminAiAnalysisPage() {
   const selectedComplaintObj = activeComplaints.find(c => c.id === selectedComplaintId || c.display_id === selectedComplaintId);
 
   return (
-    <div className="flex-grow w-full flex bg-surface min-h-[calc(100vh-5rem)] relative">
+    <div className="flex-grow w-full flex flex-col md:flex-row bg-surface min-h-[calc(100vh-5rem)] relative">
       {!mobileMode && <AdminSidebar />}
 
-      <main className={`flex-1 p-lg md:p-xl overflow-y-auto ${mobileMode ? 'max-w-md mx-auto my-6 bg-surface border border-outline-variant rounded-2xl shadow-2xl p-4' : 'max-w-7xl'}`}>
+      <main className={`flex-1 p-3 sm:p-6 md:p-xl overflow-y-auto w-full ${mobileMode ? 'max-w-md mx-auto my-6 bg-surface border border-outline-variant rounded-2xl shadow-2xl p-4' : 'max-w-7xl'}`}>
 
         {/* ── Header ── */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md mb-lg border-b border-outline-variant pb-md">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md mb-md sm:mb-lg border-b border-outline-variant pb-md">
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary mb-1">
               <span className="material-symbols-outlined text-sm text-gov-saffron">psychology</span>
-              <span>LangGraph Agentic AI — 8-Stage Workflow</span>
+              <span>{t('admin.ai.agenticWorkflow', 'LangGraph Agentic AI — 8-Stage Workflow')}</span>
             </div>
-            <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary">
-              AI Analysis & Intelligent Recommendations
+            <h1 className="font-headline-lg text-xl sm:text-2xl md:text-3xl font-bold text-primary">
+              {t('admin.ai.title', 'AI Analysis & Intelligent Recommendations')}
             </h1>
             <p className="font-body-md text-xs text-on-surface-variant mt-1">
-              Explainable multi-stage agentic pipeline powered by Groq + LangGraph. Human officials retain full control.
+              {t('admin.ai.subtitle', 'Explainable multi-stage agentic pipeline powered by Groq + LangGraph. Human officials retain full control.')}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
             <button
               onClick={runLiveAiAnalysis}
               disabled={analyzing}
-              className="bg-gov-saffron text-white font-bold text-xs px-3.5 py-2 rounded flex items-center gap-1.5 shadow-md hover:brightness-105 disabled:opacity-50"
+              className="flex-1 sm:flex-initial bg-gov-saffron text-white font-bold text-xs px-3.5 py-2.5 rounded flex items-center justify-center gap-1.5 shadow-md hover:brightness-105 disabled:opacity-50 min-h-[38px]"
             >
               <span className="material-symbols-outlined text-sm">{analyzing ? 'sync' : 'batch_prediction'}</span>
-              <span>{analyzing ? 'Running Batch...' : 'Batch AI Analysis'}</span>
+              <span>{analyzing ? t('admin.ai.runningBatch', 'Running Batch...') : t('admin.ai.batchAnalysis', 'Batch AI Analysis')}</span>
             </button>
-            <button onClick={() => setChatOpen(!chatOpen)} className="bg-primary text-white font-bold text-xs px-3.5 py-2 rounded flex items-center gap-1.5 shadow-md hover:bg-primary/90">
+            <button onClick={() => setChatOpen(!chatOpen)} className="flex-1 sm:flex-initial bg-primary text-white font-bold text-xs px-3.5 py-2.5 rounded flex items-center justify-center gap-1.5 shadow-md hover:bg-primary/90 min-h-[38px]">
               <span className="material-symbols-outlined text-sm">chat</span>
-              <span>AI Assistant</span>
+              <span>{t('admin.ai.aiAssistant', 'AI Assistant')}</span>
             </button>
-            <button onClick={() => setMobileMode(!mobileMode)} className="bg-surface-container-lowest border border-outline-variant text-primary font-bold text-xs px-3 py-2 rounded flex items-center gap-1 shadow-ambient hover:bg-surface-container">
+            <button onClick={() => setMobileMode(!mobileMode)} className="hidden sm:flex bg-surface-container-lowest border border-outline-variant text-primary font-bold text-xs px-3 py-2.5 rounded items-center gap-1 shadow-ambient hover:bg-surface-container min-h-[38px]">
               <span className="material-symbols-outlined text-sm">{mobileMode ? 'desktop_windows' : 'smartphone'}</span>
               <span>{mobileMode ? 'Desktop' : 'Mobile'}</span>
             </button>
@@ -479,45 +482,82 @@ export default function AdminAiAnalysisPage() {
         </div>
 
         {/* ── Early Warning Directives (Live Predictive Feed) ── */}
-        <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-ambient mb-lg">
-          <h2 className="text-sm font-bold text-primary mb-md border-b border-outline-variant pb-2 flex items-center justify-between">
+        <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 sm:p-lg shadow-ambient mb-md sm:mb-lg">
+          <h2 className="text-sm font-bold text-primary mb-md border-b border-outline-variant pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <span className="flex items-center gap-1.5">
               <span className="material-symbols-outlined text-base text-gov-saffron">crisis_alert</span>
-              <span>Predictive Early Warning Directives (Next 48 Hours)</span>
+              <span>{t('admin.ai.earlyWarningTitle', 'Predictive Early Warning Directives (Next 48 Hours)')}</span>
             </span>
             <span className="text-[10px] text-gov-green font-bold flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-gov-green animate-ping" />
-              Live Predictive Feed
+              {t('admin.ai.liveFeed', 'Live Predictive Feed')}
             </span>
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
-            {activePredictiveAlerts.map(alert => (
-              <div key={alert.id} className="bg-surface p-md rounded-lg border border-outline-variant flex flex-col justify-between gap-3 text-xs">
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-error flex items-center gap-1">
-                      <span className="material-symbols-outlined text-sm">warning</span>
-                      {alert.title}
-                    </span>
-                    <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                      Score: {alert.score}/100
-                    </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-md">
+            {activePredictiveAlerts.map(alert => {
+              const isSelected = selectedProblemId === alert.id || selectedComplaintId === alert.id;
+              return (
+                <div
+                  key={alert.id}
+                  onClick={() => {
+                    setSelectedComplaintId(alert.id);
+                    setSelectedProblemId(alert.id);
+                  }}
+                  className={`bg-surface p-3 sm:p-md rounded-lg border transition-all cursor-pointer ${
+                    isSelected
+                      ? 'border-primary ring-2 ring-primary/30 shadow-md bg-primary/5'
+                      : 'border-outline-variant hover:border-primary/50'
+                  } flex flex-col justify-between gap-3 text-xs`}
+                >
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-bold text-error flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm">warning</span>
+                        {alert.title}
+                      </span>
+                      <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                        Score: {alert.score}/100
+                      </span>
+                    </div>
+                    <p className="text-on-surface-variant leading-relaxed mt-1">{alert.desc}</p>
                   </div>
-                  <p className="text-on-surface-variant leading-relaxed mt-1">{alert.desc}</p>
+                  <div className="flex justify-between items-center pt-2 border-t border-outline-variant text-[11px] gap-2 flex-wrap">
+                    <span className="text-on-surface font-semibold truncate flex-1">Action: {alert.action}</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedComplaintId(alert.id);
+                          setSelectedProblemId(alert.id);
+                          const mapEl = document.getElementById('problem-gis-map-section');
+                          if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="bg-surface border border-outline-variant hover:border-primary text-primary font-bold text-xs px-2.5 py-1.5 rounded flex items-center gap-1 shadow-sm transition-all min-h-[32px]"
+                        title="Locate on GIS map"
+                      >
+                        <span className="material-symbols-outlined text-sm text-error">location_on</span>
+                        <span>Map</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedComplaintId(alert.id);
+                          setSelectedProblemId(alert.id);
+                          runComplaintWorkflow(alert.id);
+                        }}
+                        className="bg-primary text-white hover:bg-primary/90 font-bold text-xs px-3 py-1.5 rounded flex items-center gap-1 shadow-sm transition-all cursor-pointer min-h-[32px]"
+                      >
+                        <span>AI Analyse</span>
+                        <span className="material-symbols-outlined text-sm">psychology</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-outline-variant text-[11px]">
-                  <span className="text-on-surface font-semibold">Action: {alert.action}</span>
-                  <button
-                    onClick={() => { setSelectedComplaintId(alert.id); runComplaintWorkflow(alert.id); }}
-                    className="bg-primary text-white hover:bg-primary/90 font-bold text-xs px-3 py-1 rounded flex items-center gap-1 shadow-sm transition-all cursor-pointer"
-                  >
-                    <span>AI Analyse</span>
-                    <span className="material-symbols-outlined text-sm">psychology</span>
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {activePredictiveAlerts.length === 0 && (
@@ -530,27 +570,27 @@ export default function AdminAiAnalysisPage() {
         </div>
 
         {/* ── 🤖 LangGraph Agentic Workflow Panel ── */}
-        <div className="bg-gradient-to-br from-surface-container-lowest to-primary/5 border border-primary/20 rounded-2xl p-lg shadow-ambient mb-lg">
+        <div className="bg-gradient-to-br from-surface-container-lowest to-primary/5 border border-primary/20 rounded-2xl p-4 sm:p-lg shadow-ambient mb-md sm:mb-lg">
           {/* Panel Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-lg border-b border-outline-variant pb-md">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-md sm:mb-lg border-b border-outline-variant pb-md">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-lg">
+              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-lg shrink-0">
                 <span className="material-symbols-outlined text-white text-base">account_tree</span>
               </div>
               <div>
-                <h2 className="text-sm font-bold text-primary">LangGraph Agentic Workflow</h2>
+                <h2 className="text-sm font-bold text-primary">{t('admin.ai.agenticWorkflow', 'LangGraph Agentic Workflow')}</h2>
                 <p className="text-[11px] text-on-surface-variant">Understanding → Classification → Severity → Routing → Actions → Critic → Review</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               {/* Complaint selector */}
               <select
                 id="workflow-complaint-select"
                 value={selectedComplaintId}
                 onChange={e => { setSelectedComplaintId(e.target.value); setWorkflowResult(null); setWorkflowStageIdx(-1); setWorkflowError(null); }}
-                className="flex-1 sm:w-64 text-xs bg-surface border border-outline-variant rounded-lg px-2.5 py-2 text-on-surface font-semibold outline-none focus:border-primary truncate"
+                className="w-full sm:w-64 text-xs bg-surface border border-outline-variant rounded-lg px-2.5 py-2.5 text-on-surface font-semibold outline-none focus:border-primary truncate min-h-[38px]"
               >
-                <option value="">— Select a grievance —</option>
+                <option value="">{t('admin.ai.selectGrievance', '— Select a grievance —')}</option>
                 {[...activeComplaints].sort((a, b) => (b.aiSeverityScore || b.ai_severity_score || 0) - (a.aiSeverityScore || a.ai_severity_score || 0)).map(c => (
                   <option key={c.id || c.display_id} value={c.id || c.display_id}>
                     #{c.display_id || c.id} [{c.aiSeverityScore || c.ai_severity_score || '?'}/100] — {(c.title || '').slice(0, 40)}
@@ -560,17 +600,17 @@ export default function AdminAiAnalysisPage() {
               <button
                 onClick={() => runComplaintWorkflow(selectedComplaintId)}
                 disabled={!selectedComplaintId || workflowRunning}
-                className="bg-primary text-white font-bold text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-md hover:bg-primary/90 disabled:opacity-40 transition-all whitespace-nowrap"
+                className="bg-primary text-white font-bold text-xs px-4 py-2.5 rounded-lg flex items-center justify-center gap-1.5 shadow-md hover:bg-primary/90 disabled:opacity-40 transition-all whitespace-nowrap min-h-[38px]"
               >
                 <span className="material-symbols-outlined text-sm">{workflowRunning ? 'sync' : 'play_arrow'}</span>
-                <span>{workflowRunning ? 'Running...' : 'Run AI Workflow'}</span>
+                <span>{workflowRunning ? t('admin.ai.running', 'Running...') : t('admin.ai.runWorkflow', 'Run AI Workflow')}</span>
               </button>
             </div>
           </div>
 
           {/* Stage Tracker */}
           <div className="mb-lg">
-            <StageTracker stages={STAGE_LABELS} activeIdx={workflowStageIdx} />
+            <StageTracker stages={STAGE_LABELS} activeIdx={workflowStageIdx} t={t} />
           </div>
 
           {/* Error state */}
@@ -587,8 +627,12 @@ export default function AdminAiAnalysisPage() {
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="material-symbols-outlined text-3xl text-primary">smart_toy</span>
               </div>
-              <p className="text-sm font-bold text-on-surface">Select a grievance and click Run AI Workflow</p>
-              <p className="text-xs text-on-surface-variant max-w-md">The 8-stage LangGraph pipeline will analyze the complaint — understanding, classification, severity scoring, department routing, action directives, and critic validation — all with explainable AI reasoning.</p>
+              <p className="text-sm font-bold text-on-surface">
+                {t('admin.ai.selectGrievancePrompt', 'Select a grievance and click Run AI Workflow')}
+              </p>
+              <p className="text-xs text-on-surface-variant max-w-md">
+                {t('admin.ai.emptyDesc', 'The 8-stage LangGraph pipeline will analyze the complaint — understanding, classification, severity scoring, department routing, action directives, and critic validation — all with explainable AI reasoning.')}
+              </p>
             </div>
           )}
 
@@ -620,9 +664,6 @@ export default function AdminAiAnalysisPage() {
                         {severity.score}/100
                       </span>
                     )}
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded ${selectedComplaintObj.priority === 'Critical' ? 'bg-error-container text-on-error-container' : 'bg-primary-container/30 text-primary'}`}>
-                      {selectedComplaintObj.priority}
-                    </span>
                   </div>
                 </div>
               )}
@@ -633,7 +674,7 @@ export default function AdminAiAnalysisPage() {
                 <div className="bg-surface border border-outline-variant rounded-xl p-4 flex flex-col gap-3">
                   <div className="flex items-center gap-2 border-b border-outline-variant pb-2">
                     <span className="material-symbols-outlined text-primary text-base">psychology</span>
-                    <span className="text-xs font-bold text-primary">① Problem Understanding</span>
+                    <span className="text-xs font-bold text-primary">① {t('admin.ai.understanding', 'Problem Understanding')}</span>
                     {understanding.ai_enriched && <span className="ml-auto text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">AI Enriched</span>}
                   </div>
                   <div className="space-y-2 text-xs">
@@ -665,7 +706,7 @@ export default function AdminAiAnalysisPage() {
                   <div className="bg-surface-container rounded-lg p-3 border border-outline-variant/60 mt-1">
                     <div className="flex items-center gap-1.5 mb-2">
                       <span className="material-symbols-outlined text-gov-saffron text-sm">category</span>
-                      <span className="text-[11px] font-bold text-gov-saffron">② AI Classification</span>
+                      <span className="text-[11px] font-bold text-gov-saffron">② {t('admin.ai.classification', 'AI Classification')}</span>
                     </div>
                     <div className="text-xs space-y-1">
                       <div className="flex items-center gap-2">
@@ -686,7 +727,7 @@ export default function AdminAiAnalysisPage() {
                 <div className="bg-surface border border-outline-variant rounded-xl p-4 flex flex-col gap-3">
                   <div className="flex items-center gap-2 border-b border-outline-variant pb-2">
                     <span className="material-symbols-outlined text-error text-base">crisis_alert</span>
-                    <span className="text-xs font-bold text-primary">③ AI Severity Score</span>
+                    <span className="text-xs font-bold text-primary">③ {t('admin.ai.severity', 'AI Severity Score')}</span>
                     {severity.ai_reviewed && <span className="ml-auto text-[9px] bg-gov-green/10 text-gov-green px-1.5 py-0.5 rounded font-bold">AI Reviewed</span>}
                   </div>
                   <SeverityGauge score={severity.score} factors={severity.factors} />
@@ -701,18 +742,13 @@ export default function AdminAiAnalysisPage() {
                 <div className="bg-surface border border-outline-variant rounded-xl p-4 flex flex-col gap-3">
                   <div className="flex items-center gap-2 border-b border-outline-variant pb-2">
                     <span className="material-symbols-outlined text-primary text-base">route</span>
-                    <span className="text-xs font-bold text-primary">④ Department Routing</span>
+                    <span className="text-xs font-bold text-primary">④ {t('admin.ai.routing', 'Department Routing')}</span>
                     {routing.ai_routed && <span className="ml-auto text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">AI Routed</span>}
                   </div>
                   <div className="space-y-3 text-xs">
                     <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
                       <div className="font-bold text-primary text-sm">{routing.department || '—'}</div>
                       <div className="text-on-surface-variant mt-0.5">Officer: <span className="font-semibold text-on-surface">{routing.officer_designation || '—'}</span></div>
-                      {routing.priority_flag && (
-                        <span className={`inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${routing.priority_flag === 'Critical' ? 'bg-error/10 text-error' : 'bg-amber-500/10 text-amber-600'}`}>
-                          {routing.priority_flag} Priority
-                        </span>
-                      )}
                     </div>
                     {routing.routing_rationale && (
                       <div className="text-on-surface-variant italic text-[11px]">
@@ -737,7 +773,7 @@ export default function AdminAiAnalysisPage() {
                 <div className="bg-surface border border-outline-variant rounded-xl p-4 flex flex-col gap-3">
                   <div className="flex items-center gap-2 border-b border-outline-variant pb-2">
                     <span className="material-symbols-outlined text-gov-saffron text-base">assignment</span>
-                    <span className="text-xs font-bold text-primary">⑤ Recommended Actions</span>
+                    <span className="text-xs font-bold text-primary">⑤ {t('admin.ai.actions', 'Recommended Actions')}</span>
                     {actions.ai_generated && <span className="ml-auto text-[9px] bg-gov-saffron/10 text-gov-saffron px-1.5 py-0.5 rounded font-bold">AI Generated</span>}
                   </div>
                   <div className="space-y-3 text-xs">
@@ -791,7 +827,7 @@ export default function AdminAiAnalysisPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="material-symbols-outlined text-sm text-gov-green">verified_user</span>
-                    <span className="text-xs font-bold text-primary">⑥ AI Critic / Validation</span>
+                    <span className="text-xs font-bold text-primary">⑥ {t('admin.ai.critic', 'AI Critic / Validation')}</span>
                   </div>
                   <ConfidenceBadge
                     status={critic.validation_status}
@@ -817,12 +853,12 @@ export default function AdminAiAnalysisPage() {
                 <button
                   onClick={applyRecommendation}
                   disabled={applyingRec}
-                  className="bg-primary text-white font-bold text-xs px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 disabled:opacity-50 transition-all whitespace-nowrap"
+                  className="w-full sm:w-auto bg-primary text-white font-bold text-xs px-5 py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 disabled:opacity-50 transition-all min-h-[44px]"
                 >
                   {applyingRec ? (
                     <><span className="material-symbols-outlined text-sm animate-spin">sync</span><span>Applying...</span></>
                   ) : (
-                    <><span className="material-symbols-outlined text-sm">send_and_archive</span><span>Apply & Take Strategic Action →</span></>
+                    <><span className="material-symbols-outlined text-sm">send_and_archive</span><span>{t('admin.ai.applyStrategicAction', 'Apply & Take Strategic Action →')}</span></>
                   )}
                 </button>
               </div>
@@ -831,18 +867,22 @@ export default function AdminAiAnalysisPage() {
         </div>
 
         {/* ── Map ── */}
-        <div className="mb-lg">
+        <div id="problem-gis-map-section" className="mb-md sm:mb-lg">
           <ProblemLocationMap
             problem={selectedProblem}
             alertProblems={crisisProblems}
+            onSelectProblem={(id) => {
+              setSelectedProblemId(id);
+              setSelectedComplaintId(id);
+            }}
             headerAction={
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
                 <label htmlFor="problem-location-select" className="text-xs font-bold text-on-surface-variant whitespace-nowrap">Problem:</label>
                 <select
                   id="problem-location-select"
                   value={selectedProblemId}
                   onChange={e => setSelectedProblemId(e.target.value)}
-                  className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-1 text-on-surface font-semibold outline-none focus:border-primary max-w-xs md:max-w-sm truncate"
+                  className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-1.5 text-on-surface font-semibold outline-none focus:border-primary max-w-full sm:max-w-xs md:max-w-sm truncate min-h-[36px]"
                 >
                   <option value="">-- Select a problem to view location --</option>
                   {activeComplaints.map(c => (
@@ -860,18 +900,18 @@ export default function AdminAiAnalysisPage() {
 
       {/* ── AI Chatbot Drawer ── */}
       {chatOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-96 bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant flex flex-col overflow-hidden">
+        <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-96 max-w-sm bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant flex flex-col overflow-hidden">
           <div className="bg-primary text-white p-3 flex justify-between items-center">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-gov-saffron text-base">psychology</span>
               <div>
-                <h3 className="font-bold text-xs">AI Assistant</h3>
+                <h3 className="font-bold text-xs">{t('admin.ai.aiAssistant', 'AI Assistant')}</h3>
                 <p className="text-[10px] text-white/80">Querying {currentUser?.state || 'Delhi NCR'} Grievance Database</p>
               </div>
             </div>
-            <button onClick={() => setChatOpen(false)} className="text-white/80 hover:text-white text-sm p-1">✕</button>
+            <button onClick={() => setChatOpen(false)} className="text-white/80 hover:text-white text-sm p-1.5 rounded-full hover:bg-white/10">✕</button>
           </div>
-          <div className="h-80 p-3 overflow-y-auto flex flex-col gap-3 bg-surface text-xs">
+          <div className="h-72 sm:h-80 p-3 overflow-y-auto flex flex-col gap-3 bg-surface text-xs">
             {chatMessages.map((msg, i) => (
               <div key={i} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] p-2.5 rounded-lg leading-relaxed ${
@@ -886,7 +926,7 @@ export default function AdminAiAnalysisPage() {
             {chatLoading && (
               <div className="flex justify-start">
                 <div className="bg-surface-container-lowest border border-outline-variant p-2 rounded-lg text-[11px] text-on-surface-variant animate-pulse">
-                  AI generating response...
+                  {t('admin.ai.generatingResponse', 'AI generating response...')}
                 </div>
               </div>
             )}
@@ -896,11 +936,11 @@ export default function AdminAiAnalysisPage() {
               type="text"
               value={chatQuery}
               onChange={e => setChatQuery(e.target.value)}
-              placeholder="Ask AI about grievances or budget..."
-              className="flex-1 px-3 py-1.5 text-xs bg-white border border-outline-variant rounded focus:border-primary outline-none"
+              placeholder={t('admin.ai.chatPlaceholder', 'Ask AI about grievances or budget...')}
+              className="flex-1 px-3 py-2 text-xs bg-white border border-outline-variant rounded focus:border-primary outline-none min-h-[38px]"
             />
-            <button type="submit" disabled={chatLoading} className="bg-primary text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-primary/90 disabled:opacity-50">
-              Send
+            <button type="submit" disabled={chatLoading} className="bg-primary text-white text-xs font-bold px-3.5 py-2 rounded hover:bg-primary/90 disabled:opacity-50 min-h-[38px]">
+              {t('common.submit', 'Send')}
             </button>
           </form>
         </div>

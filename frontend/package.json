@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "i18next": "^26.4.2",
     "leaflet": "^1.9.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-i18next": "^17.0.14",
     "react-leaflet": "^5.0.0",
     "recharts": "^3.10.1",
     "tailwind-merge": "^3.0.2"

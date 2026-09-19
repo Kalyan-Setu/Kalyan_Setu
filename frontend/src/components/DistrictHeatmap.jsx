@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import {
   BarChart,
   Bar,
@@ -12,6 +13,7 @@ import {
 } from 'recharts';
 
 export default function DistrictHeatmap({ complaints = [] }) {
+  const { t } = useLanguage();
   // Aggregate complaints by district dynamically
   const districtMap = {};
 
@@ -49,7 +51,7 @@ export default function DistrictHeatmap({ complaints = [] }) {
     }
 
     districtMap[distName].Total += 1;
-    if (c.priority === 'Critical') districtMap[distName].Critical += 1;
+    if ((c.aiSeverityScore || c.ai_severity_score || 0) >= 80) districtMap[distName].Critical += 1;
     if (c.status === 'Resolved') districtMap[distName].Resolved += 1;
     if (c.status === 'In Progress' || c.status === 'Action Assigned') districtMap[distName].In_Progress += 1;
 
@@ -59,30 +61,27 @@ export default function DistrictHeatmap({ complaints = [] }) {
 
   const chartData = Object.values(districtMap);
 
-  // Custom Tooltip component
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-surface-container-lowest border border-outline-variant p-3 rounded-lg shadow-lg text-xs z-50">
-          <div className="font-bold text-primary border-b border-outline-variant pb-1 mb-2">
-            📍 {data.district}
-          </div>
-          <div className="flex flex-col gap-1 text-on-surface-variant">
+        <div className="bg-surface-container-highest border border-outline-variant p-3 rounded shadow-elevation-2 text-xs">
+          <div className="font-bold text-primary mb-1 border-b border-outline-variant/60 pb-1">{label}</div>
+          <div className="space-y-1 text-on-surface">
             <div className="flex justify-between gap-4">
-              <span>Total Grievances:</span>
-              <span className="font-bold text-on-surface">{data.Total}</span>
+              <span>{t('dashboard.stats.totalFiled', 'Total Grievances')}:</span>
+              <span className="font-bold text-primary">{data.Total}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span>Resolved:</span>
+              <span>{t('status.Resolved', 'Resolved')}:</span>
               <span className="font-bold text-gov-green">{data.Resolved}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span>In Progress:</span>
+              <span>{t('status.In Progress', 'In Progress')}:</span>
               <span className="font-bold text-gov-saffron">{data.In_Progress}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span>Critical Severity:</span>
+              <span>{t('priority.Critical', 'High Risk (AI ≥ 80)')}:</span>
               <span className="font-bold text-error">{data.Critical}</span>
             </div>
           </div>
@@ -98,14 +97,14 @@ export default function DistrictHeatmap({ complaints = [] }) {
         <div>
           <h3 className="text-sm font-bold text-primary flex items-center gap-1.5">
             <span className="material-symbols-outlined text-base">map</span>
-            <span>District Hotspot Heatmap & Grievance Distribution</span>
+            <span>{t('admin.districtHeatmap', 'District Hotspot Heatmap & Grievance Distribution')}</span>
           </h3>
           <p className="text-[11px] text-on-surface-variant">
-            Interactive chart showing district load, severity counts, and redressal progress
+            {t('admin.heatmapSubtitle', 'Interactive chart showing district load, severity counts, and redressal progress')}
           </p>
         </div>
         <span className="bg-primary-container/10 text-primary border border-primary/20 text-[10px] font-bold px-2 py-0.5 rounded">
-          Live Heatmap Matrix
+          {t('admin.liveHeatmapMatrix', 'Live Heatmap Matrix')}
         </span>
       </div>
 
@@ -117,10 +116,10 @@ export default function DistrictHeatmap({ complaints = [] }) {
             <YAxis tick={{ fontSize: 11 }} />
             <Tooltip content={<CustomTooltip />} />
             <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-            <Bar dataKey="Total" fill="#1b365d" name="Total Grievances" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="Resolved" fill="#16a34a" name="Resolved" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="In_Progress" fill="#d97706" name="In Progress" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="Critical" fill="#dc2626" name="Critical Alert" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="Total" fill="#1b365d" name={t('dashboard.stats.totalFiled', 'Total Grievances')} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="Resolved" fill="#16a34a" name={t('status.Resolved', 'Resolved')} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="In_Progress" fill="#d97706" name={t('status.In Progress', 'In Progress')} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="Critical" fill="#dc2626" name={t('priority.Critical', 'Critical Alert')} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

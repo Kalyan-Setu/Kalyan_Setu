@@ -148,11 +148,25 @@ async def analyse(
     for complaint in complaints:
         scored = scores_by_id.get(complaint["display_id"])
         if scored:
-            complaint["ai_severity_score"] = scored["score"]
+            score = scored["score"]
+            complaint["ai_severity_score"] = score
+            if score >= 85:
+                assigned_priority = "Critical"
+            elif score >= 65:
+                assigned_priority = "High"
+            elif score >= 40:
+                assigned_priority = "Medium"
+            else:
+                assigned_priority = "Low"
+
+            complaint["priority"] = assigned_priority
+            sentiment = "Critical Emergency" if score >= 85 else "High Urgency" if score >= 65 else "Moderate Concern" if score >= 40 else "Low Priority"
+
             await execute(
-                "UPDATE problems SET ai_severity_score = $1, sentiment = $2, updated_at = CURRENT_TIMESTAMP WHERE display_id = $3",
-                scored["score"],
-                "Critical Risk" if scored["score"] > SEVERITY_THRESHOLD else "High Urgency",
+                "UPDATE problems SET ai_severity_score = $1, sentiment = $2, priority = $3, updated_at = CURRENT_TIMESTAMP WHERE display_id = $4",
+                score,
+                sentiment,
+                assigned_priority,
                 complaint["display_id"],
             )
 

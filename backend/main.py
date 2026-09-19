@@ -1,7 +1,23 @@
 """Kalyan Setu — FastAPI application entry‑point."""
 
+import warnings
+
+# Suppress LangChain / LangGraph internal deprecation warnings
+try:
+    from langchain_core._api.deprecation import (
+        LangChainDeprecationWarning,
+        LangChainPendingDeprecationWarning,
+    )
+    warnings.filterwarnings("ignore", category=LangChainDeprecationWarning)
+    warnings.filterwarnings("ignore", category=LangChainPendingDeprecationWarning)
+    warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+except ImportError:
+    pass
+
 from contextlib import asynccontextmanager
 from pathlib import Path
+
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -41,6 +57,7 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=FRONTEND_ORIGINS,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

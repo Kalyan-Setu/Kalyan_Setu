@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCivic, API_BASE } from '../context/CivicContext';
+import { useLanguage } from '../context/LanguageContext';
 import { INDIAN_STATES, getDistrictsForState, isValidPincode } from '../data/indiaLocationData';
 
 export default function SubmitProblemPage() {
   const { addComplaint, navigateTo, currentUser } = useCivic();
+  const { t } = useLanguage();
 
   const [currentStep, setCurrentStep] = useState(1); // 1: Classification/Method, 2: Details, 3: Review
   const [evidenceMethod, setEvidenceMethod] = useState('text'); // 'photo', 'text', 'voice'
@@ -16,7 +18,6 @@ export default function SubmitProblemPage() {
   const [district, setDistrict] = useState(currentUser?.district || '');
   const [pincode, setPincode] = useState(currentUser?.pincode || '');
   const [location, setLocation] = useState('');
-  const [priority, setPriority] = useState('High');
   const [stepError, setStepError] = useState('');
   // Photo & file upload state
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -231,12 +232,27 @@ export default function SubmitProblemPage() {
   };
 
   const handlePhotoUpload = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPhotoPreview(url);
     }
+  };
+  const handlePhotoChange = handlePhotoUpload;
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPhotoPreview(url);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
   };
 
   const handleFinalSubmit = async (e) => {
@@ -249,7 +265,7 @@ export default function SubmitProblemPage() {
       district,
       state: state || currentUser?.state || "Delhi NCR",
       pincode: pincode.trim(),
-      priority,
+      priority: 'Pending Assessment',
       evidenceType: evidenceMethod,
       file: selectedFile,
       audioBlob: audioBlob,
@@ -268,21 +284,21 @@ export default function SubmitProblemPage() {
   };
 
   return (
-    <div className="flex-grow w-full max-w-container-max mx-auto px-lg py-xl flex flex-col gap-xl">
+    <div className="flex-grow w-full max-w-container-max mx-auto px-4 sm:px-lg py-6 sm:py-xl flex flex-col gap-6 sm:gap-xl">
       {/* Header & Stepper */}
-      <section className="flex flex-col gap-md items-center text-center max-w-3xl mx-auto w-full">
-        <span className="font-label-sm text-xs text-primary-container uppercase tracking-wider font-bold">
-          Step-by-Step Grievance Registration
+      <section className="flex flex-col gap-2.5 sm:gap-md items-center text-center max-w-3xl mx-auto w-full px-2">
+        <span className="font-label-sm text-[11px] sm:text-xs text-primary-container uppercase tracking-wider font-bold">
+          {t('submit.pageTitle', 'Step-by-Step Grievance Registration')}
         </span>
-        <h1 className="font-display-lg text-3xl sm:text-4xl font-bold text-primary">
-          Submit a New Problem
+        <h1 className="font-display-lg text-2xl sm:text-4xl font-bold text-primary">
+          {t('submit.pageTitle', 'Submit a New Problem')}
         </h1>
-        <p className="font-body-lg text-sm text-on-surface-variant max-w-2xl">
-          Please provide details of the civic issue. Your submission helps maintain and improve our urban infrastructure.
+        <p className="font-body-lg text-xs sm:text-sm text-on-surface-variant max-w-2xl leading-relaxed">
+          {t('submit.pageSubtitle', 'Please provide details of the civic issue. Your submission helps maintain and improve our urban infrastructure.')}
         </p>
 
         {/* Stepper */}
-        <div className="w-full mt-md flex items-center justify-between relative max-w-xl">
+        <div className="w-full mt-2 sm:mt-md flex items-center justify-between relative max-w-xl px-4">
           <div className="absolute left-[15%] right-[15%] top-1/2 -translate-y-1/2 h-1 bg-outline-variant -z-0">
             <div
               className="h-full bg-primary-container transition-all duration-300"
@@ -300,7 +316,7 @@ export default function SubmitProblemPage() {
             >
               {currentStep > 1 ? <span className="material-symbols-outlined text-sm">check</span> : '1'}
             </button>
-            <span className="font-label-sm text-xs font-bold text-primary">1. Method</span>
+            <span className="font-label-sm text-xs font-bold text-primary">1. {t('submit.steps.step1', 'Method')}</span>
           </div>
 
           {/* Step 2 */}
@@ -314,7 +330,7 @@ export default function SubmitProblemPage() {
               {currentStep > 2 ? <span className="material-symbols-outlined text-sm">check</span> : '2'}
             </button>
             <span className={`font-label-sm text-xs ${currentStep >= 2 ? 'font-bold text-primary' : 'text-outline'}`}>
-              2. Details
+              2. {t('submit.steps.step2', 'Details')}
             </span>
           </div>
 
@@ -329,7 +345,7 @@ export default function SubmitProblemPage() {
               3
             </button>
             <span className={`font-label-sm text-xs ${currentStep === 3 ? 'font-bold text-primary' : 'text-outline'}`}>
-              3. Review
+              3. {t('submit.steps.step3', 'Review')}
             </span>
           </div>
         </div>
@@ -337,20 +353,22 @@ export default function SubmitProblemPage() {
 
       {/* STEP 1: Classification & Method Selection */}
       {currentStep === 1 && (
-        <div className="max-w-3xl mx-auto w-full flex flex-col gap-lg bg-surface-container-lowest p-lg sm:p-xl rounded-lg border border-outline-variant shadow-ambient">
+        <div className="max-w-3xl mx-auto w-full flex flex-col gap-6 sm:gap-lg bg-surface-container-lowest p-4 sm:p-lg md:p-xl rounded-lg border border-outline-variant shadow-ambient">
           <div className="text-center">
-            <h2 className="text-xl font-bold text-primary mb-1">Choose Reporting Evidence Format</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-primary mb-1">
+              {t('submit.evidenceMethodTitle', 'Choose Reporting Evidence Format')}
+            </h2>
             <p className="text-xs text-on-surface-variant">
-              Select how you would like to describe the issue for optimal field dispatch.
+              {t('submit.evidenceMethodDesc', 'Select how you would like to describe the issue for optimal field dispatch.')}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-md">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-md">
             {/* Text Option */}
             <button
               type="button"
               onClick={() => setEvidenceMethod('text')}
-              className={`p-lg rounded-lg border-2 flex flex-col items-center text-center gap-3 transition-all ${
+              className={`p-4 sm:p-lg rounded-lg border-2 flex flex-col items-center text-center gap-2.5 sm:gap-3 transition-all ${
                 evidenceMethod === 'text'
                   ? 'border-primary bg-primary-fixed/20 shadow-md scale-102'
                   : 'border-outline-variant hover:border-primary/50 bg-surface'
@@ -360,9 +378,9 @@ export default function SubmitProblemPage() {
                 <span className="material-symbols-outlined text-2xl">description</span>
               </div>
               <div>
-                <h3 className="font-bold text-sm text-on-surface">Text Description</h3>
+                <h3 className="font-bold text-sm text-on-surface">{t('submit.methods.text', 'Text Description')}</h3>
                 <p className="text-[11px] text-on-surface-variant mt-1 leading-relaxed">
-                  Type structured details, category, landmark, and complaint notes.
+                  {t('submit.methods.textDesc', 'Type structured details, category, landmark, and complaint notes.')}
                 </p>
               </div>
             </button>
@@ -381,9 +399,9 @@ export default function SubmitProblemPage() {
                 <span className="material-symbols-outlined text-2xl">add_a_photo</span>
               </div>
               <div>
-                <h3 className="font-bold text-sm text-on-surface">Photo / Camera</h3>
+                <h3 className="font-bold text-sm text-on-surface">{t('submit.methods.photo', 'Photo / Camera')}</h3>
                 <p className="text-[11px] text-on-surface-variant mt-1 leading-relaxed">
-                  Upload photographic evidence showing potholes, leaks, or debris.
+                  {t('submit.methods.photoDesc', 'Upload photographic evidence showing potholes, leaks, or debris.')}
                 </p>
               </div>
             </button>
@@ -402,9 +420,9 @@ export default function SubmitProblemPage() {
                 <span className="material-symbols-outlined text-2xl">mic</span>
               </div>
               <div>
-                <h3 className="font-bold text-sm text-on-surface">Voice Recording</h3>
+                <h3 className="font-bold text-sm text-on-surface">{t('submit.methods.voice', 'Voice Recording')}</h3>
                 <p className="text-[11px] text-on-surface-variant mt-1 leading-relaxed">
-                  Speak in Hindi, English, or regional language with automated speech-to-text.
+                  {t('submit.methods.voiceDesc', 'Speak in Hindi, English, or regional language with automated speech-to-text.')}
                 </p>
               </div>
             </button>
@@ -415,7 +433,7 @@ export default function SubmitProblemPage() {
               onClick={() => setCurrentStep(2)}
               className="bg-primary-container text-on-primary font-bold text-xs px-6 py-2.5 rounded hover:bg-primary transition-all flex items-center gap-2"
             >
-              <span>Continue to Form Details</span>
+              <span>{t('common.next', 'Continue to Form Details')}</span>
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </button>
           </div>
@@ -424,26 +442,26 @@ export default function SubmitProblemPage() {
 
       {/* STEP 2: Problem Details & Evidence Input */}
       {currentStep === 2 && (
-        <div className="max-w-4xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-lg">
+        <div className="max-w-4xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-lg">
           {/* Left / Top Side: Evidence Input (Voice / Photo / Text Preview) */}
-          <div className="lg:col-span-5 bg-surface-container-lowest p-lg rounded-lg border border-outline-variant shadow-ambient flex flex-col gap-md">
-            <h2 className="text-base font-bold text-primary border-b border-outline-variant pb-2 flex items-center gap-2">
+          <div className="lg:col-span-5 bg-surface-container-lowest p-4 sm:p-lg rounded-lg border border-outline-variant shadow-ambient flex flex-col gap-md">
+            <h2 className="text-sm sm:text-base font-bold text-primary border-b border-outline-variant pb-2 flex items-center gap-2">
               <span className="material-symbols-outlined text-lg text-primary">
                 {evidenceMethod === 'voice' ? 'mic' : evidenceMethod === 'photo' ? 'photo_camera' : 'edit_note'}
               </span>
               <span>
-                {evidenceMethod === 'voice' ? 'Voice Recording' : evidenceMethod === 'photo' ? 'Photo Evidence' : 'Text Summary'}
+                {evidenceMethod === 'voice' ? t('submit.methods.voice', 'Voice Recording') : evidenceMethod === 'photo' ? t('submit.methods.photo', 'Photo Evidence') : t('submit.methods.text', 'Text Summary')}
               </span>
             </h2>
 
             {/* Voice Mode */}
             {evidenceMethod === 'voice' && (
-              <div className="flex flex-col items-center justify-center py-4 gap-4 text-center">
+              <div className="flex flex-col items-center justify-center py-3 sm:py-4 gap-3 sm:gap-4 text-center">
 
                 {/* Language Selector */}
                 <div className="w-full flex flex-col gap-1">
                   <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider text-left">
-                    🌐 Select Language for AI Speech-to-Text
+                    🌐 {t('submit.voice.selectLang', 'Select Language for AI Speech-to-Text')}
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
@@ -469,32 +487,32 @@ export default function SubmitProblemPage() {
                   </div>
                 </div>
 
-                <div className="relative flex items-center justify-center w-28 h-28">
+                <div className="relative flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28">
                   <div className={`absolute inset-0 rounded-full border-4 border-primary/20 ${isRecording ? 'pulse-recording' : ''}`}></div>
                   <button
                     type="button"
                     onClick={toggleRecording}
-                    className={`w-20 h-20 rounded-full flex items-center justify-center text-white transition-all shadow-lg z-10 ${
+                    className={`w-18 h-18 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-white transition-all shadow-lg z-10 ${
                       isRecording ? 'bg-error scale-105' : 'bg-primary-container hover:bg-primary'
                     }`}
                   >
-                    <span className="material-symbols-outlined text-3xl">
+                    <span className="material-symbols-outlined text-2xl sm:text-3xl">
                       {isRecording ? 'stop' : 'mic'}
                     </span>
                   </button>
                 </div>
 
                 <div>
-                  <div className="text-xl font-mono font-bold text-primary">
+                  <div className="text-lg sm:text-xl font-mono font-bold text-primary">
                     {formatTime(recordingTime)}
                   </div>
                   <p className="text-xs text-on-surface-variant mt-0.5">
-                    {isRecording ? 'Recording live... Click to stop.' : recordedAudio ? 'Recording saved!' : 'Click microphone to record voice.'}
+                    {isRecording ? t('submit.voice.recording', 'Recording live... Click to stop.') : recordedAudio ? t('submit.voice.saved', 'Recording saved!') : t('submit.voice.startRecording', 'Click microphone to record voice.')}
                   </p>
                 </div>
 
                 {/* Animated Waveform */}
-                <div className="w-full flex items-center justify-center gap-1 h-10 px-4">
+                <div className="w-full flex items-center justify-center gap-1 h-10 px-2 sm:px-4">
                   {[4, 8, 16, 24, 12, 28, 36, 18, 30, 22, 14, 8, 20, 32, 10].map((h, i) => (
                     <div
                       key={i}
@@ -508,36 +526,61 @@ export default function SubmitProblemPage() {
 
                 {/* Pipeline Stage 1: STT */}
                 {isTranscribing && (
-                  <div className="w-full text-center bg-primary-fixed/20 p-3 rounded border border-primary/30 text-xs flex items-center justify-center gap-2 text-primary font-bold animate-pulse">
+                  <div className="w-full text-center bg-primary-fixed/20 p-2.5 sm:p-3 rounded border border-primary/30 text-xs flex items-center justify-center gap-2 text-primary font-bold animate-pulse">
                     <span className="material-symbols-outlined text-base animate-spin">sync</span>
-                    <span>Stage 1/2: Transcribing voice via Sarvam AI saaras:v3...</span>
+                    <span>{t('submit.voice.transcribing', 'Stage 1/2: Transcribing voice via Sarvam AI saaras:v3...')}</span>
                   </div>
                 )}
 
                 {/* Pipeline Stage 2: Groq LLM Description Generator */}
                 {isGenerating && (
-                  <div className="w-full text-center bg-purple-500/10 p-3 rounded border border-purple-500/30 text-xs flex items-center justify-center gap-2 text-purple-700 dark:text-purple-300 font-bold animate-pulse">
+                  <div className="w-full text-center bg-purple-500/10 p-2.5 sm:p-3 rounded border border-purple-500/30 text-xs flex items-center justify-center gap-2 text-purple-700 dark:text-purple-300 font-bold animate-pulse">
                     <span className="material-symbols-outlined text-base animate-spin">auto_awesome</span>
-                    <span>Stage 2/2: Groq LLM compiling formal grievance description...</span>
+                    <span>{t('submit.voice.generating', 'Stage 2/2: Groq Llama 3.3 expanding into formal ticket...')}</span>
                   </div>
                 )}
 
-                {voiceTranscript && !isTranscribing && !isGenerating && (
-                  <div className="w-full text-left bg-surface p-3 rounded border border-gov-green/30 text-xs flex flex-col gap-1">
-                    <span className="font-bold text-gov-green flex items-center gap-1">
-                      <span className="material-symbols-outlined text-xs">verified</span>
-                      AI Pipeline Complete (Speech STT → Groq Formal Description):
+                {/* Live Speech Recognition Feedback (real-time as user speaks) */}
+                {isRecording && (
+                  <div className="w-full text-left bg-surface p-2.5 rounded border border-outline-variant text-xs">
+                    <span className="text-[10px] uppercase font-bold text-on-surface-variant block mb-1">
+                      {t('submit.voice.livePreview', 'Live Transcription Preview:')}
                     </span>
-                    <p className="text-on-surface font-medium italic bg-surface-container/50 p-2 rounded border border-outline-variant/60">
-                      "{voiceTranscript}"
+                    <p className="text-on-surface italic min-h-[20px]">{voiceTranscript || t('submit.voice.listening', 'Listening to your speech...')}</p>
+                  </div>
+                )}
+
+                {/* Transcription failed error message with manual fallback guidance */}
+                {transcribeFailed && !isTranscribing && (
+                  <div className="w-full text-left bg-amber-50 border border-amber-300 rounded p-2.5 text-xs text-amber-900">
+                    <div className="flex items-center gap-1.5 font-bold mb-1">
+                      <span className="material-symbols-outlined text-sm text-amber-600">info</span>
+                      <span>{t('submit.voice.processedReview', 'Audio processed — please review description')}</span>
+                    </div>
+                    <p className="text-[11px] text-amber-800 leading-relaxed">
+                      {t('submit.voice.fallbackGuidance', 'If the auto-transcript is incomplete, you can type your complaint details directly into the Description field on the right.')}
                     </p>
                   </div>
                 )}
 
-                {transcribeFailed && !isTranscribing && !isGenerating && !voiceTranscript && (
-                  <div className="w-full text-center bg-amber-500/10 p-3 rounded border border-amber-500/30 text-xs text-amber-700 dark:text-amber-300 flex items-center justify-center gap-2">
-                    <span className="material-symbols-outlined text-sm">mic_off</span>
-                    <span>No clear speech captured. Please speak again or type your complaint manually.</span>
+                {/* Final saved transcript note */}
+                {!isRecording && !isTranscribing && !isGenerating && recordedAudio && voiceTranscript && (
+                  <div className="w-full text-left bg-surface p-2.5 rounded border border-outline-variant text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] uppercase font-bold text-on-surface-variant">
+                        {t('submit.voice.transcriptLabel', 'Processed Transcript:')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => generateFromTranscript(voiceTranscript, voiceLang)}
+                        className="text-[10px] text-purple-700 font-bold underline flex items-center gap-0.5 hover:text-purple-900"
+                        title="Re-run Groq LLM expansion"
+                      >
+                        <span className="material-symbols-outlined text-xs">refresh</span>
+                        {t('submit.voice.reExpand', 'Re-expand')}
+                      </button>
+                    </div>
+                    <p className="text-on-surface leading-relaxed text-xs">{voiceTranscript}</p>
                   </div>
                 )}
               </div>
@@ -546,69 +589,81 @@ export default function SubmitProblemPage() {
             {/* Photo Mode */}
             {evidenceMethod === 'photo' && (
               <div className="flex flex-col gap-3">
-                <label className="border-2 border-dashed border-outline-variant hover:border-primary p-6 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer bg-surface hover:bg-surface-container transition-colors">
-                  <span className="material-symbols-outlined text-3xl text-primary mb-2">cloud_upload</span>
-                  <span className="text-xs font-bold text-primary">Click to upload photo or take picture</span>
-                  <span className="text-[10px] text-on-surface-variant mt-1">Supports JPG, PNG up to 10MB</span>
-                  <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                <input
+                  type="file"
+                  id="photoUpload"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="photoUpload"
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  className="border-2 border-dashed border-outline-variant hover:border-primary rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center gap-2 cursor-pointer bg-surface hover:bg-surface-container transition-all"
+                >
+                  <span className="material-symbols-outlined text-3xl text-primary">cloud_upload</span>
+                  <span className="text-xs font-bold text-on-surface text-center">
+                    {t('submit.photoUploadTitle', 'Click or Drag Photo Here')}
+                  </span>
+                  <span className="text-[10px] text-on-surface-variant text-center">
+                    {t('submit.photoUploadDesc', 'Supports JPG, PNG (Max 10MB)')}
+                  </span>
                 </label>
 
                 {photoPreview && (
-                  <div className="relative rounded overflow-hidden border border-outline-variant">
-                    <img src={photoPreview} alt="Preview" className="w-full h-40 object-cover" />
+                  <div className="relative rounded-lg overflow-hidden border border-outline-variant">
+                    <img src={photoPreview} alt="Preview" className="w-full h-40 sm:h-48 object-cover" />
                     <button
                       type="button"
-                      onClick={() => setPhotoPreview(null)}
+                      onClick={() => { setPhotoPreview(null); setSelectedFile(null); }}
                       className="absolute top-2 right-2 bg-error text-white p-1 rounded-full shadow"
                     >
-                      <span className="material-symbols-outlined text-xs">delete</span>
+                      <span className="material-symbols-outlined text-sm">close</span>
                     </button>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Text Mode Info */}
+            {/* Text Summary Mode Hint */}
             {evidenceMethod === 'text' && (
-              <div className="bg-surface p-4 rounded text-xs text-on-surface-variant flex flex-col gap-2">
-                <div className="flex items-center gap-1 text-primary font-bold">
-                  <span className="material-symbols-outlined text-sm">tips_and_updates</span>
-                  <span>Reporting Tips</span>
-                </div>
-                <p>• Include specific landmarks (e.g. Near Gate 3, Opposite Metro Pillar #124).</p>
-                <p>• Mention if safety is immediately at risk for pedestrians or traffic.</p>
-                <p>• Provide accurate contact info for engineer callback verification.</p>
+              <div className="text-xs text-on-surface-variant bg-surface p-3 sm:p-4 rounded border border-outline-variant flex flex-col gap-2">
+                <p className="font-bold text-on-surface">{t('submit.tips.title', 'Tips for accurate grievance redressal:')}</p>
+                <p>{t('submit.tips.tip1', '• Specify the exact landmark (e.g. Near Metro Pillar 128, Opp. Primary Health Centre).')}</p>
+                <p>{t('submit.tips.tip2', '• Mention if the hazard is active (exposed live wire, open manhole, water pipe burst).')}</p>
+                <p>{t('submit.tips.tip3', '• Provide accurate contact info for engineer callback verification.')}</p>
               </div>
             )}
 
             <button
               type="button"
               onClick={() => setEvidenceMethod(evidenceMethod === 'text' ? 'photo' : evidenceMethod === 'photo' ? 'voice' : 'text')}
-              className="text-xs text-primary underline font-bold mt-auto self-start flex items-center gap-1"
+              className="text-xs text-primary underline font-bold mt-auto self-start flex items-center gap-1 py-1"
             >
               <span className="material-symbols-outlined text-sm">swap_horiz</span>
-              Switch evidence format
+              {t('submit.switchFormat', 'Switch evidence format')}
             </button>
           </div>
 
           {/* Right Side: Form Inputs */}
-          <div className="lg:col-span-7 bg-surface-container-lowest p-lg sm:p-xl rounded-lg border border-outline-variant shadow-ambient">
-            <h2 className="text-base font-bold text-primary mb-md pb-2 border-b border-outline-variant">
-              Grievance Specifics
+          <div className="lg:col-span-7 bg-surface-container-lowest p-4 sm:p-lg md:p-xl rounded-lg border border-outline-variant shadow-ambient">
+            <h2 className="text-sm sm:text-base font-bold text-primary mb-md pb-2 border-b border-outline-variant">
+              {t('submit.grievanceSpecifics', 'Grievance Specifics')}
             </h2>
 
-            <div className="flex flex-col gap-md">
+            <div className="flex flex-col gap-3 sm:gap-md">
               {/* Category */}
               <div>
                 <label className="block text-xs font-bold text-on-surface mb-1">
-                  Department / Problem Category *
+                  {t('submit.categoryTitle', 'Department / Problem Category *')}
                 </label>
                 <input
                   type="text"
                   required
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  placeholder="e.g. Road Infrastructure, Drainage & Water Supply, Sanitation, Electricity..."
+                  placeholder={t('submit.categoryPlaceholder', 'e.g. Road Infrastructure, Drainage & Water Supply, Sanitation, Electricity...')}
                   className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none font-medium"
                 />
               </div>
@@ -616,14 +671,14 @@ export default function SubmitProblemPage() {
               {/* Title */}
               <div>
                 <label className="block text-xs font-bold text-on-surface mb-1">
-                  Short Title / Heading *
+                  {t('submit.titleLabel', 'Short Title / Heading *')}
                 </label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Deep pothole causing two-wheeler accidents"
+                  placeholder={t('submit.titlePlaceholder', 'e.g. Deep pothole causing two-wheeler accidents')}
                   className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                 />
               </div>
@@ -631,14 +686,14 @@ export default function SubmitProblemPage() {
               {/* Description */}
               <div>
                 <label className="block text-xs font-bold text-on-surface mb-1">
-                  Detailed Description *
+                  {t('submit.descLabel', 'Detailed Description *')}
                 </label>
                 <textarea
                   rows={4}
                   required
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe the severity, duration, and exact issue..."
+                  placeholder={t('submit.descPlaceholder', 'Describe the severity, duration, and exact issue...')}
                   className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none resize-none leading-relaxed"
                 ></textarea>
               </div>
@@ -646,7 +701,7 @@ export default function SubmitProblemPage() {
               {/* 4. State * */}
               <div>
                 <label className="block text-xs font-bold text-on-surface mb-1">
-                  State / Union Territory *
+                  {t('submit.stateLabel', 'State / Union Territory *')}
                 </label>
                 <select
                   required
@@ -658,7 +713,7 @@ export default function SubmitProblemPage() {
                   }}
                   className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none font-medium"
                 >
-                  <option value="">-- Select State / UT --</option>
+                  <option value="">{t('submit.selectState', '-- Select State / UT --')}</option>
                   {INDIAN_STATES.map((s) => (
                     <option key={s} value={s}>
                       {s}
@@ -670,7 +725,7 @@ export default function SubmitProblemPage() {
               {/* 5. District * (Dependent Dropdown) */}
               <div>
                 <label className="block text-xs font-bold text-on-surface mb-1">
-                  District *
+                  {t('submit.districtLabel', 'District *')}
                 </label>
                 <select
                   required
@@ -685,7 +740,7 @@ export default function SubmitProblemPage() {
                   }`}
                 >
                   <option value="">
-                    {state ? '-- Select District --' : '-- Select State first --'}
+                    {state ? t('submit.selectDistrict', '-- Select District --') : t('submit.selectStateFirst', '-- Select State first --')}
                   </option>
                   {getDistrictsForState(state).map((d) => (
                     <option key={d} value={d}>
@@ -699,53 +754,31 @@ export default function SubmitProblemPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-bold text-on-surface">
-                    Pincode *
+                    {t('submit.pincodeLabel', 'Pincode (6-digit PIN) *')}
                   </label>
-                  <span className={`text-[10px] font-mono font-medium ${
-                    pincode.length === 6 ? 'text-gov-green font-bold' :
-                    pincode.length > 0 ? 'text-error' : 'text-on-surface-variant'
-                  }`}>
-                    {pincode.length}/6 digits
+                  <span className="text-[10px] text-on-surface-variant">
+                    {pincode.length}/6
                   </span>
                 </div>
                 <div className="relative">
-                  <span className={`material-symbols-outlined absolute left-3 top-2 text-base ${
-                    pincode.length === 6 ? 'text-gov-green' :
-                    pincode.length > 0 ? 'text-error' : 'text-on-surface-variant'
-                  }`}>
-                    pin_drop
-                  </span>
                   <input
                     type="text"
                     required
-                    maxLength={6}
                     inputMode="numeric"
-                    pattern="[0-9]{6}"
+                    maxLength={6}
                     value={pincode}
-                    onKeyDown={(e) => {
-                      const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Enter'];
-                      if (!allowed.includes(e.key) && !/^[0-9]$/.test(e.key)) {
-                        e.preventDefault();
-                      }
-                    }}
-                    onPaste={(e) => {
-                      e.preventDefault();
-                      const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-                      setPincode(pasted);
-                      setStepError('');
-                    }}
                     onChange={(e) => {
-                      const digits = e.target.value.replace(/\D/g, '').slice(0, 6);
-                      setPincode(digits);
+                      const numericOnly = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setPincode(numericOnly);
                       setStepError('');
                     }}
-                    placeholder="Enter 6-digit pincode"
-                    className={`w-full pl-9 pr-8 py-2 text-xs bg-surface border rounded focus:ring-1 outline-none transition-colors ${
+                    placeholder={t('submit.pincodePlaceholder', 'e.g. 110001 or 751030')}
+                    className={`w-full px-3 py-2 text-xs bg-surface border rounded focus:border-primary outline-none font-mono ${
                       pincode.length === 6
-                        ? 'border-gov-green focus:border-gov-green focus:ring-gov-green'
-                        : pincode.length > 0
-                        ? 'border-error focus:border-error focus:ring-error'
-                        : 'border-outline-variant focus:border-primary focus:ring-primary'
+                        ? 'border-gov-green/80 bg-gov-green/5'
+                        : pincode.length > 0 && pincode.length < 6
+                        ? 'border-error/80 bg-error/5'
+                        : 'border-outline-variant'
                     }`}
                   />
                   {pincode.length === 6 && (
@@ -757,11 +790,11 @@ export default function SubmitProblemPage() {
                 </div>
                 {pincode.length > 0 && pincode.length < 6 ? (
                   <p className="text-[10px] text-error mt-1 font-medium">
-                    ⚠ Pincode must be exactly 6 numeric digits ({pincode.length}/6 entered).
+                    ⚠ {t('messages.invalidPincode', 'Pincode must be exactly 6 numeric digits')} ({pincode.length}/6).
                   </p>
                 ) : (
                   <p className="text-[10px] text-on-surface-variant mt-1">
-                    Enter 6-digit area postal code (e.g. 110001, 751030).
+                    {t('submit.pincodeHelp', 'Enter 6-digit area postal code (e.g. 110001, 751030).')}
                   </p>
                 )}
               </div>
@@ -769,7 +802,7 @@ export default function SubmitProblemPage() {
               {/* 7. Exact Location & Landmark * */}
               <div>
                 <label className="block text-xs font-bold text-on-surface mb-1">
-                  Exact Location & Landmark *
+                  {t('submit.locationLabel', 'Exact Location & Landmark *')}
                 </label>
                 <input
                   type="text"
@@ -779,26 +812,9 @@ export default function SubmitProblemPage() {
                     setLocation(e.target.value);
                     setStepError('');
                   }}
-                  placeholder="Enter area, village, road, landmark or nearby place"
+                  placeholder={t('submit.locationPlaceholder', 'Enter area, village, road, landmark or nearby place')}
                   className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                 />
-              </div>
-
-              {/* 8. Urgency / Severity */}
-              <div>
-                <label className="block text-xs font-bold text-on-surface mb-1">
-                  Urgency / Severity
-                </label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
-                >
-                  <option>High</option>
-                  <option>Critical</option>
-                  <option>Medium</option>
-                  <option>Low</option>
-                </select>
               </div>
 
               {/* Step 2 Validation Error Message */}
@@ -810,44 +826,44 @@ export default function SubmitProblemPage() {
               )}
 
               {/* Stepper navigation */}
-              <div className="flex justify-between pt-md border-t border-outline-variant mt-2">
+              <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-md border-t border-outline-variant mt-2">
                 <button
                   type="button"
                   onClick={() => {
                     setStepError('');
                     setCurrentStep(1);
                   }}
-                  className="text-xs font-bold text-on-surface-variant hover:text-primary px-4 py-2"
+                  className="text-xs font-bold text-on-surface-variant hover:text-primary px-4 py-2.5 border sm:border-0 border-outline-variant rounded text-center"
                 >
-                  Back
+                  {t('common.back', 'Back')}
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     if (!state) {
-                      setStepError('Please select a State / Union Territory.');
+                      setStepError(t('messages.selectState', 'Please select a State / Union Territory.'));
                       return;
                     }
                     if (!district) {
-                      setStepError('Please select a District.');
+                      setStepError(t('messages.selectDistrict', 'Please select a District.'));
                       return;
                     }
                     const validDistricts = getDistrictsForState(state);
                     if (!validDistricts.includes(district)) {
-                      setStepError('Selected district does not belong to the selected state.');
+                      setStepError(t('messages.selectDistrict', 'Selected district does not belong to the selected state.'));
                       return;
                     }
                     const cleanPin = pincode.trim();
                     if (!cleanPin) {
-                      setStepError('Pincode is required.');
+                      setStepError(t('messages.invalidPincode', 'Pincode is required.'));
                       return;
                     }
                     if (!isValidPincode(cleanPin)) {
-                      setStepError('Pincode must be exactly 6 numeric digits (e.g. 110001, 751030).');
+                      setStepError(t('messages.invalidPincode', 'Pincode must be exactly 6 numeric digits (e.g. 110001, 751030).'));
                       return;
                     }
                     if (!location.trim()) {
-                      setStepError('Please enter the exact location & landmark.');
+                      setStepError(t('messages.requiredField', 'Please enter the exact location & landmark.'));
                       return;
                     }
 
@@ -856,9 +872,9 @@ export default function SubmitProblemPage() {
                     if (!description) setDescription(voiceTranscript || `Civic issue reported in ${category} for immediate inspection.`);
                     setCurrentStep(3);
                   }}
-                  className="bg-primary-container text-on-primary font-bold text-xs px-6 py-2.5 rounded hover:bg-primary transition-all flex items-center gap-2"
+                  className="bg-primary-container text-on-primary font-bold text-xs px-6 py-3 sm:py-2.5 rounded hover:bg-primary transition-all flex items-center justify-center gap-2"
                 >
-                  <span>Review Submission</span>
+                  <span>{t('submit.reviewTitle', 'Review Submission')}</span>
                   <span className="material-symbols-outlined text-sm">arrow_forward</span>
                 </button>
               </div>
@@ -869,57 +885,78 @@ export default function SubmitProblemPage() {
 
       {/* STEP 3: Review & Submit */}
       {currentStep === 3 && (
-        <div className="max-w-2xl mx-auto w-full bg-surface-container-lowest p-lg sm:p-xl rounded-lg border border-outline-variant shadow-ambient flex flex-col gap-md">
-          <div className="border-b border-outline-variant pb-md">
+        <div className="max-w-2xl mx-auto w-full bg-surface-container-lowest p-4 sm:p-lg md:p-xl rounded-lg border border-outline-variant shadow-ambient flex flex-col gap-md">
+          <div className="border-b border-outline-variant pb-3 sm:pb-md">
             <span className="text-xs font-bold text-gov-green uppercase tracking-wider block mb-1">
-              Final Step
+              {t('submit.finalStep', 'Final Step')}
             </span>
-            <h2 className="text-xl font-bold text-primary">Review Grievance Information</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-primary">
+              {t('submit.reviewTitle', 'Review Grievance Information')}
+            </h2>
             <p className="text-xs text-on-surface-variant mt-0.5">
-              Please verify the information before official filing into the central queue.
+              {t('submit.reviewSubtitle', 'Please verify the information before official filing into the central queue.')}
             </p>
           </div>
 
-          <div className="bg-surface p-md rounded-lg border border-outline-variant flex flex-col gap-3 text-xs">
+          <div className="bg-surface p-3 sm:p-md rounded-lg border border-outline-variant flex flex-col gap-3 text-xs">
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Category</span>
-                <span className="font-bold text-primary">{category}</span>
+                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">
+                  {t('common.category', 'Category')}
+                </span>
+                <span className="font-bold text-primary">{t('category.' + category, category)}</span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Priority</span>
-                <span className="font-bold text-error">{priority}</span>
+                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">
+                  {t('submit.urgencyTriage', 'Urgency / Triage')}
+                </span>
+                <span className="font-bold text-primary flex items-center gap-1 text-[11px]">
+                  <span className="material-symbols-outlined text-xs">smart_toy</span>
+                  {t('submit.assignedAiTriage', 'Assigned by Govt AI Triage')}
+                </span>
               </div>
             </div>
 
             <div>
-              <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Title</span>
+              <span className="text-[10px] uppercase font-bold text-on-surface-variant block">
+                {t('submit.titleLabel', 'Title')}
+              </span>
               <span className="font-bold text-on-surface text-sm">{title || `${category} issue in ${district}`}</span>
             </div>
 
             <div>
-              <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Description</span>
+              <span className="text-[10px] uppercase font-bold text-on-surface-variant block">
+                {t('submit.descLabel', 'Description')}
+              </span>
               <p className="text-on-surface-variant leading-relaxed">{description || voiceTranscript || "Civic grievance submitted by citizen."}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">State & District</span>
+                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">
+                  {t('submit.stateDistrict', 'State & District')}
+                </span>
                 <span className="text-on-surface font-medium">{district}, {state}</span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Pincode</span>
+                <span className="text-[10px] uppercase font-bold text-on-surface-variant block">
+                  {t('submit.pincodeLabel', 'Pincode')}
+                </span>
                 <span className="text-on-surface font-mono font-medium">{pincode}</span>
               </div>
             </div>
 
             <div>
-              <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Exact Location & Landmark</span>
+              <span className="text-[10px] uppercase font-bold text-on-surface-variant block">
+                {t('submit.locationLabel', 'Exact Location & Landmark')}
+              </span>
               <span className="text-on-surface font-medium">{location}</span>
             </div>
 
             <div>
-              <span className="text-[10px] uppercase font-bold text-on-surface-variant block">Filing Citizen</span>
+              <span className="text-[10px] uppercase font-bold text-on-surface-variant block">
+                {t('submit.filingCitizen', 'Filing Citizen')}
+              </span>
               <span className="text-on-surface font-medium">
                 {currentUser?.full_name || currentUser?.name || 'A. Sharma'} ({currentUser?.phone || '+91 98765 43210'})
               </span>
@@ -927,26 +964,26 @@ export default function SubmitProblemPage() {
           </div>
 
           <div className="flex items-center gap-2 p-3 bg-gov-green/10 rounded border border-gov-green/30 text-[11px] text-gov-green font-medium">
-            <span className="material-symbols-outlined text-base">verified_user</span>
-            <span>A digital acknowledgement tracking token will be issued immediately upon submission.</span>
+            <span className="material-symbols-outlined text-base shrink-0">verified_user</span>
+            <span>{t('submit.ackNotice', 'A digital acknowledgement tracking token will be issued immediately upon submission.')}</span>
           </div>
 
-          <div className="flex justify-between pt-md border-t border-outline-variant">
+          <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-md border-t border-outline-variant">
             <button
               type="button"
               onClick={() => setCurrentStep(2)}
-              className="text-xs font-bold text-on-surface-variant hover:text-primary px-4 py-2"
+              className="text-xs font-bold text-on-surface-variant hover:text-primary px-4 py-2.5 border sm:border-0 border-outline-variant rounded text-center"
             >
-              Edit Details
+              {t('submit.editDetails', 'Edit Details')}
             </button>
 
             <button
               type="button"
               onClick={handleFinalSubmit}
-              className="bg-primary-container text-on-primary font-bold text-xs px-8 py-3 rounded hover:bg-primary transition-all shadow-md active:scale-95 flex items-center gap-2"
+              className="bg-primary-container text-on-primary font-bold text-xs px-6 sm:px-8 py-3 rounded hover:bg-primary transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined text-base">send</span>
-              <span>Confirm & File Grievance</span>
+              <span>{t('submit.confirmSubmit', 'Confirm & File Grievance')}</span>
             </button>
           </div>
         </div>

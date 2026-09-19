@@ -71,42 +71,197 @@ const selectedPinIcon = L.divIcon({
 // In-memory geocoding cache to prevent redundant network requests
 const geocodeCache = new Map();
 
-// Known GIS coordinates for common civic districts, wards, landmarks, and localities
+// High-accuracy known GIS landmarks, districts, and pin codes
 const KNOWN_LOCATIONS = [
-  // ── Odisha / Bhubaneswar / Khordha / Puri Locations ──
-  { keywords: ['gita autonomous', 'gita college', 'madanpur', 'janla', 'badaraghunthpur', 'badaraghunathpur', 'bbar'], coords: [20.2166, 85.7380] },
-  { keywords: ['khordha', 'khurda', 'jatni', 'iit bhubaneswar', 'argul'], coords: [20.1809, 85.6212] },
-  { keywords: ['jagannath temple', 'puri', 'grand road', 'swargadwar', '752054'], coords: [19.8135, 85.8312] },
-  { keywords: ['papadahandi', 'nabarangpur', 'nowrangpur', '764071'], coords: [19.2272, 82.5583] },
-  { keywords: ['kendrapara', 'kendrapada', 'derabish', 'pattamundai'], coords: [20.4990, 86.4220] },
-  { keywords: ['patia', 'kiit', 'infocity', 'chandrasekharpur', 'kalarahanga'], coords: [20.3533, 85.8189] },
-  { keywords: ['nayapalli', 'irc village', 'jaydev vihar', 'crp square'], coords: [20.3015, 85.8190] },
-  { keywords: ['saheed nagar', 'vani vihar', 'acharya vihar', 'satya nagar'], coords: [20.2885, 85.8453] },
-  { keywords: ['khandagiri', 'amri', 'udayagiri', 'dumduma', 'aiginia', 'baramunda'], coords: [20.2602, 85.7877] },
-  { keywords: ['master canteen', 'bapuji nagar', 'ashok nagar', 'rajmahal'], coords: [20.2660, 85.8390] },
-  { keywords: ['rasulgarh', 'mancheswar', 'bomikhal', 'jharpada', 'laxmisagar'], coords: [20.3020, 85.8640] },
-  { keywords: ['old town', 'lingaraj', 'kapileswar', 'samantarapur'], coords: [20.2380, 85.8340] },
-  { keywords: ['cuttack', 'badambadi', 'chauliaganj', 'chhatrabazar', 'scb medical'], coords: [20.4625, 85.8828] },
-  { keywords: ['bhubaneswar', 'bbsr', 'odisha'], coords: [20.2961, 85.8245] },
-  { keywords: ['rourkela', 'sundargarh'], coords: [22.2604, 84.8536] },
-  { keywords: ['berhampur', 'brahmapur', 'ganjam'], coords: [19.3150, 84.7941] },
-  { keywords: ['sambalpur', 'burla', 'hirakud'], coords: [21.4669, 83.9812] },
-  { keywords: ['balasore', 'baleshwar'], coords: [21.4934, 86.9135] },
+  // ── Delhi NCR Landmark & High-Precision Spots ──
+  {
+    name: 'Connaught Place / Sansad Marg (110001)',
+    keywords: [
+      'connaught place', 'sansad marg', 'parliament street', '110001',
+      'cp', 'rajiv chowk', 'barakhamba', 'mandi house', 'janpath', 'kg marg',
+      'kasturba gandhi marg', 'tolstoy marg', 'baba kharak singh marg'
+    ],
+    coords: [28.6289, 77.2170]
+  },
+  {
+    name: 'Central Delhi',
+    keywords: ['central delhi', 'karol bagh', 'pahar ganj', 'daryaganj', 'chandni chowk', 'patel nagar', 'rajendra nagar', '110005', '110006', '110002'],
+    coords: [28.6415, 77.2025]
+  },
+  {
+    name: 'India Gate / Central Secretariat',
+    keywords: ['india gate', 'parliament', 'sansad bhavan', 'kartavya path', 'north block', 'south block', 'rashtrapati bhavan', '110004'],
+    coords: [28.6143, 77.2095]
+  },
+  {
+    name: 'East Delhi',
+    keywords: ['east delhi', 'ward 12', 'mayur vihar', 'laxmi nagar', 'preet vihar', 'patparganj', 'gandhi nagar', 'anand vihar', 'nirman vihar', 'shakarpur', '110092'],
+    coords: [28.6280, 77.2950]
+  },
+  {
+    name: 'South Delhi',
+    keywords: ['south delhi', 'saket', 'hauz khas', 'greater kailash', 'malviya nagar', 'nehru place', 'green park', 'defence colony', 'safdarjung', 'mehrauli', '110017'],
+    coords: [28.5244, 77.2100]
+  },
+  {
+    name: 'West Delhi',
+    keywords: ['west delhi', 'janakpuri', 'rajouri garden', 'tilak nagar', 'punjabi bagh', 'vikaspuri', 'uttam nagar', 'paschim vihar', 'tagore garden', '110058'],
+    coords: [28.6219, 77.0878]
+  },
+  {
+    name: 'North Delhi',
+    keywords: ['north delhi', 'civil lines', 'model town', 'kashmere gate', 'kamla nagar', 'timarpur', 'burari', 'alipur', 'kingsway camp', '110054'],
+    coords: [28.6830, 77.2180]
+  },
+  {
+    name: 'Shahdara',
+    keywords: ['shahdara', 'seelampur', 'dilshad garden', 'mansarovar park', 'yamuna vihar', 'geeta colony', 'bhajanpura', '110032'],
+    coords: [28.6730, 77.2880]
+  },
+  {
+    name: 'North West Delhi / Rohini',
+    keywords: ['rohini', 'pitampura', 'shalimar bagh', 'mangolpuri', 'sultanpuri', 'bawana', 'narela', '110085'],
+    coords: [28.7140, 77.1180]
+  },
+  {
+    name: 'South West Delhi / Dwarka',
+    keywords: ['dwarka', 'south west delhi', 'palam', 'najafgarh', 'matiala', 'kakrola', 'dabri', '110075'],
+    coords: [28.5921, 77.0460]
+  },
+  {
+    name: 'South East Delhi / Okhla',
+    keywords: ['okhla', 'jamia', 'south east delhi', 'sarita vihar', 'badarpur', 'kalkaji', 'govindpuri', 'jasola', '110025'],
+    coords: [28.5355, 77.2732]
+  },
+  {
+    name: 'Noida / Greater Noida',
+    keywords: ['noida', 'sector 62', 'sector 18', 'sector 15', 'greater noida', '201301'],
+    coords: [28.5700, 77.3200]
+  },
+  {
+    name: 'Gurgaon / Gurugram',
+    keywords: ['gurgaon', 'gurugram', 'cyber city', 'dlf', 'sohna road', 'mg road', '122001'],
+    coords: [28.4595, 77.0266]
+  },
+  {
+    name: 'Delhi NCR Capital',
+    keywords: ['delhi ncr', 'delhi', 'new delhi', 'ncr'],
+    coords: [28.6139, 77.2090]
+  },
 
-  // ── Delhi NCR Locations ──
-  { keywords: ['east', 'ward 12', 'mayur vihar', 'laxmi nagar', 'preet vihar', 'patparganj', 'gandhi nagar', 'anand vihar', 'nirman vihar', 'shakarpur'], coords: [28.6280, 77.2950] },
-  { keywords: ['south', 'saket', 'hauz khas', 'greater kailash', 'malviya nagar', 'nehru place', 'green park', 'defence colony', 'safdarjung', 'mehrauli'], coords: [28.5244, 77.2100] },
-  { keywords: ['west', 'janakpuri', 'rajouri garden', 'tilak nagar', 'punjabi bagh', 'vikaspuri', 'uttam nagar', 'paschim vihar', 'tagore garden'], coords: [28.6219, 77.0878] },
-  { keywords: ['north', 'civil lines', 'model town', 'kashmere gate', 'kamla nagar', 'timarpur', 'burari', 'alipur', 'kingsway camp'], coords: [28.6830, 77.2180] },
-  { keywords: ['central', 'connaught place', 'karol bagh', 'pahar ganj', 'daryaganj', 'chandni chowk', 'barakhamba', 'mandi house', 'patel nagar'], coords: [28.6315, 77.2167] },
-  { keywords: ['shahdara', 'seelampur', 'dilshad garden', 'mansarovar park', 'yamuna vihar', 'geeta colony', 'bhajanpura'], coords: [28.6730, 77.2880] },
-  { keywords: ['rohini', 'pitampura', 'shalimar bagh', 'mangolpuri', 'sultanpuri', 'bawana', 'narela'], coords: [28.7140, 77.1180] },
-  { keywords: ['dwarka', 'south west', 'palam', 'najafgarh', 'matiala', 'kakrola', 'dabri'], coords: [28.5921, 77.0460] },
-  { keywords: ['okhla', 'jamia', 'south east', 'sarita vihar', 'badarpur', 'kalkaji', 'govindpuri', 'jasola'], coords: [28.5355, 77.2732] },
-  { keywords: ['noida', 'sector 62', 'sector 18', 'sector 15', 'greater noida'], coords: [28.5700, 77.3200] },
-  { keywords: ['gurgaon', 'gurugram', 'cyber city', 'dlf', 'sohna road', 'mg road'], coords: [28.4595, 77.0266] },
-  { keywords: ['delhi', 'ncr', 'capital', 'india gate', 'parliament'], coords: [28.6139, 77.2090] },
+  // ── Odisha / Bhubaneswar / Khordha / Puri Locations ──
+  {
+    name: 'GITA Autonomous / Janla / Madanpur',
+    keywords: ['gita autonomous', 'gita college', 'madanpur', 'janla', 'badaraghunthpur', 'badaraghunathpur', 'bbar'],
+    coords: [20.2166, 85.7380]
+  },
+  {
+    name: 'Khordha / Jatni / IIT Bhubaneswar',
+    keywords: ['khordha', 'khurda', 'jatni', 'iit bhubaneswar', 'argul', '752050'],
+    coords: [20.1809, 85.6212]
+  },
+  {
+    name: 'Puri / Jagannath Temple',
+    keywords: ['jagannath temple', 'puri', 'grand road', 'swargadwar', '752054', '752001'],
+    coords: [19.8135, 85.8312]
+  },
+  {
+    name: 'Nabarangpur / Papadahandi',
+    keywords: ['papadahandi', 'nabarangpur', 'nowrangpur', '764071'],
+    coords: [19.2272, 82.5583]
+  },
+  {
+    name: 'Kendrapara',
+    keywords: ['kendrapara', 'kendrapada', 'derabish', 'pattamundai', '754211'],
+    coords: [20.4990, 86.4220]
+  },
+  {
+    name: 'Patia / KIIT / Infocity',
+    keywords: ['patia', 'kiit', 'infocity', 'chandrasekharpur', 'kalarahanga', '751024'],
+    coords: [20.3533, 85.8189]
+  },
+  {
+    name: 'Nayapalli / Jaydev Vihar',
+    keywords: ['nayapalli', 'irc village', 'jaydev vihar', 'crp square', '751015'],
+    coords: [20.3015, 85.8190]
+  },
+  {
+    name: 'Saheed Nagar / Vani Vihar',
+    keywords: ['saheed nagar', 'vani vihar', 'acharya vihar', 'satya nagar', '751007'],
+    coords: [20.2885, 85.8453]
+  },
+  {
+    name: 'Khandagiri / Baramunda',
+    keywords: ['khandagiri', 'amri', 'udayagiri', 'dumduma', 'aiginia', 'baramunda', '751030'],
+    coords: [20.2602, 85.7877]
+  },
+  {
+    name: 'Master Canteen / Rajmahal',
+    keywords: ['master canteen', 'bapuji nagar', 'ashok nagar', 'rajmahal', '751009'],
+    coords: [20.2660, 85.8390]
+  },
+  {
+    name: 'Rasulgarh / Mancheswar',
+    keywords: ['rasulgarh', 'mancheswar', 'bomikhal', 'jharpada', 'laxmisagar', '751010'],
+    coords: [20.3020, 85.8640]
+  },
+  {
+    name: 'Old Town / Lingaraj',
+    keywords: ['old town', 'lingaraj', 'kapileswar', 'samantarapur', '751002'],
+    coords: [20.2380, 85.8340]
+  },
+  {
+    name: 'Cuttack',
+    keywords: ['cuttack', 'badambadi', 'chauliaganj', 'chhatrabazar', 'scb medical', '753001'],
+    coords: [20.4625, 85.8828]
+  },
+  {
+    name: 'Bhubaneswar Central',
+    keywords: ['bhubaneswar', 'bbsr', 'odisha'],
+    coords: [20.2961, 85.8245]
+  },
+  {
+    name: 'Rourkela',
+    keywords: ['rourkela', 'sundargarh', '769001'],
+    coords: [22.2604, 84.8536]
+  },
+  {
+    name: 'Berhampur / Ganjam',
+    keywords: ['berhampur', 'brahmapur', 'ganjam', '760001'],
+    coords: [19.3150, 84.7941]
+  },
+  {
+    name: 'Sambalpur',
+    keywords: ['sambalpur', 'burla', 'hirakud', '768001'],
+    coords: [21.4669, 83.9812]
+  },
+  {
+    name: 'Balasore',
+    keywords: ['balasore', 'baleshwar', '756001'],
+    coords: [21.4934, 86.9135]
+  }
 ];
+
+function findBestKnownLocation(text, minLen = 3) {
+  if (!text) return null;
+  const normalized = ' ' + text.toLowerCase().replace(/[,\-\/\.]/g, ' ') + ' ';
+  let bestMatch = null;
+  let maxScore = 0;
+
+  for (const item of KNOWN_LOCATIONS) {
+    for (const kw of item.keywords) {
+      if (kw.length < minLen) continue;
+      if (normalized.includes(' ' + kw + ' ') || normalized.includes(kw)) {
+        const score = kw.length;
+        if (score > maxScore) {
+          maxScore = score;
+          bestMatch = { item, keyword: kw, score };
+        }
+      }
+    }
+  }
+  return bestMatch;
+}
 
 function getHashOffset(str = '', scale = 0.012) {
   let hash = 0;
@@ -119,9 +274,9 @@ function getHashOffset(str = '', scale = 0.012) {
   return [latOffset, lngOffset];
 }
 
-// Helper to geocode a single problem record with caching and deterministic fallbacks
+// Helper to geocode a single problem record with multi-tier hierarchical matching, caching and deterministic fallbacks
 async function resolveCoordinates(p, signal) {
-  if (!p) return [20.2961, 85.8245];
+  if (!p) return [28.6139, 77.2090];
 
   // 1. Direct coordinates
   const rawLat = p.latitude ?? p.lat;
@@ -134,60 +289,89 @@ async function resolveCoordinates(p, signal) {
     }
   }
 
-  // 2. Extract PIN code if present in location text (e.g. 764071, 752054)
-  const locStr = `${p.location || ''} ${p.district || ''} ${p.title || ''}`;
-  const pinMatch = locStr.match(/\b(7[5-7]\d{4}|11\d{4})\b/);
+  const locText = (p.location || '').trim();
+  const districtText = (p.district || '').trim();
+  const stateText = (p.state || '').trim();
+  const titleText = (p.title || '').trim();
+  const idStr = p.display_id || p.id || 'point';
+
+  // 2. Extract PIN code from location, district, or title
+  const pinMatch = `${locText} ${districtText} ${titleText}`.match(/\b(11\d{4}|7[5-7]\d{4}|20\d{4}|12\d{4})\b/);
   if (pinMatch) {
     const pin = pinMatch[1];
     for (const item of KNOWN_LOCATIONS) {
       if (item.keywords.includes(pin)) {
-        const [oLat, oLng] = getHashOffset(p.display_id || p.id || pin, 0.008);
+        const [oLat, oLng] = getHashOffset(idStr + pin, 0.005);
         return [item.coords[0] + oLat, item.coords[1] + oLng];
       }
     }
   }
 
-  // 3. Match against known GIS locations
-  const textLocation = (p.location || '').toLowerCase();
-  const textDistrict = (p.district || '').toLowerCase();
-  const textState = (p.state || '').toLowerCase();
-  const textTitle = (p.title || '').toLowerCase();
-  const combined = `${textLocation} ${textDistrict} ${textState} ${textTitle}`;
-
-  for (const item of KNOWN_LOCATIONS) {
-    if (item.keywords.some(k => combined.includes(k))) {
-      const [oLat, oLng] = getHashOffset(p.display_id || p.id || textLocation, 0.012);
-      return [item.coords[0] + oLat, item.coords[1] + oLng];
+  // 3. PRIORITY 1: Match against user's specific reported address / landmark (p.location)
+  // Specific address text MUST always take precedence over broader district/state fields
+  if (locText) {
+    const locMatch = findBestKnownLocation(locText);
+    if (locMatch) {
+      const [oLat, oLng] = getHashOffset(idStr + locMatch.keyword, 0.006);
+      return [locMatch.item.coords[0] + oLat, locMatch.item.coords[1] + oLng];
     }
   }
 
-  // 4. Online Nominatim query with caching (cleaned, unconflicted query)
-  let cleanQuery = p.location ? p.location.replace(/-\s*\d{6}/g, '').trim() : '';
-  if (cleanQuery) {
-    if (geocodeCache.has(cleanQuery)) {
-      return geocodeCache.get(cleanQuery);
+  // 4. PRIORITY 2: Match against grievance title (often contains specific landmarks / areas)
+  if (titleText) {
+    const titleMatch = findBestKnownLocation(titleText, 4);
+    if (titleMatch) {
+      const [oLat, oLng] = getHashOffset(idStr + titleMatch.keyword, 0.006);
+      return [titleMatch.item.coords[0] + oLat, titleMatch.item.coords[1] + oLng];
     }
-    try {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cleanQuery)}&limit=1`;
-      const res = await fetch(url, { signal, headers: { 'Accept-Language': 'en' } });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0 && data[0].lat && data[0].lon) {
-          const resolved = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-          geocodeCache.set(cleanQuery, resolved);
-          return resolved;
-        }
+  }
+
+  // 5. PRIORITY 3: Online Nominatim OpenStreetMap query for unmapped specific locations
+  if (locText) {
+    const cleanQuery = locText
+      .replace(/[\/\\]/g, ', ')
+      .replace(/-\s*\d{6}/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (cleanQuery) {
+      if (geocodeCache.has(cleanQuery)) {
+        return geocodeCache.get(cleanQuery);
       }
-    } catch {
-      // Network or abort error
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cleanQuery)}&limit=1`;
+        const res = await fetch(url, { signal, headers: { 'Accept-Language': 'en' } });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0 && data[0].lat && data[0].lon) {
+            const resolved = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+            geocodeCache.set(cleanQuery, resolved);
+            return resolved;
+          }
+        }
+      } catch {
+        // Network or abort error
+      }
     }
   }
 
-  // 5. Default center (Bhubaneswar / Capital) with hash offset
-  const [defLat, defLng] = combined.includes('delhi') ? [28.6139, 77.2090] : [20.2961, 85.8245];
-  const [oLat, oLng] = getHashOffset(p.display_id || p.id || 'civic_point', 0.018);
-  const fallbackCoords = [defLat + oLat, defLng + oLng];
-  return fallbackCoords;
+  // 6. PRIORITY 4: Match against District and State
+  const districtStateText = `${districtText} ${stateText}`.trim();
+  if (districtStateText) {
+    const distMatch = findBestKnownLocation(districtStateText);
+    if (distMatch) {
+      const [oLat, oLng] = getHashOffset(idStr + distMatch.keyword, 0.012);
+      return [distMatch.item.coords[0] + oLat, distMatch.item.coords[1] + oLng];
+    }
+  }
+
+  // 7. Regional Default Center (Delhi NCR / Odisha fallback)
+  const allText = `${locText} ${districtText} ${stateText} ${titleText}`.toLowerCase();
+  const [defLat, defLng] = (allText.includes('odisha') || allText.includes('bhubaneswar') || allText.includes('puri') || allText.includes('cuttack'))
+    ? [20.2961, 85.8245]
+    : [28.6139, 77.2090];
+  const [oLat, oLng] = getHashOffset(idStr + 'civic_fallback', 0.015);
+  return [defLat + oLat, defLng + oLng];
 }
 
 // Slightly offset duplicate coordinates so all markers at the same location remain individually visible and clickable
@@ -242,7 +426,8 @@ function MapViewController({ selectedCoords, crisisPoints }) {
 export default function ProblemLocationMap({
   problem = null,
   alertProblems = [],
-  headerAction = null
+  headerAction = null,
+  onSelectProblem = null
 }) {
   const [selectedCoords, setSelectedCoords] = useState(null);
   const [crisisPoints, setCrisisPoints] = useState([]);
@@ -319,13 +504,13 @@ export default function ProblemLocationMap({
   const isSelectedCrisis = crisisPoints.some((p) => p.id === selectedProblemId);
 
   return (
-    <div className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-md md:p-lg shadow-ambient mb-lg overflow-hidden flex flex-col">
+    <div className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-3 sm:p-md md:p-lg shadow-ambient mb-lg overflow-hidden flex flex-col">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-md border-b border-outline-variant pb-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 sm:gap-3 mb-3 sm:mb-md border-b border-outline-variant pb-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="material-symbols-outlined text-xl text-error">location_on</span>
-            <h2 className="text-base font-bold text-primary">
+            <h2 className="text-sm sm:text-base font-bold text-primary">
               Problem Location Map
             </h2>
 
@@ -345,16 +530,16 @@ export default function ProblemLocationMap({
               </span>
             )}
           </div>
-          <p className="text-xs text-on-surface-variant mt-1">
+          <p className="text-[11px] sm:text-xs text-on-surface-variant mt-0.5 sm:mt-1">
             GIS spatial mapping of crisis early warnings and selected civic problems.
           </p>
         </div>
 
         {/* Header Controls & Selected Problem Pill */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
           {headerAction}
           {problem && (
-            <div className="text-[11px] font-mono font-bold bg-surface border border-outline-variant px-3 py-1 rounded text-primary flex items-center gap-1.5">
+            <div className="text-[11px] font-mono font-bold bg-surface border border-outline-variant px-2.5 sm:px-3 py-1 rounded text-primary flex items-center gap-1.5">
               <span className="text-on-surface-variant">Inspecting:</span>
               <span className="text-primary font-black">#{selectedProblemId}</span>
             </div>
@@ -362,8 +547,8 @@ export default function ProblemLocationMap({
         </div>
       </div>
 
-      {/* Map Container with explicit height */}
-      <div className="relative w-full h-[440px] min-h-[440px] rounded-lg overflow-hidden border border-outline-variant bg-[#f1f4f9]">
+      {/* Map Container with responsive height */}
+      <div className="relative w-full h-[280px] sm:h-[380px] md:h-[440px] min-h-[280px] sm:min-h-[380px] md:min-h-[440px] rounded-lg overflow-hidden border border-outline-variant bg-[#f1f4f9]">
         {/* Loading Overlay */}
         {loading && (
           <div className="absolute top-2 right-2 z-[1000] bg-surface/90 backdrop-blur-sm border border-outline-variant px-3 py-1.5 rounded-md shadow-md flex items-center gap-2 text-xs font-semibold text-primary">
@@ -399,6 +584,11 @@ export default function ProblemLocationMap({
                 key={`crisis-pin-${pId}`}
                 position={item.coords}
                 icon={isSelected ? selectedCrisisPinIcon : crisisPinIcon}
+                eventHandlers={{
+                  click: () => {
+                    if (onSelectProblem) onSelectProblem(pId);
+                  }
+                }}
               >
                   {/* Hover Tooltip (Rule 5: hover shows details) */}
                   <Tooltip direction="top" offset={[0, -40]} opacity={0.95}>
@@ -485,8 +675,8 @@ export default function ProblemLocationMap({
                         <span className="font-mono text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
                           #{selectedProblemId}
                         </span>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-                          {problem?.priority || 'Normal'}
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant">
+                          {problem?.category || 'Civic Issue'}
                         </span>
                       </div>
                       <h4 className="font-bold text-sm text-primary line-clamp-2">

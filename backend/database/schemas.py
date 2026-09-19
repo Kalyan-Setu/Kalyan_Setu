@@ -69,7 +69,7 @@ class ProblemCreate(BaseModel):
     location: Optional[str] = None
     district: Optional[str] = None
     state: Optional[str] = None
-    priority: Optional[str] = "High"
+    priority: Optional[str] = "Pending Assessment"
     evidence_type: Optional[str] = "text"       # text / photo / voice
     voice_transcript: Optional[str] = None
 

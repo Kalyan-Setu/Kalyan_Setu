@@ -1,18 +1,16 @@
 import React from 'react';
 import { useCivic } from '../context/CivicContext';
+import { useLanguage } from '../context/LanguageContext';
 import parliamentBg from '../assets/parliament-bg.jpg';
 
 export default function HomePage() {
   const { navigateTo, complaints } = useCivic();
-
-  const totalComplaints = complaints.length;
-  const resolvedCount = complaints.filter(c => c.status === 'Resolved').length;
-  const inProgressCount = complaints.filter(c => c.status === 'In Progress' || c.status === 'Action Assigned').length;
+  const { t } = useLanguage();
 
   return (
     <div className="flex flex-col flex-grow w-full">
       {/* Hero Section */}
-      <section className="relative w-full min-h-[560px] flex items-center bg-surface-variant">
+      <section className="relative w-full min-h-[480px] sm:min-h-[560px] flex items-center bg-surface-variant">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img
@@ -23,34 +21,34 @@ export default function HomePage() {
           <div className="absolute inset-0 hero-overlay"></div>
         </div>
 
-        <div className="relative z-10 w-full max-w-container-max mx-auto px-lg py-xl">
+        <div className="relative z-10 w-full max-w-container-max mx-auto px-4 sm:px-lg py-10 sm:py-xl">
           <div className="max-w-3xl">
-            <span className="inline-block bg-white/15 backdrop-blur-sm text-primary-fixed text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 border border-white/20">
-              Official National Grievance Portal
+            <span className="inline-block bg-white/15 backdrop-blur-sm text-primary-fixed text-[11px] sm:text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3 sm:mb-4 border border-white/20">
+              {t('home.badge')}
             </span>
-            <h1 className="font-display-lg text-4xl sm:text-5xl lg:text-display-lg text-white mb-sm leading-tight font-bold">
-              Kalyan Setu
+            <h1 className="font-display-lg text-3xl sm:text-5xl lg:text-display-lg text-white mb-2 sm:mb-sm leading-tight font-bold">
+              {t('home.heroTitle')}
             </h1>
-            <p className="font-headline-sm text-lg sm:text-headline-sm text-gov-saffron mb-lg uppercase tracking-wide font-semibold">
-              Your Voice. Our Priority.
+            <p className="font-headline-sm text-base sm:text-headline-sm text-gov-saffron mb-3 sm:mb-lg uppercase tracking-wide font-semibold">
+              {t('home.heroTagline')}
             </p>
-            <p className="font-body-lg text-base sm:text-body-lg text-white/90 mb-xl max-w-2xl leading-relaxed">
-              Report problems in your area and track how they are being addressed. A direct, transparent channel between citizens and administration to build better communities together.
+            <p className="font-body-lg text-sm sm:text-body-lg text-white/90 mb-6 sm:mb-xl max-w-2xl leading-relaxed">
+              {t('home.heroDesc')}
             </p>
-            <div className="flex flex-col sm:flex-row gap-md">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-md w-full sm:w-auto">
               <button
                 onClick={() => navigateTo('submit')}
-                className="font-label-md text-sm bg-gov-saffron text-primary font-bold rounded px-lg py-md hover:bg-white hover:text-primary transition-all flex items-center justify-center gap-sm shadow-lg active:scale-95"
+                className="font-label-md text-sm bg-gov-saffron text-primary font-bold rounded px-6 sm:px-lg py-3 sm:py-md hover:bg-white hover:text-primary transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 w-full sm:w-auto cursor-pointer"
               >
-                <span className="material-symbols-outlined filled-icon">report_problem</span>
-                Report a Problem
+                <span className="material-symbols-outlined filled-icon text-xl">report_problem</span>
+                {t('home.reportButton')}
               </button>
               <button
                 onClick={() => navigateTo('track')}
-                className="font-label-md text-sm bg-transparent border-2 border-white text-white font-bold rounded px-lg py-md hover:bg-white/10 transition-all flex items-center justify-center gap-sm active:scale-95"
+                className="font-label-md text-sm bg-transparent border-2 border-white text-white font-bold rounded px-6 sm:px-lg py-3 sm:py-md hover:bg-white/10 transition-all flex items-center justify-center gap-2 active:scale-95 w-full sm:w-auto cursor-pointer"
               >
-                <span className="material-symbols-outlined">my_location</span>
-                Track My Problem
+                <span className="material-symbols-outlined text-xl">my_location</span>
+                {t('home.trackButton')}
               </button>
             </div>
           </div>
@@ -58,36 +56,36 @@ export default function HomePage() {
       </section>
 
       {/* Live Metrics Counter Bar */}
-      <section className="w-full bg-primary-container text-white py-lg border-b border-outline-variant">
-        <div className="max-w-container-max mx-auto px-lg grid grid-cols-2 md:grid-cols-4 gap-lg text-center">
-          <div className="p-3 border-r border-white/10">
-            <div className="font-display-lg text-3xl font-bold text-gov-saffron">2,48,910+</div>
-            <div className="font-label-sm text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">Citizen Issues Logged</div>
+      <section className="w-full bg-primary-container text-white py-6 sm:py-lg border-b border-outline-variant">
+        <div className="max-w-container-max mx-auto px-4 sm:px-lg grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-lg text-center">
+          <div className="p-2.5 sm:p-3 border-r border-white/10">
+            <div className="font-display-lg text-2xl sm:text-3xl font-bold text-gov-saffron">2,48,910+</div>
+            <div className="font-label-sm text-[11px] sm:text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">{t('home.stats.issuesLogged')}</div>
           </div>
-          <div className="p-3 border-r border-white/10">
-            <div className="font-display-lg text-3xl font-bold text-gov-green">89.4%</div>
-            <div className="font-label-sm text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">Resolution Rate</div>
+          <div className="p-2.5 sm:p-3 md:border-r border-white/10">
+            <div className="font-display-lg text-2xl sm:text-3xl font-bold text-gov-green">89.4%</div>
+            <div className="font-label-sm text-[11px] sm:text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">{t('home.stats.resolutionRate')}</div>
           </div>
-          <div className="p-3 border-r border-white/10">
-            <div className="font-display-lg text-3xl font-bold text-white">48 Hours</div>
-            <div className="font-label-sm text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">Avg Triage Speed</div>
+          <div className="p-2.5 sm:p-3 border-r border-white/10">
+            <div className="font-display-lg text-2xl sm:text-3xl font-bold text-white">48 Hours</div>
+            <div className="font-label-sm text-[11px] sm:text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">{t('home.stats.avgTriage')}</div>
           </div>
-          <div className="p-3">
-            <div className="font-display-lg text-3xl font-bold text-gov-saffron">750+</div>
-            <div className="font-label-sm text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">Districts Covered</div>
+          <div className="p-2.5 sm:p-3">
+            <div className="font-display-lg text-2xl sm:text-3xl font-bold text-gov-saffron">750+</div>
+            <div className="font-label-sm text-[11px] sm:text-xs text-primary-fixed-dim mt-1 uppercase tracking-wider">{t('home.stats.districtsCovered')}</div>
           </div>
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section className="w-full py-xxl bg-surface">
-        <div className="max-w-container-max mx-auto px-lg">
+      <section className="w-full py-10 sm:py-xxl bg-surface">
+        <div className="max-w-container-max mx-auto px-4 sm:px-lg">
           <div className="text-center mb-xl">
             <span className="font-label-sm text-xs text-primary-container uppercase tracking-[0.15em] font-bold block mb-1">
-              Transparent Redressal Workflow
+              {t('home.workflow.subtitle')}
             </span>
             <h2 className="font-headline-lg text-2xl sm:text-headline-lg text-on-surface font-bold">
-              How It Works
+              {t('home.workflow.title')}
             </h2>
             <div className="w-16 h-1 bg-gov-saffron mx-auto mt-md rounded-full"></div>
           </div>
@@ -101,10 +99,10 @@ export default function HomePage() {
                 </span>
               </div>
               <h3 className="font-headline-sm text-lg font-bold text-on-surface mb-sm">
-                1. Report a Problem
+                {t('home.workflow.step1Title')}
               </h3>
               <p className="font-body-md text-sm text-on-surface-variant leading-relaxed">
-                Submit an issue using Image, Text, or Voice formats to ensure accurate and detailed reporting directly to relevant civic authorities.
+                {t('home.workflow.step1Desc')}
               </p>
             </div>
 
@@ -116,10 +114,10 @@ export default function HomePage() {
                 </span>
               </div>
               <h3 className="font-headline-sm text-lg font-bold text-on-surface mb-sm">
-                2. Government Reviews
+                {t('home.workflow.step2Title')}
               </h3>
               <p className="font-body-md text-sm text-on-surface-variant leading-relaxed">
-                Your complaint is securely routed, reviewed by appropriate authorities, categorized via AI severity algorithms, and prioritized based on impact.
+                {t('home.workflow.step2Desc')}
               </p>
             </div>
 
@@ -131,118 +129,52 @@ export default function HomePage() {
                 </span>
               </div>
               <h3 className="font-headline-sm text-lg font-bold text-on-surface mb-sm">
-                3. Track the Action
+                {t('home.workflow.step3Title')}
               </h3>
               <p className="font-body-md text-sm text-on-surface-variant leading-relaxed">
-                Follow the real-time progress of your complaint with milestone updates, officer assignments, and photographic proof until marked as solved.
+                {t('home.workflow.step3Desc')}
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Why Section (Bento Grid) */}
-      <section className="w-full py-xxl bg-surface-container-low border-y border-outline-variant">
-        <div className="max-w-container-max mx-auto px-lg">
-          <div className="flex flex-col md:flex-row gap-xl items-center">
-            <div className="md:w-1/3 flex flex-col justify-center">
-              <span className="font-label-sm text-xs text-primary-container uppercase tracking-[0.15em] font-bold block mb-1">
-                Institutional Integrity
-              </span>
-              <h2 className="font-headline-lg text-2xl sm:text-headline-lg text-on-surface mb-md font-bold">
-                Why Kalyan Setu
-              </h2>
-              <p className="font-body-md text-sm text-on-surface-variant leading-relaxed">
-                Built on the core principles of accountability, accessibility, and authority to bridge the gap between citizens and civic administration efficiently.
-              </p>
-            </div>
-
-            <div className="md:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-md">
-              {/* Point 1 */}
-              <div className="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex gap-md items-start sm:col-span-2 shadow-ambient">
-                <div className="bg-surface-container p-sm rounded mt-xs text-primary-container">
-                  <span className="material-symbols-outlined">support_agent</span>
-                </div>
-                <div>
-                  <h4 className="font-headline-sm text-base font-bold text-on-surface mb-xs">
-                    Multi-Channel Reporting
-                  </h4>
-                  <p className="font-body-md text-xs text-on-surface-variant leading-relaxed">
-                    Report local problems through intuitive interfaces supporting photo uploads, structured text descriptions, or voice recordings for maximum accessibility in local languages.
-                  </p>
-                </div>
-              </div>
-
-              {/* Point 2 */}
-              <div className="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex gap-md items-start shadow-ambient">
-                <div className="bg-surface-container p-sm rounded mt-xs text-primary-container">
-                  <span className="material-symbols-outlined">psychology</span>
-                </div>
-                <div>
-                  <h4 className="font-headline-sm text-base font-bold text-on-surface mb-xs">
-                    AI-Driven Triage
-                  </h4>
-                  <p className="font-body-md text-xs text-on-surface-variant leading-relaxed">
-                    Automatic clustering and severity scoring highlight critical hazards for immediate rapid response dispatch.
-                  </p>
-                </div>
-              </div>
-
-              {/* Point 3 */}
-              <div className="bg-surface-container-lowest p-md rounded-lg border border-outline-variant flex gap-md items-start shadow-ambient">
-                <div className="bg-surface-container p-sm rounded mt-xs text-primary-container">
-                  <span className="material-symbols-outlined">verified</span>
-                </div>
-                <div>
-                  <h4 className="font-headline-sm text-base font-bold text-on-surface mb-xs">
-                    Verified Resolution
-                  </h4>
-                  <p className="font-body-md text-xs text-on-surface-variant leading-relaxed">
-                    Complaints are only closed after on-site photographic evidence is uploaded and validated with the citizen.
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Featured Recent Grievances Feed */}
-      <section className="w-full py-xl bg-surface">
-        <div className="max-w-container-max mx-auto px-lg">
-          <div className="flex justify-between items-end mb-lg">
+      <section className="w-full py-8 sm:py-xl bg-surface">
+        <div className="max-w-container-max mx-auto px-4 sm:px-lg">
+          <div className="flex justify-between items-end mb-4 sm:mb-lg">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-primary-container">
-                Transparent Public Feed
+                {t('citizen.recentReports')}
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-on-surface">
-                Recent Civic Action Updates
+                {t('home.categories.subtitle')}
               </h2>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-md">
             {complaints.slice(0, 3).map((item) => (
               <div
                 key={item.id}
                 onClick={() => navigateTo('track', item.id)}
-                className="bg-surface-container-lowest border border-outline-variant rounded-lg p-md hover:shadow-card hover:border-primary transition-all cursor-pointer flex flex-col justify-between"
+                className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 sm:p-md hover:shadow-card hover:border-primary transition-all cursor-pointer flex flex-col justify-between"
               >
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-mono font-bold text-primary">#{item.id}</span>
+                    <span className="text-xs font-mono font-bold text-primary">#{item.display_id || item.id}</span>
                     <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
                       item.status === 'Resolved' 
                         ? 'bg-gov-green/10 text-gov-green border border-gov-green/30'
-                        : item.priority === 'Critical'
-                        ? 'bg-error-container text-on-error-container'
+                        : item.status === 'Rejected'
+                        ? 'bg-error/10 text-error border border-error/30 font-bold'
                         : 'bg-secondary-container/30 text-on-secondary-fixed-variant'
                     }`}>
-                      {item.status}
+                      {t(`status.${item.status}`, item.status)}
                     </span>
                   </div>
                   <h3 className="text-sm font-bold text-on-surface line-clamp-1 mb-1">{item.title}</h3>
-                  <p className="text-xs text-on-surface-variant line-clamp-2 mb-3">{item.description}</p>
+                  <p className="text-xs text-on-surface-variant line-clamp-2 mb-3 leading-relaxed">{item.description}</p>
                 </div>
 
                 <div className="border-t border-outline-variant pt-2 flex items-center justify-between text-[11px] text-on-surface-variant">
@@ -250,7 +182,7 @@ export default function HomePage() {
                     <span className="material-symbols-outlined text-xs">location_on</span>
                     <span className="truncate max-w-[140px]">{item.location}</span>
                   </span>
-                  <span>{item.dateFiled}</span>
+                  <span>{item.dateFiled || item.date}</span>
                 </div>
               </div>
             ))}
@@ -259,21 +191,30 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="w-full bg-gradient-to-r from-primary-container to-primary text-white py-xl text-center">
-        <div className="max-w-3xl mx-auto px-lg">
-          <h2 className="font-headline-lg text-2xl sm:text-headline-lg font-bold mb-sm">
-            Make Your Ward a Better Place
+      <section className="w-full bg-gradient-to-r from-primary-container to-primary text-white py-10 sm:py-xl text-center">
+        <div className="max-w-3xl mx-auto px-4 sm:px-lg">
+          <h2 className="font-headline-lg text-2xl sm:text-headline-lg font-bold mb-2 sm:mb-sm">
+            {t('home.cta.title')}
           </h2>
-          <p className="text-sm text-primary-fixed-dim mb-lg max-w-xl mx-auto">
-            Take a picture, record a note, or write a description. Our automated routing system assigns it directly to the responsible engineer in your district.
+          <p className="text-sm text-primary-fixed-dim mb-6 sm:mb-lg max-w-xl mx-auto leading-relaxed">
+            {t('home.cta.subtitle')}
           </p>
-          <button
-            onClick={() => navigateTo('submit')}
-            className="bg-gov-saffron text-primary font-bold px-8 py-3 rounded text-sm hover:bg-white transition-all shadow-lg active:scale-95 inline-flex items-center gap-2"
-          >
-            <span className="material-symbols-outlined">add_circle</span>
-            File Your Grievance Now
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <button
+              onClick={() => navigateTo('submit')}
+              className="bg-gov-saffron text-primary font-bold px-6 sm:px-8 py-3 rounded text-sm hover:bg-white transition-all shadow-lg active:scale-95 inline-flex items-center justify-center gap-2 w-full sm:w-auto cursor-pointer"
+            >
+              <span className="material-symbols-outlined">add_circle</span>
+              {t('home.cta.fileButton')}
+            </button>
+            <button
+              onClick={() => navigateTo('track')}
+              className="bg-transparent border border-white text-white font-bold px-6 sm:px-8 py-3 rounded text-sm hover:bg-white/10 transition-all active:scale-95 inline-flex items-center justify-center gap-2 w-full sm:w-auto cursor-pointer"
+            >
+              <span className="material-symbols-outlined">my_location</span>
+              {t('home.cta.trackButton')}
+            </button>
+          </div>
         </div>
       </section>
     </div>
