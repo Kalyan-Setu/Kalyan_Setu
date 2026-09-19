@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const CivicContext = createContext();
 
-export const API_BASE = 'http://localhost:8000/api';
+const rawApiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+export const API_BASE = rawApiBase.replace(/\/+$/, '') + '/api';
 
 const INITIAL_COMPLAINTS = [
   {
@@ -12,7 +13,7 @@ const INITIAL_COMPLAINTS = [
     description: "Deep potholes on the main access road creating severe traffic congestion and multiple two-wheeler accidents during monsoon rains. Immediate resurfacing required.",
     category: "Road Infrastructure",
     location: "Main Market Road, Sector 4",
-    district: "South District",
+    district: "Central Delhi",
     state: "Delhi NCR",
     reportedBy: "A. Sharma",
     contactPhone: "+91 98765 43210",

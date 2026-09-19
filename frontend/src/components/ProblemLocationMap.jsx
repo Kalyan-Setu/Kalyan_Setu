@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -15,58 +15,64 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-// Red Crisis Alert Marker Pin with pulsing aura and warning symbol
+// Red Problem / Crisis Marker Pin with blue transparent aura circle and locator symbol
 const crisisPinIcon = L.divIcon({
   className: 'crisis-alert-marker-pin',
   html: `
-    <div style="position: relative; width: 38px; height: 46px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-      <div style="position: absolute; width: 32px; height: 32px; border-radius: 50%; background: rgba(220, 38, 38, 0.4); animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
-      <svg width="36" height="44" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <div style="position: relative; width: 44px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+      <!-- Blue transparent colour circle aura around the red point locator -->
+      <div style="position: absolute; width: 36px; height: 36px; border-radius: 50%; background: rgba(59, 130, 246, 0.35); border: 2px solid rgba(37, 99, 235, 0.7); animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div>
+      <svg width="36" height="44" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
         <path d="M18 0C8.05888 0 0 8.05888 0 18C0 28.5 18 44 18 44C18 44 36 28.5 36 18C36 8.05888 27.9411 0 18 0Z" fill="#DC2626" stroke="#FFFFFF" stroke-width="2.2"/>
         <circle cx="18" cy="18" r="8" fill="#FFFFFF"/>
         <path d="M18 12V19M18 23H18.01" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round"/>
       </svg>
     </div>
   `,
-  iconSize: [38, 46],
-  iconAnchor: [19, 44],
-  popupAnchor: [0, -42]
+  iconSize: [44, 50],
+  iconAnchor: [22, 47],
+  popupAnchor: [0, -45]
 });
 
-// Selected Crisis Alert Marker Pin (Dual Highlight: Red Pin + Gold Target Ring)
+// Selected Crisis Alert Marker Pin (Dual Highlight: Red Pin + Gold Ring + Blue transparent circle aura)
 const selectedCrisisPinIcon = L.divIcon({
   className: 'selected-crisis-marker-pin',
   html: `
-    <div style="position: relative; width: 44px; height: 52px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-      <div style="position: absolute; width: 38px; height: 38px; border-radius: 50%; background: rgba(245, 158, 11, 0.5); animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
-      <svg width="42" height="50" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <div style="position: relative; width: 48px; height: 54px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+      <!-- Blue transparent colour circle aura around the red point locator -->
+      <div style="position: absolute; width: 42px; height: 42px; border-radius: 50%; background: rgba(59, 130, 246, 0.45); border: 2.5px solid rgba(37, 99, 235, 0.85); animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div>
+      <svg width="40" height="48" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));">
         <path d="M18 0C8.05888 0 0 8.05888 0 18C0 28.5 18 44 18 44C18 44 36 28.5 36 18C36 8.05888 27.9411 0 18 0Z" fill="#B91C1C" stroke="#F59E0B" stroke-width="3"/>
         <circle cx="18" cy="18" r="8" fill="#FFFFFF"/>
         <path d="M18 12V19M18 23H18.01" stroke="#B91C1C" stroke-width="2.6" stroke-linecap="round"/>
       </svg>
     </div>
   `,
-  iconSize: [44, 52],
-  iconAnchor: [22, 50],
-  popupAnchor: [0, -48]
+  iconSize: [48, 54],
+  iconAnchor: [24, 51],
+  popupAnchor: [0, -49]
 });
 
-// Standard Selected Problem Marker Pin (Navy / Teal)
-const selectedPinIcon = L.divIcon({
+// Red Problem Marker Pin for standard selected problem (Red point locator + Blue transparent aura)
+const redProblemPinIcon = L.divIcon({
   className: 'selected-problem-marker-pin',
   html: `
-    <div style="position: relative; width: 36px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-      <svg width="36" height="44" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18 0C8.05888 0 0 8.05888 0 18C0 28.5 18 44 18 44C18 44 36 28.5 36 18C36 8.05888 27.9411 0 18 0Z" fill="#002147" stroke="#FFFFFF" stroke-width="2"/>
-        <circle cx="18" cy="18" r="7" fill="#FFFFFF"/>
-        <circle cx="18" cy="18" r="4" fill="#002147"/>
+    <div style="position: relative; width: 44px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+      <!-- Blue transparent colour circle aura around the red point locator -->
+      <div style="position: absolute; width: 36px; height: 36px; border-radius: 50%; background: rgba(59, 130, 246, 0.35); border: 2px solid rgba(37, 99, 235, 0.7); animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div>
+      <svg width="36" height="44" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+        <path d="M18 0C8.05888 0 0 8.05888 0 18C0 28.5 18 44 18 44C18 44 36 28.5 36 18C36 8.05888 27.9411 0 18 0Z" fill="#DC2626" stroke="#FFFFFF" stroke-width="2.2"/>
+        <circle cx="18" cy="18" r="8" fill="#FFFFFF"/>
+        <path d="M18 12V19M18 23H18.01" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round"/>
       </svg>
     </div>
   `,
-  iconSize: [36, 44],
-  iconAnchor: [18, 44],
-  popupAnchor: [0, -40]
+  iconSize: [44, 50],
+  iconAnchor: [22, 47],
+  popupAnchor: [0, -45]
 });
+
+const selectedPinIcon = redProblemPinIcon;
 
 // In-memory geocoding cache to prevent redundant network requests
 const geocodeCache = new Map();
@@ -400,7 +406,7 @@ function offsetDuplicateCoordinates(items) {
 }
 
 // Controller to smoothly pan or fit bounds based on active markers
-function MapViewController({ selectedCoords, crisisPoints }) {
+function MapViewController({ selectedCoords, activePoints }) {
   const map = useMap();
   useEffect(() => {
     if (selectedCoords && selectedCoords.length === 2 && !isNaN(selectedCoords[0]) && !isNaN(selectedCoords[1])) {
@@ -408,29 +414,32 @@ function MapViewController({ selectedCoords, crisisPoints }) {
       return;
     }
 
-    if (crisisPoints && crisisPoints.length > 0) {
-      if (crisisPoints.length === 1 && crisisPoints[0].coords) {
-        map.flyTo(crisisPoints[0].coords, 13, { animate: true, duration: 1.0 });
+    if (activePoints && activePoints.length > 0) {
+      if (activePoints.length === 1 && activePoints[0].coords) {
+        map.flyTo(activePoints[0].coords, 13, { animate: true, duration: 1.0 });
       } else {
-        const validCoords = crisisPoints.map((p) => p.coords).filter(c => c && c.length === 2);
+        const validCoords = activePoints.map((p) => p.coords).filter(c => c && c.length === 2);
         if (validCoords.length > 0) {
           const bounds = L.latLngBounds(validCoords);
           map.fitBounds(bounds, { padding: [45, 45], maxZoom: 14 });
         }
       }
     }
-  }, [selectedCoords, crisisPoints, map]);
+  }, [selectedCoords, activePoints, map]);
   return null;
 }
 
 export default function ProblemLocationMap({
   problem = null,
   alertProblems = [],
+  allProblems = [],
   headerAction = null,
   onSelectProblem = null
 }) {
   const [selectedCoords, setSelectedCoords] = useState(null);
   const [crisisPoints, setCrisisPoints] = useState([]);
+  const [allPoints, setAllPoints] = useState([]);
+  const [viewMode, setViewMode] = useState('alerts'); // 'alerts' | 'all'
   const [loading, setLoading] = useState(false);
   const abortControllerRef = useRef(null);
 
@@ -493,15 +502,53 @@ export default function ProblemLocationMap({
     };
   }, [alertProblems]);
 
+  // 3. Resolve coordinates for all problems when passed
+  useEffect(() => {
+    if (!allProblems || allProblems.length === 0) {
+      setAllPoints([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    const resolveAll = async () => {
+      const results = await Promise.all(
+        allProblems.map(async (p) => {
+          const coords = await resolveCoordinates(p, controller.signal);
+          return {
+            id: p.id || p.display_id,
+            problem: p,
+            coords
+          };
+        })
+      );
+      const validPoints = results.filter((r) => r.coords !== null && Array.isArray(r.coords));
+      const formattedPoints = offsetDuplicateCoordinates(validPoints);
+      if (!controller.signal.aborted) {
+        setAllPoints(formattedPoints);
+      }
+    };
+
+    resolveAll();
+    return () => controller.abort();
+  }, [allProblems]);
+
+  // Active points to display on map based on viewMode
+  const activePoints = useMemo(() => {
+    if (viewMode === 'all' && allPoints.length > 0) {
+      return allPoints;
+    }
+    return crisisPoints;
+  }, [viewMode, allPoints, crisisPoints]);
+
   // Determine initial center coordinate
   const initialCenter = useMemo(() => {
     if (selectedCoords && Array.isArray(selectedCoords)) return selectedCoords;
-    if (crisisPoints.length > 0 && crisisPoints[0]?.coords) return crisisPoints[0].coords;
+    if (activePoints.length > 0 && activePoints[0]?.coords) return activePoints[0].coords;
     return [28.6139, 77.2090]; // Default center (New Delhi / State Capital)
-  }, [selectedCoords, crisisPoints]);
+  }, [selectedCoords, activePoints]);
 
   const selectedProblemId = problem?.display_id || problem?.id;
-  const isSelectedCrisis = crisisPoints.some((p) => p.id === selectedProblemId);
+  const isSelectedInActive = activePoints.some((p) => p.id === selectedProblemId);
 
   return (
     <div className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-3 sm:p-md md:p-lg shadow-ambient mb-lg overflow-hidden flex flex-col">
@@ -514,24 +561,60 @@ export default function ProblemLocationMap({
               Problem Location Map
             </h2>
 
-            {/* Crisis Alerts Marker Count Tag */}
-            {crisisPoints.length > 0 && (
+            {/* Mode Switcher: Crisis Alerts vs All Problems */}
+            {allProblems.length > 0 && (
+              <div className="inline-flex items-center bg-surface border border-outline-variant rounded-lg p-0.5 text-[10px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('alerts')}
+                  className={`px-2 py-0.5 rounded transition-all flex items-center gap-1 ${
+                    viewMode === 'alerts'
+                      ? 'bg-error text-white shadow-sm'
+                      : 'text-on-surface-variant hover:text-primary'
+                  }`}
+                >
+                  <span>🔴 Crisis Alerts</span>
+                  <span>({crisisPoints.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('all')}
+                  className={`px-2 py-0.5 rounded transition-all flex items-center gap-1 ${
+                    viewMode === 'all'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-on-surface-variant hover:text-primary'
+                  }`}
+                >
+                  <span>📍 All Problems</span>
+                  <span>({allPoints.length || allProblems.length})</span>
+                </button>
+              </div>
+            )}
+
+            {/* Crisis Alerts Marker Count Tag (if no allProblems toggle) */}
+            {allProblems.length === 0 && crisisPoints.length > 0 && (
               <span className="bg-error/10 text-error border border-error/30 text-[10px] font-bold font-mono px-2 py-0.5 rounded-full flex items-center gap-1.5 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
                 🔴 {crisisPoints.length} Crisis Alert Pin{crisisPoints.length > 1 ? 's' : ''} Plotted
               </span>
             )}
 
+            {/* Legend Pill: Blue Transparent Circle */}
+            <span className="bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/30 text-[10px] font-bold font-mono px-2 py-0.5 rounded-full flex items-center gap-1.5 shadow-sm">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-500/30 border border-blue-600"></span>
+              Blue Radius Zone (500m)
+            </span>
+
             {/* Single Selected Marker Indicator */}
-            {selectedCoords && !isSelectedCrisis && (
+            {selectedCoords && !isSelectedInActive && (
               <span className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold font-mono px-2 py-0.5 rounded-full flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-gov-green"></span>
-                1 Problem Inspected
+                1 Inspected Pin
               </span>
             )}
           </div>
           <p className="text-[11px] sm:text-xs text-on-surface-variant mt-0.5 sm:mt-1">
-            GIS spatial mapping of crisis early warnings and selected civic problems.
+            GIS spatial mapping with blue transparent 500m impact radius around every red problem locator.
           </p>
         </div>
 
@@ -569,10 +652,10 @@ export default function ProblemLocationMap({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {/* View & bounds controller */}
-          <MapViewController selectedCoords={selectedCoords} crisisPoints={crisisPoints} />
+          <MapViewController selectedCoords={selectedCoords} activePoints={activePoints} />
 
-          {/* 1. Red Crisis Alert Markers */}
-          {crisisPoints.map((item) => {
+          {/* Red Point Locators with Blue Transparent Circle around EVERY problem */}
+          {activePoints.map((item) => {
             const p = item.problem;
             const pId = p.display_id || p.id || 'N/A';
             const isSelected = pId === selectedProblemId;
@@ -580,17 +663,30 @@ export default function ProblemLocationMap({
             const severity = p.severity ?? p.score ?? 85;
 
             return (
-              <Marker
-                key={`crisis-pin-${pId}`}
-                position={item.coords}
-                icon={isSelected ? selectedCrisisPinIcon : crisisPinIcon}
-                eventHandlers={{
-                  click: () => {
-                    if (onSelectProblem) onSelectProblem(pId);
-                  }
-                }}
-              >
-                  {/* Hover Tooltip (Rule 5: hover shows details) */}
+              <React.Fragment key={`problem-group-${pId}`}>
+                {/* Blue Transparent Colour Circle Around Red Point Locator */}
+                <Circle
+                  center={item.coords}
+                  radius={500}
+                  pathOptions={{
+                    color: '#2563eb',       // Vivid Blue Border
+                    weight: 2,              // 2px border width
+                    fillColor: '#3b82f6',   // Royal / Sky Blue Fill
+                    fillOpacity: 0.22,      // Blue Transparent
+                  }}
+                />
+
+                {/* Red Point Locator Marker Pin */}
+                <Marker
+                  position={item.coords}
+                  icon={isSelected ? selectedCrisisPinIcon : crisisPinIcon}
+                  eventHandlers={{
+                    click: () => {
+                      if (onSelectProblem) onSelectProblem(pId);
+                    }
+                  }}
+                >
+                  {/* Hover Tooltip */}
                   <Tooltip direction="top" offset={[0, -40]} opacity={0.95}>
                     <div className="font-sans text-[11px] p-0.5">
                       <div className="font-bold text-error flex items-center gap-1">
@@ -602,14 +698,14 @@ export default function ProblemLocationMap({
                     </div>
                   </Tooltip>
 
-                  {/* Click Popup with full detailed fields (Rule 5: title, ID, category, priority, status, location) */}
+                  {/* Click Popup with full detailed fields */}
                   <Popup minWidth={290} maxWidth={320}>
                     <div className="p-1 text-xs text-on-surface leading-relaxed">
                       <div className="border-b border-outline-variant pb-1.5 mb-2">
                         <div className="flex items-center justify-between gap-1 mb-1">
                           <span className="bg-error/15 text-error border border-error/30 text-[10px] font-bold font-mono px-2 py-0.5 rounded flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
-                            CRISIS ALERT
+                            {p.isCrisisAlert ? 'CRISIS ALERT' : 'REPORTED PROBLEM'}
                           </span>
                           <span className="text-[10px] font-bold bg-error text-white px-2 py-0.5 rounded">
                             Score: {severity}/100
@@ -662,12 +758,25 @@ export default function ProblemLocationMap({
                     </div>
                   </Popup>
                 </Marker>
-              );
-            })}
+              </React.Fragment>
+            );
+          })}
 
-            {/* 2. Standalone Selected Problem Marker (if selected and not already rendered as a crisis alert) */}
-            {selectedCoords && !isSelectedCrisis && (
-              <Marker position={selectedCoords} icon={selectedPinIcon}>
+          {/* Standalone Selected Problem Marker (if selected and not already in activePoints) */}
+          {selectedCoords && !isSelectedInActive && (
+            <React.Fragment key={`selected-group-${selectedProblemId}`}>
+              {/* Blue Transparent Colour Circle Around Red Point Locator */}
+              <Circle
+                center={selectedCoords}
+                radius={500}
+                pathOptions={{
+                  color: '#2563eb',
+                  weight: 2,
+                  fillColor: '#3b82f6',
+                  fillOpacity: 0.22,
+                }}
+              />
+              <Marker position={selectedCoords} icon={selectedCrisisPinIcon}>
                 <Popup minWidth={280} maxWidth={320}>
                   <div className="p-1 text-xs text-on-surface leading-relaxed">
                     <div className="border-b border-outline-variant pb-1.5 mb-2">
@@ -711,9 +820,10 @@ export default function ProblemLocationMap({
                   </div>
                 </Popup>
               </Marker>
-            )}
-          </MapContainer>
-        </div>
+            </React.Fragment>
+          )}
+        </MapContainer>
       </div>
-    );
-  }
+    </div>
+  );
+}

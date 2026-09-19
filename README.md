@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Next-Generation Multilingual Civic Redressal & Autonomous Government Intelligence Platform</strong><br>
-  <em>Bridging Citizen Voices with Rapid Administrative Action Powered by LangGraph, Sarvam AI, and Supabase PostgreSQL</em>
+  <em>Bridging Citizen Voices with Rapid Administrative Action Powered by LangGraph, Sarvam AI, and Supabase PostgreSQL.</em>
 </p>
 
 <p align="center">

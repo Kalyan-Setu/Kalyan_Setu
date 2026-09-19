@@ -45,10 +45,14 @@ SARVAM_API_KEY: str = os.getenv("SARVAM_API_KEY", "sk_fv62y1be_kOoMvMXc9JSE0mdp8
 SARVAM_STT_MODEL: str = "saaras:v3"
 
 # ── CORS ──────────────────────────────────────────────────
-FRONTEND_ORIGINS: list[str] = [
+_default_origins = [
     "http://localhost:5173",
     "http://localhost:3000",
     "http://127.0.0.1:5173",
-    os.getenv("FRONTEND_URL", ""),
 ]
-FRONTEND_ORIGINS = [o for o in FRONTEND_ORIGINS if o]  # drop blanks
+_extra_origins = [
+    origin.strip().rstrip("/")
+    for origin in os.getenv("FRONTEND_URL", "").split(",")
+    if origin.strip()
+]
+FRONTEND_ORIGINS: list[str] = list(dict.fromkeys(_default_origins + _extra_origins))

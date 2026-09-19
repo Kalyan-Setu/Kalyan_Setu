@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useCivic } from '../context/CivicContext';
+import { useCivic, API_BASE } from '../context/CivicContext';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function ContactUsPage() {
@@ -9,8 +9,8 @@ export default function ContactUsPage() {
     fullName: '',
     email: '',
     phone: '',
+    department: 'Central Grievance Cell',
     subject: '',
-    department: 'General Support',
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
@@ -19,7 +19,7 @@ export default function ContactUsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8000/api/contact', {
+      const response = await fetch(`${API_BASE}/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

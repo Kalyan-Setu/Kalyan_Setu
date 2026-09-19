@@ -11,11 +11,11 @@ export default function GeographicGrievanceMap({ complaints = [], navigateTo, st
     if (!complaints || complaints.length === 0) {
       // Fallback default demo points if no complaints loaded
       return [
-        { id: 'PP24891', title: 'Deep Crater Pothole Hazard', category: 'Road Infrastructure', district: 'East District', priority: 'Critical', severity: 92, x: 62, y: 35, lat: 28.629, lng: 77.281 },
-        { id: 'PP24892', title: 'Stormwater Drainage Overflow', category: 'Monsoon Drainage', district: 'South District', priority: 'High', severity: 84, x: 45, y: 68, lat: 28.541, lng: 77.210 },
-        { id: 'PP24893', title: 'Public Streetlight Outage Corridor', category: 'Public Lighting', district: 'Central District', priority: 'Critical', severity: 88, x: 50, y: 48, lat: 28.613, lng: 77.209 },
-        { id: 'PP24894', title: 'Garbage Dump Accumulation', category: 'Sanitation', district: 'North District', priority: 'Medium', severity: 65, x: 38, y: 25, lat: 28.692, lng: 77.185 },
-        { id: 'PP24895', title: 'Burst Water Pipeline Supply Interruption', category: 'Water Supply', district: 'Bhubaneswar', priority: 'Critical', severity: 95, x: 75, y: 55, lat: 28.580, lng: 77.310 },
+        { id: 'PP24891', title: 'Deep Crater Pothole Hazard', category: 'Road Infrastructure', district: 'Central Delhi', priority: 'Critical', severity: 92, x: 62, y: 35, lat: 28.629, lng: 77.281 },
+        { id: 'PP24892', title: 'Stormwater Drainage Overflow', category: 'Monsoon Drainage', district: 'Khordha', priority: 'High', severity: 84, x: 45, y: 68, lat: 28.541, lng: 77.210 },
+        { id: 'PP24893', title: 'Public Streetlight Outage Corridor', category: 'Public Lighting', district: 'Bhubaneswar', priority: 'Critical', severity: 88, x: 50, y: 48, lat: 28.613, lng: 77.209 },
+        { id: 'PP24894', title: 'Garbage Dump Accumulation', category: 'Sanitation', district: 'Puri', priority: 'Medium', severity: 65, x: 38, y: 25, lat: 28.692, lng: 77.185 },
+        { id: 'PP24895', title: 'Burst Water Pipeline Supply Interruption', category: 'Water Supply', district: 'Dhenkanal', priority: 'Critical', severity: 95, x: 75, y: 55, lat: 28.580, lng: 77.310 },
       ];
     }
 
@@ -44,7 +44,7 @@ export default function GeographicGrievanceMap({ complaints = [], navigateTo, st
         id: c.id || c.display_id || `PP${24890 + index}`,
         title: c.title || 'Civic Infrastructure Grievance',
         category: c.category || 'Road Infrastructure',
-        district: c.district || c.location || 'Central District',
+        district: c.district || c.location || 'Central Delhi',
         priority: c.priority || (severity >= 85 ? 'Critical' : 'High'),
         severity,
         x,
@@ -193,6 +193,9 @@ export default function GeographicGrievanceMap({ complaints = [], navigateTo, st
               onClick={() => setActivePin(point)}
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer group/pin transition-all hover:scale-125"
             >
+              {/* Blue Transparent Colour Circle Around Red Point Locator */}
+              <div className="absolute inset-0 -m-5 rounded-full bg-blue-500/25 border-2 border-blue-500/50 pointer-events-none"></div>
+
               {/* Pulsing Sonar Halo Ring for Red Incident Points */}
               <div
                 className={`absolute inset-0 -m-3 rounded-full ${
