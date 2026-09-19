@@ -1,10 +1,12 @@
 import React from 'react';
 import { useCivic } from '../context/CivicContext';
+import { useLanguage } from '../context/LanguageContext';
 import AdminSidebar from '../components/AdminSidebar';
 import DistrictHeatmap from '../components/DistrictHeatmap';
 
 export default function AdminOverviewPage() {
   const { complaints, navigateTo } = useCivic();
+  const { t } = useLanguage();
 
   const total = complaints.length;
   const criticalCount = complaints.filter(c => (c.aiSeverityScore || c.ai_severity_score || 0) >= 80).length;
@@ -31,23 +33,23 @@ export default function AdminOverviewPage() {
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary-container mb-1">
               <span className="inline-block w-2 h-2 rounded-full bg-gov-green animate-pulse"></span>
-              <span>Command & Analytics Centre</span>
+              <span>{t('admin.commandCenter')}</span>
             </div>
             <h1 className="font-headline-lg text-xl sm:text-2xl md:text-3xl font-bold text-primary">
-              State Grievance Overview
+              {t('admin.overviewTitle')}
             </h1>
             <p className="font-body-md text-xs text-on-surface-variant mt-1">
-              Real-time civic intelligence, SLA adherence, and district-level municipal workload distribution.
+              {t('admin.overviewSubtitle')}
             </p>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={() => navigateTo('admin_complaints')}
-              className="w-full sm:w-auto bg-primary-container text-on-primary font-bold text-xs px-4 py-2.5 rounded hover:bg-primary transition-all flex items-center justify-center gap-1.5 min-h-[40px]"
+              className="w-full sm:w-auto bg-primary-container text-on-primary font-bold text-xs px-4 py-2.5 rounded hover:bg-primary transition-all flex items-center justify-center gap-1.5 min-h-[40px] cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">list_alt</span>
-              <span>View All Complaints</span>
+              <span>{t('admin.viewAllComplaints')}</span>
             </button>
           </div>
         </div>
@@ -56,41 +58,41 @@ export default function AdminOverviewPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-md mb-md sm:mb-lg">
           <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
             <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold text-on-surface-variant mb-1">
-              <span>TOTAL GRIEVANCES</span>
+              <span>{t('admin.kpi.totalGrievances')}</span>
               <span className="material-symbols-outlined text-primary text-lg sm:text-xl">folder_managed</span>
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-primary">{total}</div>
             <div className="text-[10px] sm:text-[11px] text-gov-green font-semibold mt-1 flex items-center gap-1">
               <span className="material-symbols-outlined text-xs">trending_up</span>
-              Dynamic Database Query
+              {t('admin.kpi.dynamicQuery')}
             </div>
           </div>
 
-          <div className="bg-surface-container-lowest border border-error-container p-md rounded-lg shadow-ambient border-l-4 border-l-error">
-            <div className="flex justify-between items-center text-xs font-bold text-error mb-1">
-              <span>CRITICAL ALERTS</span>
-              <span className="material-symbols-outlined text-error text-xl">warning</span>
+          <div className="bg-surface-container-lowest border border-error-container p-3 sm:p-md rounded-lg shadow-ambient border-l-4 border-l-error">
+            <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold text-error mb-1">
+              <span>{t('admin.kpi.criticalAlerts')}</span>
+              <span className="material-symbols-outlined text-error text-lg sm:text-xl">warning</span>
             </div>
-            <div className="text-3xl font-bold text-error">{criticalCount}</div>
-            <div className="text-[11px] text-error font-semibold mt-1">Requires immediate dispatch</div>
+            <div className="text-2xl sm:text-3xl font-bold text-error">{criticalCount}</div>
+            <div className="text-[10px] sm:text-[11px] text-error font-semibold mt-1">{t('admin.kpi.immediateDispatch')}</div>
           </div>
 
           <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
             <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold text-on-surface-variant mb-1">
-              <span>ACTIVE IN PROGRESS</span>
+              <span>{t('admin.kpi.activeProgress')}</span>
               <span className="material-symbols-outlined text-gov-saffron text-lg sm:text-xl">engineering</span>
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-on-secondary-fixed-variant">{inProgressCount}</div>
-            <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-1">Field teams deployed</div>
+            <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-1">{t('admin.kpi.teamsDeployed')}</div>
           </div>
 
           <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
             <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold text-on-surface-variant mb-1">
-              <span>SLA RESOLUTION RATE</span>
+              <span>{t('admin.kpi.slaRate')}</span>
               <span className="material-symbols-outlined text-gov-green text-lg sm:text-xl">verified</span>
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-gov-green">{slaRate}%</div>
-            <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-1">Within 48-hr mandate</div>
+            <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-1">{t('admin.kpi.slaTarget')}</div>
           </div>
         </div>
 
@@ -106,13 +108,13 @@ export default function AdminOverviewPage() {
             <div className="flex justify-between items-center mb-md border-b border-outline-variant pb-2">
               <h2 className="text-sm font-bold text-error flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-base">emergency</span>
-                <span>Immediate Action Queue</span>
+                <span>{t('admin.kpi.criticalAlerts')}</span>
               </h2>
               <button
                 onClick={() => navigateTo('admin_action')}
-                className="text-[11px] text-primary font-bold hover:underline py-1 px-2"
+                className="text-[11px] text-primary font-bold hover:underline py-1 px-2 cursor-pointer"
               >
-                Open Directives
+                {t('navbar.takeAction')}
               </button>
             </div>
 
@@ -124,15 +126,15 @@ export default function AdminOverviewPage() {
                   className="bg-surface p-3 rounded border border-outline-variant hover:border-primary transition-all cursor-pointer flex flex-col gap-1"
                 >
                   <div className="flex justify-between items-center">
-                    <span className="font-mono text-[11px] font-bold text-primary">#{item.id}</span>
+                    <span className="font-mono text-[11px] font-bold text-primary">#{item.display_id || item.id}</span>
                     <span className="text-[10px] bg-primary/10 text-primary font-bold px-1.5 py-0.5 rounded">
-                      {item.category}
+                      {t(`category.${item.category}`, item.category)}
                     </span>
                   </div>
                   <h3 className="text-xs font-bold text-on-surface line-clamp-1">{item.title}</h3>
                   <div className="text-[10px] text-on-surface-variant flex items-center justify-between mt-1">
                     <span className="truncate pr-2">{item.location}</span>
-                    <span className="text-primary font-semibold shrink-0">Triage →</span>
+                    <span className="text-primary font-semibold shrink-0">{t('navbar.takeAction')} →</span>
                   </div>
                 </div>
               ))}
@@ -144,7 +146,7 @@ export default function AdminOverviewPage() {
         <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 sm:p-lg shadow-ambient">
           <h2 className="text-sm font-bold text-primary mb-md border-b border-outline-variant pb-2 flex items-center gap-1.5">
             <span className="material-symbols-outlined text-base">corporate_fare</span>
-            <span>Departmental Workload & Redressal Performance</span>
+            <span>{t('footer.adminPortals')}</span>
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-md">
@@ -156,7 +158,7 @@ export default function AdminOverviewPage() {
                 </div>
                 <div className="grid grid-cols-3 gap-1 text-center bg-white p-2 rounded border border-outline-variant/60 text-[11px]">
                   <div>
-                    <span className="text-[10px] text-on-surface-variant block">Active</span>
+                    <span className="text-[10px] text-on-surface-variant block">{t('common.all')}</span>
                     <span className="font-bold text-primary">{dept.count}</span>
                   </div>
                   <div>
@@ -164,7 +166,7 @@ export default function AdminOverviewPage() {
                     <span className="font-bold text-gov-green">{dept.rate}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-on-surface-variant block">Speed</span>
+                    <span className="text-[10px] text-on-surface-variant block">{t('common.details')}</span>
                     <span className="font-bold text-on-surface">{dept.avgTime}</span>
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useCivic, API_BASE } from '../context/CivicContext';
+import { useLanguage } from '../context/LanguageContext';
 import AdminSidebar from '../components/AdminSidebar';
 import ProblemLocationMap from '../components/ProblemLocationMap';
 
@@ -82,13 +83,14 @@ function SeverityGauge({ score, factors }) {
   );
 }
 
-function StageTracker({ stages, activeIdx }) {
+function StageTracker({ stages, activeIdx, t }) {
   return (
     <div className="flex items-center gap-0 w-full overflow-x-auto pb-1">
-      {STAGE_LABELS.map((stage, idx) => {
+      {stages.map((stage, idx) => {
         const done = idx < activeIdx;
         const active = idx === activeIdx;
         const pending = idx > activeIdx;
+        const label = t ? t('admin.ai.' + stage.key, stage.label) : stage.label;
         return (
           <React.Fragment key={stage.key}>
             <div className="flex flex-col items-center gap-1 flex-shrink-0 min-w-[60px]">
@@ -104,9 +106,9 @@ function StageTracker({ stages, activeIdx }) {
               </div>
               <span className={`text-[9px] font-bold text-center leading-tight ${
                 done ? 'text-gov-green' : active ? 'text-primary' : 'text-on-surface-variant'
-              }`}>{stage.label}</span>
+              }`}>{label}</span>
             </div>
-            {idx < STAGE_LABELS.length - 1 && (
+            {idx < stages.length - 1 && (
               <div className={`flex-1 h-0.5 mx-0.5 transition-all duration-500 min-w-[12px] ${
                 idx < activeIdx ? 'bg-gov-green' : 'bg-outline-variant'
               }`} />
@@ -139,6 +141,7 @@ function ConfidenceBadge({ status, confidence, feasibility }) {
 
 export default function AdminAiAnalysisPage() {
   const { complaints, navigateTo, currentUser, authToken, fetchComplaints, activeTrackId } = useCivic();
+  const { t } = useLanguage();
   const [mobileMode, setMobileMode] = useState(false);
 
   // Batch analysis state
@@ -449,13 +452,13 @@ export default function AdminAiAnalysisPage() {
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary mb-1">
               <span className="material-symbols-outlined text-sm text-gov-saffron">psychology</span>
-              <span>LangGraph Agentic AI — 8-Stage Workflow</span>
+              <span>{t('admin.ai.agenticWorkflow', 'LangGraph Agentic AI — 8-Stage Workflow')}</span>
             </div>
             <h1 className="font-headline-lg text-xl sm:text-2xl md:text-3xl font-bold text-primary">
-              AI Analysis & Intelligent Recommendations
+              {t('admin.ai.title', 'AI Analysis & Intelligent Recommendations')}
             </h1>
             <p className="font-body-md text-xs text-on-surface-variant mt-1">
-              Explainable multi-stage agentic pipeline powered by Groq + LangGraph. Human officials retain full control.
+              {t('admin.ai.subtitle', 'Explainable multi-stage agentic pipeline powered by Groq + LangGraph. Human officials retain full control.')}
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
@@ -465,11 +468,11 @@ export default function AdminAiAnalysisPage() {
               className="flex-1 sm:flex-initial bg-gov-saffron text-white font-bold text-xs px-3.5 py-2.5 rounded flex items-center justify-center gap-1.5 shadow-md hover:brightness-105 disabled:opacity-50 min-h-[38px]"
             >
               <span className="material-symbols-outlined text-sm">{analyzing ? 'sync' : 'batch_prediction'}</span>
-              <span>{analyzing ? 'Running Batch...' : 'Batch AI Analysis'}</span>
+              <span>{analyzing ? t('admin.ai.runningBatch', 'Running Batch...') : t('admin.ai.batchAnalysis', 'Batch AI Analysis')}</span>
             </button>
             <button onClick={() => setChatOpen(!chatOpen)} className="flex-1 sm:flex-initial bg-primary text-white font-bold text-xs px-3.5 py-2.5 rounded flex items-center justify-center gap-1.5 shadow-md hover:bg-primary/90 min-h-[38px]">
               <span className="material-symbols-outlined text-sm">chat</span>
-              <span>AI Assistant</span>
+              <span>{t('admin.ai.aiAssistant', 'AI Assistant')}</span>
             </button>
             <button onClick={() => setMobileMode(!mobileMode)} className="hidden sm:flex bg-surface-container-lowest border border-outline-variant text-primary font-bold text-xs px-3 py-2.5 rounded items-center gap-1 shadow-ambient hover:bg-surface-container min-h-[38px]">
               <span className="material-symbols-outlined text-sm">{mobileMode ? 'desktop_windows' : 'smartphone'}</span>
@@ -483,11 +486,11 @@ export default function AdminAiAnalysisPage() {
           <h2 className="text-sm font-bold text-primary mb-md border-b border-outline-variant pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <span className="flex items-center gap-1.5">
               <span className="material-symbols-outlined text-base text-gov-saffron">crisis_alert</span>
-              <span>Predictive Early Warning Directives (Next 48 Hours)</span>
+              <span>{t('admin.ai.earlyWarningTitle', 'Predictive Early Warning Directives (Next 48 Hours)')}</span>
             </span>
             <span className="text-[10px] text-gov-green font-bold flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-gov-green animate-ping" />
-              Live Predictive Feed
+              {t('admin.ai.liveFeed', 'Live Predictive Feed')}
             </span>
           </h2>
 
@@ -575,7 +578,7 @@ export default function AdminAiAnalysisPage() {
                 <span className="material-symbols-outlined text-white text-base">account_tree</span>
               </div>
               <div>
-                <h2 className="text-sm font-bold text-primary">LangGraph Agentic Workflow</h2>
+                <h2 className="text-sm font-bold text-primary">{t('admin.ai.agenticWorkflow', 'LangGraph Agentic Workflow')}</h2>
                 <p className="text-[11px] text-on-surface-variant">Understanding → Classification → Severity → Routing → Actions → Critic → Review</p>
               </div>
             </div>
@@ -587,7 +590,7 @@ export default function AdminAiAnalysisPage() {
                 onChange={e => { setSelectedComplaintId(e.target.value); setWorkflowResult(null); setWorkflowStageIdx(-1); setWorkflowError(null); }}
                 className="w-full sm:w-64 text-xs bg-surface border border-outline-variant rounded-lg px-2.5 py-2.5 text-on-surface font-semibold outline-none focus:border-primary truncate min-h-[38px]"
               >
-                <option value="">— Select a grievance —</option>
+                <option value="">{t('admin.ai.selectGrievance', '— Select a grievance —')}</option>
                 {[...activeComplaints].sort((a, b) => (b.aiSeverityScore || b.ai_severity_score || 0) - (a.aiSeverityScore || a.ai_severity_score || 0)).map(c => (
                   <option key={c.id || c.display_id} value={c.id || c.display_id}>
                     #{c.display_id || c.id} [{c.aiSeverityScore || c.ai_severity_score || '?'}/100] — {(c.title || '').slice(0, 40)}
@@ -600,14 +603,14 @@ export default function AdminAiAnalysisPage() {
                 className="bg-primary text-white font-bold text-xs px-4 py-2.5 rounded-lg flex items-center justify-center gap-1.5 shadow-md hover:bg-primary/90 disabled:opacity-40 transition-all whitespace-nowrap min-h-[38px]"
               >
                 <span className="material-symbols-outlined text-sm">{workflowRunning ? 'sync' : 'play_arrow'}</span>
-                <span>{workflowRunning ? 'Running...' : 'Run AI Workflow'}</span>
+                <span>{workflowRunning ? t('admin.ai.running', 'Running...') : t('admin.ai.runWorkflow', 'Run AI Workflow')}</span>
               </button>
             </div>
           </div>
 
           {/* Stage Tracker */}
           <div className="mb-lg">
-            <StageTracker stages={STAGE_LABELS} activeIdx={workflowStageIdx} />
+            <StageTracker stages={STAGE_LABELS} activeIdx={workflowStageIdx} t={t} />
           </div>
 
           {/* Error state */}
@@ -624,8 +627,12 @@ export default function AdminAiAnalysisPage() {
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="material-symbols-outlined text-3xl text-primary">smart_toy</span>
               </div>
-              <p className="text-sm font-bold text-on-surface">Select a grievance and click Run AI Workflow</p>
-              <p className="text-xs text-on-surface-variant max-w-md">The 8-stage LangGraph pipeline will analyze the complaint — understanding, classification, severity scoring, department routing, action directives, and critic validation — all with explainable AI reasoning.</p>
+              <p className="text-sm font-bold text-on-surface">
+                {t('admin.ai.selectGrievancePrompt', 'Select a grievance and click Run AI Workflow')}
+              </p>
+              <p className="text-xs text-on-surface-variant max-w-md">
+                {t('admin.ai.emptyDesc', 'The 8-stage LangGraph pipeline will analyze the complaint — understanding, classification, severity scoring, department routing, action directives, and critic validation — all with explainable AI reasoning.')}
+              </p>
             </div>
           )}
 
@@ -667,7 +674,7 @@ export default function AdminAiAnalysisPage() {
                 <div className="bg-surface border border-outline-variant rounded-xl p-4 flex flex-col gap-3">
                   <div className="flex items-center gap-2 border-b border-outline-variant pb-2">
                     <span className="material-symbols-outlined text-primary text-base">psychology</span>
-                    <span className="text-xs font-bold text-primary">① Problem Understanding</span>
+                    <span className="text-xs font-bold text-primary">① {t('admin.ai.understanding', 'Problem Understanding')}</span>
                     {understanding.ai_enriched && <span className="ml-auto text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">AI Enriched</span>}
                   </div>
                   <div className="space-y-2 text-xs">
@@ -699,7 +706,7 @@ export default function AdminAiAnalysisPage() {
                   <div className="bg-surface-container rounded-lg p-3 border border-outline-variant/60 mt-1">
                     <div className="flex items-center gap-1.5 mb-2">
                       <span className="material-symbols-outlined text-gov-saffron text-sm">category</span>
-                      <span className="text-[11px] font-bold text-gov-saffron">② AI Classification</span>
+                      <span className="text-[11px] font-bold text-gov-saffron">② {t('admin.ai.classification', 'AI Classification')}</span>
                     </div>
                     <div className="text-xs space-y-1">
                       <div className="flex items-center gap-2">
@@ -720,7 +727,7 @@ export default function AdminAiAnalysisPage() {
                 <div className="bg-surface border border-outline-variant rounded-xl p-4 flex flex-col gap-3">
                   <div className="flex items-center gap-2 border-b border-outline-variant pb-2">
                     <span className="material-symbols-outlined text-error text-base">crisis_alert</span>
-                    <span className="text-xs font-bold text-primary">③ AI Severity Score</span>
+                    <span className="text-xs font-bold text-primary">③ {t('admin.ai.severity', 'AI Severity Score')}</span>
                     {severity.ai_reviewed && <span className="ml-auto text-[9px] bg-gov-green/10 text-gov-green px-1.5 py-0.5 rounded font-bold">AI Reviewed</span>}
                   </div>
                   <SeverityGauge score={severity.score} factors={severity.factors} />
@@ -735,7 +742,7 @@ export default function AdminAiAnalysisPage() {
                 <div className="bg-surface border border-outline-variant rounded-xl p-4 flex flex-col gap-3">
                   <div className="flex items-center gap-2 border-b border-outline-variant pb-2">
                     <span className="material-symbols-outlined text-primary text-base">route</span>
-                    <span className="text-xs font-bold text-primary">④ Department Routing</span>
+                    <span className="text-xs font-bold text-primary">④ {t('admin.ai.routing', 'Department Routing')}</span>
                     {routing.ai_routed && <span className="ml-auto text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">AI Routed</span>}
                   </div>
                   <div className="space-y-3 text-xs">
@@ -766,7 +773,7 @@ export default function AdminAiAnalysisPage() {
                 <div className="bg-surface border border-outline-variant rounded-xl p-4 flex flex-col gap-3">
                   <div className="flex items-center gap-2 border-b border-outline-variant pb-2">
                     <span className="material-symbols-outlined text-gov-saffron text-base">assignment</span>
-                    <span className="text-xs font-bold text-primary">⑤ Recommended Actions</span>
+                    <span className="text-xs font-bold text-primary">⑤ {t('admin.ai.actions', 'Recommended Actions')}</span>
                     {actions.ai_generated && <span className="ml-auto text-[9px] bg-gov-saffron/10 text-gov-saffron px-1.5 py-0.5 rounded font-bold">AI Generated</span>}
                   </div>
                   <div className="space-y-3 text-xs">
@@ -820,7 +827,7 @@ export default function AdminAiAnalysisPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="material-symbols-outlined text-sm text-gov-green">verified_user</span>
-                    <span className="text-xs font-bold text-primary">⑥ AI Critic / Validation</span>
+                    <span className="text-xs font-bold text-primary">⑥ {t('admin.ai.critic', 'AI Critic / Validation')}</span>
                   </div>
                   <ConfidenceBadge
                     status={critic.validation_status}
@@ -851,7 +858,7 @@ export default function AdminAiAnalysisPage() {
                   {applyingRec ? (
                     <><span className="material-symbols-outlined text-sm animate-spin">sync</span><span>Applying...</span></>
                   ) : (
-                    <><span className="material-symbols-outlined text-sm">send_and_archive</span><span>Apply & Take Strategic Action →</span></>
+                    <><span className="material-symbols-outlined text-sm">send_and_archive</span><span>{t('admin.ai.applyStrategicAction', 'Apply & Take Strategic Action →')}</span></>
                   )}
                 </button>
               </div>
@@ -898,7 +905,7 @@ export default function AdminAiAnalysisPage() {
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-gov-saffron text-base">psychology</span>
               <div>
-                <h3 className="font-bold text-xs">AI Assistant</h3>
+                <h3 className="font-bold text-xs">{t('admin.ai.aiAssistant', 'AI Assistant')}</h3>
                 <p className="text-[10px] text-white/80">Querying {currentUser?.state || 'Delhi NCR'} Grievance Database</p>
               </div>
             </div>
@@ -919,7 +926,7 @@ export default function AdminAiAnalysisPage() {
             {chatLoading && (
               <div className="flex justify-start">
                 <div className="bg-surface-container-lowest border border-outline-variant p-2 rounded-lg text-[11px] text-on-surface-variant animate-pulse">
-                  AI generating response...
+                  {t('admin.ai.generatingResponse', 'AI generating response...')}
                 </div>
               </div>
             )}
@@ -929,11 +936,11 @@ export default function AdminAiAnalysisPage() {
               type="text"
               value={chatQuery}
               onChange={e => setChatQuery(e.target.value)}
-              placeholder="Ask AI about grievances or budget..."
+              placeholder={t('admin.ai.chatPlaceholder', 'Ask AI about grievances or budget...')}
               className="flex-1 px-3 py-2 text-xs bg-white border border-outline-variant rounded focus:border-primary outline-none min-h-[38px]"
             />
             <button type="submit" disabled={chatLoading} className="bg-primary text-white text-xs font-bold px-3.5 py-2 rounded hover:bg-primary/90 disabled:opacity-50 min-h-[38px]">
-              Send
+              {t('common.submit', 'Send')}
             </button>
           </form>
         </div>

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useCivic } from '../context/CivicContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ContactUsPage() {
   const { showNotification } = useCivic();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -40,7 +42,7 @@ export default function ContactUsPage() {
       setTicketId('TKT-PENDING');
     }
     setSubmitted(true);
-    showNotification("Message received! A support ticket has been opened.");
+    showNotification(t('contact.successMessage'));
   };
 
   return (
@@ -48,13 +50,13 @@ export default function ContactUsPage() {
       {/* Header */}
       <div className="border-b border-outline-variant pb-md">
         <span className="font-label-sm text-xs text-primary-container uppercase tracking-wider font-bold">
-          Ministry of Rural Development of INDIA
+          {t('contact.nodalAuthority')}
         </span>
         <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary mt-1">
-          Contact Us ☏
+          {t('contact.title')} ☏
         </h1>
         <p className="font-body-lg text-xs sm:text-sm text-on-surface-variant mt-1 max-w-2xl leading-relaxed">
-          Get in touch with our administrative support team for queries regarding grievance redressal, escalations, or portal technical assistance.
+          {t('contact.subtitle')}
         </p>
       </div>
 
@@ -64,7 +66,7 @@ export default function ContactUsPage() {
           {/* Department Card */}
           <div className="bg-surface-container-lowest border border-outline-variant p-4 sm:p-lg rounded-lg shadow-ambient">
             <h2 className="font-headline-sm text-sm sm:text-base font-bold text-primary mb-md border-b border-outline-variant pb-sm">
-              Official Headquarters
+              {t('contact.nodalTitle')}
             </h2>
 
             <div className="flex items-start gap-md mb-md">
@@ -72,9 +74,9 @@ export default function ContactUsPage() {
                 corporate_fare
               </span>
               <div>
-                <p className="font-label-md text-xs font-bold text-on-surface">Nodal Authority</p>
+                <p className="font-label-md text-xs font-bold text-on-surface">{t('contact.nodalAuthority')}</p>
                 <p className="font-body-md text-xs text-on-surface-variant mt-0.5">
-                  Ministry of Rural Devlopement of INDIA & National Informatics Centre (NIC)
+                  {t('contact.ministryName')}
                 </p>
               </div>
             </div>
@@ -84,7 +86,7 @@ export default function ContactUsPage() {
                 location_on
               </span>
               <div>
-                <p className="font-label-md text-xs font-bold text-on-surface">Official Address</p>
+                <p className="font-label-md text-xs font-bold text-on-surface">{t('footer.address')}</p>
                 <p className="font-body-md text-xs text-on-surface-variant mt-0.5 leading-relaxed">
                   Kartavya Bhavan 3, Central Secretariat,<br />
                   New Delhi - 110003
@@ -96,7 +98,7 @@ export default function ContactUsPage() {
           {/* Support Channels Card */}
           <div className="bg-surface-container-lowest border border-outline-variant p-4 sm:p-lg rounded-lg shadow-ambient">
             <h2 className="font-headline-sm text-sm sm:text-base font-bold text-primary mb-md border-b border-outline-variant pb-sm">
-              Support Channels & Helplines
+              {t('contact.helplineTitle')}
             </h2>
 
             <div className="flex items-center gap-md mb-md">
@@ -104,7 +106,7 @@ export default function ContactUsPage() {
                 mail
               </span>
               <div className="min-w-0">
-                <p className="font-label-md text-xs font-bold text-on-surface">Official Support Email</p>
+                <p className="font-label-md text-xs font-bold text-on-surface">{t('footer.emailSupport')}</p>
                 <p className="font-body-md text-xs text-primary font-semibold break-all">
                   support@kalyansetu.gov.in
                 </p>
@@ -116,7 +118,7 @@ export default function ContactUsPage() {
                 support_agent
               </span>
               <div>
-                <p className="font-label-md text-xs font-bold text-on-surface">Toll-free Citizen Help Desk</p>
+                <p className="font-label-md text-xs font-bold text-on-surface">{t('contact.tollFree')}</p>
                 <p className="font-body-md text-sm text-gov-saffron font-bold">
                   1800-111-555 (24x7)
                 </p>
@@ -128,7 +130,7 @@ export default function ContactUsPage() {
                 emergency
               </span>
               <div>
-                <p className="font-label-md text-xs font-bold text-on-surface">Emergency Civic Rapid Hotline</p>
+                <p className="font-label-md text-xs font-bold text-on-surface">{t('footer.supportHelplines')}</p>
                 <p className="font-body-md text-xs text-error font-bold">
                   112 (National Emergency Helpline)
                 </p>
@@ -141,28 +143,28 @@ export default function ContactUsPage() {
         <div className="md:col-span-7">
           <div className="bg-surface-container-lowest border border-outline-variant p-4 sm:p-lg md:p-xl rounded-lg shadow-ambient">
             <h2 className="font-headline-sm text-sm sm:text-base font-bold text-primary mb-md border-b border-outline-variant pb-sm">
-              Send Official Inquiry or Feedback
+              {t('contact.sendMessage')}
             </h2>
 
             {submitted ? (
               <div className="p-4 sm:p-lg bg-gov-green/10 border border-gov-green/30 rounded-lg text-center flex flex-col items-center gap-2">
                 <span className="material-symbols-outlined text-4xl text-gov-green">check_circle</span>
-                <h3 className="text-sm font-bold text-on-surface">Inquiry Ticket #{ticketId} Created</h3>
+                <h3 className="text-sm font-bold text-on-surface">Ticket #{ticketId}</h3>
                 <p className="text-xs text-on-surface-variant max-w-md">
-                  Thank you for contacting the administrative cell. A support representative will respond to your registered email address within 24 business hours.
+                  {t('contact.successMessage')}
                 </p>
                 <button
                   onClick={() => setSubmitted(false)}
-                  className="mt-3 text-xs bg-primary-container text-on-primary px-4 py-2.5 rounded font-bold min-h-[44px]"
+                  className="mt-3 text-xs bg-primary-container text-on-primary px-4 py-2.5 rounded font-bold min-h-[44px] cursor-pointer"
                 >
-                  Send Another Message
+                  {t('common.clear')}
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-md">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
                   <div>
-                    <label className="block text-xs font-bold text-on-surface mb-1">Your Full Name *</label>
+                    <label className="block text-xs font-bold text-on-surface mb-1">{t('contact.fullName')}</label>
                     <input
                       type="text"
                       required
@@ -174,7 +176,7 @@ export default function ContactUsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-on-surface mb-1">Email Address *</label>
+                    <label className="block text-xs font-bold text-on-surface mb-1">{t('contact.email')}</label>
                     <input
                       type="email"
                       required
@@ -188,7 +190,7 @@ export default function ContactUsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
                   <div>
-                    <label className="block text-xs font-bold text-on-surface mb-1">Contact Phone Number</label>
+                    <label className="block text-xs font-bold text-on-surface mb-1">{t('contact.phone')}</label>
                     <input
                       type="tel"
                       value={formData.phone}
@@ -199,50 +201,51 @@ export default function ContactUsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-on-surface mb-1">Target Department</label>
+                    <label className="block text-xs font-bold text-on-surface mb-1">{t('contact.department')}</label>
                     <select
                       value={formData.department}
                       onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                       className="w-full px-3 py-2.5 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                     >
-                      <option>Rural Development Authority</option>
-                      <option>Public Works Department</option>
-                      <option>Water Supply & Sanitation</option>
-                      <option>Electricity & Power</option>
+                      <option>{t('category.Road Infrastructure')}</option>
+                      <option>{t('category.Drainage & Water Supply')}</option>
+                      <option>{t('category.Electricity & Lighting')}</option>
+                      <option>{t('category.Solid Waste & Sanitation')}</option>
+                      <option>{t('category.Public Safety')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-on-surface mb-1">Subject *</label>
+                  <label className="block text-xs font-bold text-on-surface mb-1">{t('contact.subject')}</label>
                   <input
                     type="text"
                     required
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    placeholder="Brief summary of your query or grievance escalation..."
+                    placeholder="Brief summary..."
                     className="w-full px-3 py-2.5 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-on-surface mb-1">Message Body *</label>
+                  <label className="block text-xs font-bold text-on-surface mb-1">{t('contact.message')}</label>
                   <textarea
                     rows={5}
                     required
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="Provide relevant details, complaint reference number if applicable..."
+                    placeholder="Provide relevant details..."
                     className="w-full px-3 py-2.5 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none resize-none leading-relaxed"
                   ></textarea>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full sm:w-auto bg-primary-container text-on-primary font-bold text-xs px-8 py-3 rounded hover:bg-primary transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 self-start min-h-[44px]"
+                  className="w-full sm:w-auto bg-primary-container text-on-primary font-bold text-xs px-8 py-3 rounded hover:bg-primary transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 self-start min-h-[44px] cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-sm">send</span>
-                  <span>Submit Inquiry Message</span>
+                  <span>{t('contact.sendButton')}</span>
                 </button>
               </form>
             )}

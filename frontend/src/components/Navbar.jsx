@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCivic } from '../context/CivicContext';
+import { useLanguage } from '../context/LanguageContext';
 import kalyanSetuLogo from '../assets/kalyan-setu-logo.png';
 
 export default function Navbar() {
@@ -14,9 +15,16 @@ export default function Navbar() {
     logoutUser
   } = useCivic();
 
+  const {
+    currentLanguage,
+    selectedLanguageMeta,
+    supportedLanguages,
+    changeLanguage,
+    t
+  } = useLanguage();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
-  const [selectedLang, setSelectedLang] = useState('EN');
 
   const isAuthenticated = Boolean(currentUser || authToken);
   const isOfficial = userRole === 'official';
@@ -35,7 +43,7 @@ export default function Navbar() {
     }
   };
 
-  const displayName = currentUser?.officer_name || currentUser?.full_name || currentUser?.name || currentUser?.email || (isOfficial ? 'Gov Official' : 'Citizen');
+  const displayName = currentUser?.officer_name || currentUser?.full_name || currentUser?.name || currentUser?.email || (isOfficial ? t('navbar.officialBadge') : t('navbar.citizenBadge'));
 
   return (
     <header className="bg-surface border-b border-outline-variant w-full sticky top-0 z-50 shadow-sm">
@@ -47,13 +55,13 @@ export default function Navbar() {
             <span className="truncate">
               {isOfficial ? (
                 <>
-                  <span className="sm:hidden text-[11px]">GOI Admin Grievances</span>
-                  <span className="hidden sm:inline">GOI Administration Dept. of Grievances</span>
+                  <span className="sm:hidden text-[11px]">{t('navbar.adminBannerShort')}</span>
+                  <span className="hidden sm:inline">{t('navbar.adminBanner')}</span>
                 </>
               ) : (
                 <>
-                  <span className="sm:hidden text-[11px]">Govt. of India • Kalyan Setu</span>
-                  <span className="hidden sm:inline">Government of India • Ministry of Rural Development • Kalyan Setu</span>
+                  <span className="sm:hidden text-[11px]">{t('navbar.citizenBannerShort')}</span>
+                  <span className="hidden sm:inline">{t('navbar.citizenBanner')}</span>
                 </>
               )}
             </span>
@@ -65,30 +73,33 @@ export default function Navbar() {
                 className="hidden sm:flex text-primary-fixed-dim hover:text-white transition-colors underline items-center gap-1 cursor-pointer font-bold text-xs"
               >
                 <span className="material-symbols-outlined text-[14px]">swap_horiz</span>
-                <span>Switch to Government Portal</span>
+                <span>{t('navbar.switchToGov')}</span>
               </button>
             )}
             <div className="relative">
               <button 
                 onClick={() => setLangMenuOpen(!langMenuOpen)}
-                className="hover:text-primary-fixed-dim flex items-center gap-0.5 text-xs font-semibold px-1 py-0.5 rounded"
-                aria-label="Select Language"
+                className="hover:text-primary-fixed-dim flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 transition-all cursor-pointer"
+                aria-label={t('navbar.selectLanguage')}
               >
-                <span>{selectedLang}</span>
+                <span>{selectedLanguageMeta.label}</span>
                 <span className="material-symbols-outlined text-[14px]">arrow_drop_down</span>
               </button>
               {langMenuOpen && (
-                <div className="absolute right-0 mt-1 bg-surface-container-lowest text-on-surface border border-outline-variant rounded shadow-lg py-1 w-28 z-50">
-                  {['English (EN)', 'हिंदी (HI)', 'ଓଡ଼ିଆ (ODIA)'].map((lang) => (
+                <div className="absolute right-0 mt-1 bg-surface-container-lowest text-on-surface border border-outline-variant rounded shadow-xl py-1 w-36 z-50">
+                  {supportedLanguages.map((lang) => (
                     <button
-                      key={lang}
+                      key={lang.code}
                       onClick={() => {
-                        setSelectedLang(lang.slice(-3, -1));
+                        changeLanguage(lang.code);
                         setLangMenuOpen(false);
                       }}
-                      className="w-full text-left px-3 py-1.5 text-xs hover:bg-surface-container-high font-medium"
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-container-high font-medium flex items-center justify-between cursor-pointer ${currentLanguage === lang.code ? 'text-primary font-bold bg-primary-container/10' : ''}`}
                     >
-                      {lang}
+                      <span>{lang.label}</span>
+                      {currentLanguage === lang.code && (
+                        <span className="material-symbols-outlined text-xs text-primary">check</span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -107,132 +118,129 @@ export default function Navbar() {
         >
           <img
             src={kalyanSetuLogo}
-            alt="Kalyan Setu Logo"
+            alt={t('navbar.title')}
             className="h-9 sm:h-12 w-auto object-contain group-hover:scale-105 transition-transform"
           />
         </div>
 
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-gutter h-full pt-1">
-          {/* Home is visible to everyone except logged-in Government Officials */}
           {(!isAuthenticated || !isOfficial) && (
             <button
               onClick={() => navigateTo('home')}
-              className={`font-label-md text-label-md transition-all pb-1 ${
+              className={`font-label-md text-label-md transition-all pb-1 cursor-pointer ${
                 activeTab === 'home'
                   ? 'text-primary font-bold border-b-2 border-primary'
                   : 'text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-high px-sm py-xs rounded'
               }`}
             >
-              Home
+              {t('navbar.home')}
             </button>
           )}
 
-          {/* Citizen links visible ONLY when logged in as Citizen */}
           {isAuthenticated && !isOfficial && (
             <>
               <button
                 onClick={() => navigateTo('citizen_dashboard')}
-                className={`font-label-md text-label-md transition-all pb-1 ${
+                className={`font-label-md text-label-md transition-all pb-1 cursor-pointer ${
                   activeTab === 'citizen_dashboard'
                     ? 'text-primary font-bold border-b-2 border-primary'
                     : 'text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-high px-sm py-xs rounded'
                 }`}
               >
-                Citizen Dashboard
+                {t('navbar.dashboard')}
               </button>
 
               <button
                 onClick={() => navigateTo('submit')}
-                className={`font-label-md text-label-md transition-all pb-1 ${
+                className={`font-label-md text-label-md transition-all pb-1 cursor-pointer ${
                   activeTab === 'submit'
                     ? 'text-primary font-bold border-b-2 border-primary'
                     : 'text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-high px-sm py-xs rounded'
                 }`}
               >
-                Report a Problem
+                {t('navbar.reportProblem')}
               </button>
 
               <button
                 onClick={() => navigateTo('track')}
-                className={`font-label-md text-label-md transition-all pb-1 ${
+                className={`font-label-md text-label-md transition-all pb-1 cursor-pointer ${
                   activeTab === 'track'
                     ? 'text-primary font-bold border-b-2 border-primary'
                     : 'text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-high px-sm py-xs rounded'
                 }`}
               >
-                Track Status
+                {t('navbar.trackProblem')}
               </button>
 
               <button
                 onClick={() => navigateTo('contact')}
-                className={`font-label-md text-label-md transition-all pb-1 ${
+                className={`font-label-md text-label-md transition-all pb-1 cursor-pointer ${
                   activeTab === 'contact'
                     ? 'text-primary font-bold border-b-2 border-primary'
                     : 'text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-high px-sm py-xs rounded'
                 }`}
               >
-                Contact Us
+                {t('navbar.contact')}
               </button>
 
               <button
                 onClick={() => navigateTo('profile')}
-                className={`font-label-md text-label-md transition-all pb-1 ${
+                className={`font-label-md text-label-md transition-all pb-1 cursor-pointer ${
                   activeTab === 'profile'
                     ? 'text-primary font-bold border-b-2 border-primary'
                     : 'text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-high px-sm py-xs rounded'
                 }`}
               >
-                My Profile
+                {t('navbar.profile')}
               </button>
             </>
           )}
 
-          {/* Government Officer links visible ONLY when logged in as Official */}
           {isAuthenticated && isOfficial && (
             <>
               <button
                 onClick={() => navigateTo('admin_overview')}
-                className={`font-label-md text-label-md transition-all pb-1 ${
+                className={`font-label-md text-label-md transition-all pb-1 cursor-pointer ${
                   activeTab === 'admin_overview'
                     ? 'text-primary font-bold border-b-2 border-primary'
                     : 'text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-high px-sm py-xs rounded'
                 }`}
               >
-                Official Overview
+                {t('navbar.overview')}
               </button>
 
               <button
                 onClick={() => navigateTo('admin_ai')}
-                className={`font-label-md text-label-md transition-all pb-1 ${
+                className={`font-label-md text-label-md transition-all pb-1 cursor-pointer ${
                   activeTab === 'admin_ai'
                     ? 'text-primary font-bold border-b-2 border-primary'
                     : 'text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-high px-sm py-xs rounded'
                 }`}
               >
-                AI Neural Insights
+                {t('navbar.aiAnalysis')}
               </button>
 
               <button
                 onClick={() => navigateTo('admin_complaints')}
-                className={`font-label-md text-label-md transition-all pb-1 ${
+                className={`font-label-md text-label-md transition-all pb-1 cursor-pointer ${
                   activeTab === 'admin_complaints'
                     ? 'text-primary font-bold border-b-2 border-primary'
                     : 'text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-high px-sm py-xs rounded'
                 }`}
               >
-                Grievance Management
+                {t('navbar.complaints')}
               </button>
 
               <button
                 onClick={() => navigateTo('admin_action')}
-                className={`font-label-md text-label-md transition-all pb-1 ${
+                className={`font-label-md text-label-md transition-all pb-1 cursor-pointer ${
                   activeTab === 'admin_action'
                     ? 'text-primary font-bold border-b-2 border-primary'
                     : 'text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-high px-sm py-xs rounded'
                 }`}
               >
-                Take Action
+                {t('navbar.takeAction')}
               </button>
             </>
           )}
@@ -244,16 +252,16 @@ export default function Navbar() {
             <>
               <button
                 onClick={() => openAuth('citizen', 'login')}
-                className="font-label-md text-xs sm:text-label-md text-primary-container border border-primary-container rounded px-2.5 sm:px-md py-1 sm:py-sm hover:bg-surface-container transition-colors font-medium active:scale-95"
+                className="font-label-md text-xs sm:text-label-md text-primary-container border border-primary-container rounded px-2.5 sm:px-md py-1 sm:py-sm hover:bg-surface-container transition-colors font-medium active:scale-95 cursor-pointer"
               >
-                Sign In
+                {t('navbar.signIn')}
               </button>
 
               <button
                 onClick={() => openAuth('citizen', 'register')}
-                className="hidden sm:inline-flex font-label-md text-label-md bg-primary-container text-on-primary rounded px-md py-sm hover:bg-primary transition-all shadow-sm font-semibold active:scale-95"
+                className="hidden sm:inline-flex font-label-md text-label-md bg-primary-container text-on-primary rounded px-md py-sm hover:bg-primary transition-all shadow-sm font-semibold active:scale-95 cursor-pointer"
               >
-                Register
+                {t('navbar.register')}
               </button>
             </>
           ) : (
@@ -261,7 +269,7 @@ export default function Navbar() {
               <div
                 onClick={() => !isOfficial && navigateTo('profile')}
                 className={`flex items-center gap-1.5 bg-surface-container border border-outline-variant rounded-full px-2 sm:px-3 py-1 text-xs ${!isOfficial ? 'cursor-pointer hover:border-primary transition-colors' : ''}`}
-                title={!isOfficial ? 'View Citizen Profile' : 'Government Official Account'}
+                title={!isOfficial ? t('navbar.profile') : t('navbar.officialBadge')}
               >
                 <span className="material-symbols-outlined text-primary text-sm">
                   {isOfficial ? 'admin_panel_settings' : 'account_circle'}
@@ -271,9 +279,9 @@ export default function Navbar() {
 
               <button
                 onClick={logoutUser}
-                className="font-label-md text-[11px] sm:text-xs text-error border border-error/30 rounded px-2 sm:px-2.5 py-1 hover:bg-error/10 transition-colors font-semibold shrink-0"
+                className="font-label-md text-[11px] sm:text-xs text-error border border-error/30 rounded px-2 sm:px-2.5 py-1 hover:bg-error/10 transition-colors font-semibold shrink-0 cursor-pointer"
               >
-                Sign Out
+                {t('navbar.logout')}
               </button>
             </div>
           )}
@@ -281,7 +289,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden text-on-surface-variant p-1.5 sm:p-sm hover:bg-surface-container rounded"
+            className="md:hidden text-on-surface-variant p-1.5 sm:p-sm hover:bg-surface-container rounded cursor-pointer"
             aria-label="Toggle menu"
           >
             <span className="material-symbols-outlined text-[24px]">{mobileMenuOpen ? 'close' : 'menu'}</span>
@@ -298,7 +306,7 @@ export default function Navbar() {
               className={`text-left py-2.5 px-3 rounded font-label-md flex items-center gap-2.5 ${activeTab === 'home' ? 'bg-primary-container text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container'}`}
             >
               <span className="material-symbols-outlined text-lg">home</span>
-              <span>Home</span>
+              <span>{t('navbar.home')}</span>
             </button>
           )}
 
@@ -309,35 +317,35 @@ export default function Navbar() {
                 className={`text-left py-2.5 px-3 rounded font-label-md flex items-center gap-2.5 ${activeTab === 'citizen_dashboard' ? 'bg-primary-container text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container'}`}
               >
                 <span className="material-symbols-outlined text-lg">dashboard</span>
-                <span>Citizen Dashboard</span>
+                <span>{t('navbar.dashboard')}</span>
               </button>
               <button
                 onClick={() => { navigateTo('submit'); setMobileMenuOpen(false); }}
                 className={`text-left py-2.5 px-3 rounded font-label-md flex items-center gap-2.5 ${activeTab === 'submit' ? 'bg-primary-container text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container'}`}
               >
                 <span className="material-symbols-outlined text-lg">add_circle</span>
-                <span>Report a Problem</span>
+                <span>{t('navbar.reportProblem')}</span>
               </button>
               <button
                 onClick={() => { navigateTo('track'); setMobileMenuOpen(false); }}
                 className={`text-left py-2.5 px-3 rounded font-label-md flex items-center gap-2.5 ${activeTab === 'track' ? 'bg-primary-container text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container'}`}
               >
                 <span className="material-symbols-outlined text-lg">my_location</span>
-                <span>Track Status</span>
+                <span>{t('navbar.trackProblem')}</span>
               </button>
               <button
                 onClick={() => { navigateTo('contact'); setMobileMenuOpen(false); }}
                 className={`text-left py-2.5 px-3 rounded font-label-md flex items-center gap-2.5 ${activeTab === 'contact' ? 'bg-primary-container text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container'}`}
               >
                 <span className="material-symbols-outlined text-lg">contact_support</span>
-                <span>Contact & Support</span>
+                <span>{t('navbar.contact')}</span>
               </button>
               <button
                 onClick={() => { navigateTo('profile'); setMobileMenuOpen(false); }}
                 className={`text-left py-2.5 px-3 rounded font-label-md flex items-center gap-2.5 ${activeTab === 'profile' ? 'bg-primary-container text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container'}`}
               >
                 <span className="material-symbols-outlined text-lg">person</span>
-                <span>My Profile</span>
+                <span>{t('navbar.profile')}</span>
               </button>
             </>
           )}
@@ -349,28 +357,28 @@ export default function Navbar() {
                 className={`text-left py-2.5 px-3 rounded font-label-md flex items-center gap-2.5 ${activeTab === 'admin_overview' ? 'bg-primary-container text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container'}`}
               >
                 <span className="material-symbols-outlined text-lg">dashboard</span>
-                <span>Official Overview</span>
+                <span>{t('navbar.overview')}</span>
               </button>
               <button
                 onClick={() => { navigateTo('admin_ai'); setMobileMenuOpen(false); }}
                 className={`text-left py-2.5 px-3 rounded font-label-md flex items-center gap-2.5 ${activeTab === 'admin_ai' ? 'bg-primary-container text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container'}`}
               >
                 <span className="material-symbols-outlined text-lg">analytics</span>
-                <span>AI Neural Insights</span>
+                <span>{t('navbar.aiAnalysis')}</span>
               </button>
               <button
                 onClick={() => { navigateTo('admin_complaints'); setMobileMenuOpen(false); }}
                 className={`text-left py-2.5 px-3 rounded font-label-md flex items-center gap-2.5 ${activeTab === 'admin_complaints' ? 'bg-primary-container text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container'}`}
               >
                 <span className="material-symbols-outlined text-lg">assignment_late</span>
-                <span>Grievance Management</span>
+                <span>{t('navbar.complaints')}</span>
               </button>
               <button
                 onClick={() => { navigateTo('admin_action'); setMobileMenuOpen(false); }}
                 className={`text-left py-2.5 px-3 rounded font-label-md flex items-center gap-2.5 ${activeTab === 'admin_action' ? 'bg-primary-container text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container'}`}
               >
                 <span className="material-symbols-outlined text-lg">gavel</span>
-                <span>Take Action</span>
+                <span>{t('navbar.takeAction')}</span>
               </button>
             </>
           )}
@@ -381,7 +389,7 @@ export default function Navbar() {
               className="text-left py-2.5 px-3 rounded font-label-md bg-primary-container text-on-primary font-bold flex items-center gap-2.5 mt-1"
             >
               <span className="material-symbols-outlined text-lg">person_add</span>
-              <span>Register New Citizen</span>
+              <span>{t('navbar.register')}</span>
             </button>
           )}
 
@@ -395,7 +403,7 @@ export default function Navbar() {
             >
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm text-gov-green">shield_person</span>
-                <span>Switch to Government Portal</span>
+                <span>{t('navbar.switchToGov')}</span>
               </div>
               <span className="material-symbols-outlined text-sm">swap_horiz</span>
             </button>
@@ -409,7 +417,7 @@ export default function Navbar() {
             >
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm text-primary">public</span>
-                <span>Switch to Citizen Portal</span>
+                <span>{t('navbar.switchToCitizen')}</span>
               </div>
               <span className="material-symbols-outlined text-sm">swap_horiz</span>
             </button>

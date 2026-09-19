@@ -1,8 +1,10 @@
 import React from 'react';
 import { useCivic } from '../context/CivicContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function NotificationToast() {
   const { notification } = useCivic();
+  const { t } = useLanguage();
 
   if (!notification) return null;
 
@@ -20,7 +22,7 @@ export default function NotificationToast() {
         </span>
         <div>
           <p className="font-label-md text-xs font-bold">{notification.message}</p>
-          <p className="text-[10px] text-on-surface-variant">System notification</p>
+          <p className="text-[10px] text-on-surface-variant">{t('messages.systemNotification', 'System notification')}</p>
         </div>
       </div>
     </div>

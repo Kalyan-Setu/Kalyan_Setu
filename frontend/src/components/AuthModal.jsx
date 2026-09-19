@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCivic, API_BASE } from '../context/CivicContext';
+import { useLanguage } from '../context/LanguageContext';
 import kalyanSetuLogo from '../assets/kalyan-setu-logo.png';
 import parliamentBackground from '../assets/parliament-bg.jpg';
 import { INDIAN_STATES, getDistrictsForState, isValidPincode } from '../data/indiaLocationData';
@@ -17,6 +18,7 @@ export default function AuthModal() {
     showNotification,
     navigateTo 
   } = useCivic();
+  const { t } = useLanguage();
 
   const [userType, setUserType] = useState(authInitialType || 'citizen');
   const [authTab, setAuthTab] = useState(authInitialTab || 'login');
@@ -279,7 +281,7 @@ export default function AuthModal() {
                     : 'text-on-surface-variant hover:text-primary'
                 }`}
               >
-                Citizen Portal
+                {t('auth.citizenTab', 'Citizen Portal')}
               </button>
               <button
                 type="button"
@@ -290,7 +292,7 @@ export default function AuthModal() {
                     : 'text-on-surface-variant hover:text-primary'
                 }`}
               >
-                Government Official
+                {t('auth.officialTab', 'Government Official')}
               </button>
             </div>
 
@@ -305,7 +307,7 @@ export default function AuthModal() {
                     : 'text-on-surface-variant hover:text-primary'
                 }`}
               >
-                Sign In
+                {t('auth.loginButton', 'Sign In')}
               </button>
               {userType === 'citizen' && (
                 <button
@@ -317,7 +319,7 @@ export default function AuthModal() {
                       : 'text-on-surface-variant hover:text-primary'
                   }`}
                 >
-                  New Registration
+                  {t('auth.registerButton', 'New Registration')}
                 </button>
               )}
             </div>
@@ -336,7 +338,7 @@ export default function AuthModal() {
                     <>
                       <div>
                         <label className="block text-xs font-bold text-on-surface mb-1">
-                          Mobile Number or Email
+                          {t('auth.mobileOrEmail', 'Mobile Number or Email')}
                         </label>
                         <div className="relative">
                           <span className="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-lg">
@@ -347,7 +349,7 @@ export default function AuthModal() {
                             required
                             value={formData.identifier}
                             onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
-                            placeholder="10-digit mobile or email"
+                            placeholder={t('auth.mobileOrEmail', '10-digit mobile or email')}
                             className="w-full pl-10 pr-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                           />
                         </div>
@@ -355,7 +357,7 @@ export default function AuthModal() {
 
                       <div>
                         <label className="block text-xs font-bold text-on-surface mb-1">
-                          Password
+                          {t('auth.password', 'Password')}
                         </label>
                         <div className="relative">
                           <input
@@ -363,7 +365,7 @@ export default function AuthModal() {
                             required
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            placeholder="Enter your password"
+                            placeholder={t('auth.password', 'Enter your password')}
                             className="w-full pl-3 pr-10 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
                           />
                           <button
@@ -383,7 +385,7 @@ export default function AuthModal() {
                     <>
                       <div>
                         <label className="block text-xs font-bold text-on-surface mb-1">
-                          Full Name (as per ID) *
+                          {t('auth.fullName', 'Full Name (as per ID) *')}
                         </label>
                         <input
                           type="text"
@@ -397,7 +399,7 @@ export default function AuthModal() {
                       <div>
                         <div className="flex items-center justify-between mb-1">
                           <label className="block text-xs font-bold text-on-surface">
-                            Mobile Number *
+                            {t('auth.mobileNumber', 'Mobile Number *')}
                           </label>
                           <span className={`text-[10px] font-mono font-medium ${
                             formData.phone.length === 10 ? 'text-gov-green font-bold' :
@@ -472,7 +474,7 @@ export default function AuthModal() {
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-on-surface mb-1">
-                          Email Address (@gmail.com) *
+                          {t('auth.email', 'Email Address (@gmail.com) *')}
                         </label>
                         <div className="relative">
                           <span className={`material-symbols-outlined absolute left-3 top-2.5 text-lg ${
@@ -531,7 +533,7 @@ export default function AuthModal() {
                       {/* State * */}
                       <div>
                         <label className="block text-xs font-bold text-on-surface mb-1">
-                          State / Union Territory *
+                          {t('submit.stateLabel', 'State / Union Territory *')}
                         </label>
                         <select
                           required
@@ -545,7 +547,7 @@ export default function AuthModal() {
                           }}
                           className="w-full px-3 py-2 text-sm bg-white border border-outline-variant rounded focus:border-primary outline-none"
                         >
-                          <option value="">-- Select State / UT --</option>
+                          <option value="">{t('submit.selectState', '-- Select State / UT --')}</option>
                           {INDIAN_STATES.map((s) => (
                             <option key={s} value={s}>
                               {s}
@@ -557,7 +559,7 @@ export default function AuthModal() {
                       {/* District / City * (Dependent Dropdown) */}
                       <div>
                         <label className="block text-xs font-bold text-on-surface mb-1">
-                          District / City *
+                          {t('submit.districtLabel', 'District / City *')}
                         </label>
                         <select
                           required
@@ -569,7 +571,7 @@ export default function AuthModal() {
                           }`}
                         >
                           <option value="">
-                            {formData.state ? '-- Select District / City --' : '-- Select State first --'}
+                            {formData.state ? t('submit.selectDistrict', '-- Select District / City --') : t('submit.selectStateFirst', '-- Select State first --')}
                           </option>
                           {getDistrictsForState(formData.state).map((d) => (
                             <option key={d} value={d}>
@@ -583,7 +585,7 @@ export default function AuthModal() {
                       <div>
                         <div className="flex items-center justify-between mb-1">
                           <label className="block text-xs font-bold text-on-surface">
-                            Pincode *
+                            {t('submit.pincodeLabel', 'Pincode *')}
                           </label>
                           <span className={`text-[10px] font-mono font-medium ${
                             formData.pincode.length === 6 ? 'text-gov-green font-bold' :
@@ -649,7 +651,7 @@ export default function AuthModal() {
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-on-surface mb-1">
-                          Create Password *
+                          {t('auth.createPassword', 'Create Password *')}
                         </label>
                         <div className="relative">
                           <input
@@ -680,7 +682,7 @@ export default function AuthModal() {
                 <>
                   <div>
                     <label className="block text-xs font-bold text-on-surface mb-1">
-                      Official Gov Email / Employee ID
+                      {t('auth.officialEmail', 'Official Gov Email / Employee ID')}
                     </label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-lg">
@@ -699,7 +701,7 @@ export default function AuthModal() {
 
                   <div>
                     <label className="block text-xs font-bold text-on-surface mb-1">
-                      Parichay SSO PIN / Password
+                      {t('auth.officialPassword', 'Parichay SSO PIN / Password')}
                     </label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-lg">
@@ -737,11 +739,11 @@ export default function AuthModal() {
               >
                 <span className="material-symbols-outlined text-sm">{loading ? 'sync' : 'lock_open'}</span>
                 <span>
-                  {loading ? 'Authenticating...' : userType === 'official'
-                    ? 'Authenticate with Parichay SSO'
+                  {loading ? t('common.loading', 'Authenticating...') : userType === 'official'
+                    ? t('auth.officialLogin', 'Authenticate with Parichay SSO')
                     : authTab === 'login'
-                    ? 'Verify & Sign In'
-                    : 'Create Citizen Account'}
+                    ? t('auth.loginButton', 'Verify & Sign In')
+                    : t('auth.registerButton', 'Create Citizen Account')}
                 </span>
               </button>
             </form>
@@ -750,9 +752,9 @@ export default function AuthModal() {
               <p className="text-[11px] text-on-surface-variant">
                 By accessing this portal, you agree to the{' '}
                 <a href="#" className="text-primary underline">
-                  Terms of Service
+                  {t('footer.termsOfService', 'Terms of Service')}
                 </a>{' '}
-                and Privacy Safeguards.
+                and {t('footer.privacyPolicy', 'Privacy Safeguards')}.
               </p>
             </div>
           </div>

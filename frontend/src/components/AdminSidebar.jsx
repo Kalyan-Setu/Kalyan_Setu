@@ -1,14 +1,16 @@
 import React from 'react';
 import { useCivic } from '../context/CivicContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function AdminSidebar() {
-  const { activeTab, navigateTo, setUserRole, currentUser } = useCivic();
+  const { activeTab, navigateTo, currentUser } = useCivic();
+  const { t } = useLanguage();
 
   const navItems = [
-    { id: 'admin_overview', label: 'State Overview', icon: 'dashboard' },
-    { id: 'admin_complaints', label: 'Complaints', icon: 'assignment_late' },
-    { id: 'admin_ai', label: 'AI Analysis', icon: 'analytics' },
-    { id: 'admin_action', label: 'Take Action', icon: 'gavel' },
+    { id: 'admin_overview', label: t('navbar.overview'), icon: 'dashboard' },
+    { id: 'admin_complaints', label: t('navbar.complaints'), icon: 'assignment_late' },
+    { id: 'admin_ai', label: t('navbar.aiAnalysis'), icon: 'analytics' },
+    { id: 'admin_action', label: t('navbar.takeAction'), icon: 'gavel' },
   ];
 
   return (
@@ -22,7 +24,7 @@ export default function AdminSidebar() {
               <button
                 key={item.id}
                 onClick={() => navigateTo(item.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
                   isActive
                     ? 'bg-primary-container text-on-primary shadow-sm'
                     : 'bg-surface text-on-surface-variant hover:bg-surface-container border border-outline-variant/60'
@@ -46,8 +48,8 @@ export default function AdminSidebar() {
             <span className="material-symbols-outlined text-[22px]">shield_person</span>
           </div>
           <div>
-            <h2 className="font-headline-sm text-sm font-bold text-primary">GOI Administration</h2>
-            <p className="font-label-sm text-[11px] text-on-surface-variant">Dept. of Grievances</p>
+            <h2 className="font-headline-sm text-sm font-bold text-primary">{t('admin.portalName')}</h2>
+            <p className="font-label-sm text-[11px] text-on-surface-variant">{t('admin.deptName')}</p>
           </div>
         </div>
 
@@ -59,7 +61,7 @@ export default function AdminSidebar() {
               <button
                 key={item.id}
                 onClick={() => navigateTo(item.id)}
-                className={`flex items-center gap-md px-md py-sm rounded-lg font-label-md text-label-md transition-all text-left w-full ${
+                className={`flex items-center gap-md px-md py-sm rounded-lg font-label-md text-label-md transition-all text-left w-full cursor-pointer ${
                   isActive
                     ? 'bg-primary-container text-on-primary font-bold shadow-sm'
                     : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
@@ -81,8 +83,8 @@ export default function AdminSidebar() {
               {(currentUser?.name || currentUser?.officer_name || 'GO').slice(0, 2).toUpperCase()}
             </div>
             <div className="overflow-hidden">
-              <p className="text-xs font-bold text-on-surface truncate">{currentUser?.name || currentUser?.officer_name || 'Gov Official'}</p>
-              <p className="text-[10px] text-on-surface-variant truncate">{currentUser?.roleTitle || currentUser?.department || 'GOI Executive'}</p>
+              <p className="text-xs font-bold text-on-surface truncate">{currentUser?.name || currentUser?.officer_name || t('navbar.officialBadge')}</p>
+              <p className="text-[10px] text-on-surface-variant truncate">{currentUser?.roleTitle || currentUser?.department || t('admin.deptName')}</p>
             </div>
           </div>
         </div>

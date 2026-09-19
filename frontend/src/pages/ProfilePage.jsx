@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useCivic } from '../context/CivicContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ProfilePage() {
   const { currentUser, updateUserProfile, complaints, navigateTo, showNotification } = useCivic();
+  const { t } = useLanguage();
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,23 +28,23 @@ export default function ProfilePage() {
     e.preventDefault();
     const phoneClean = (formData.phone || '').trim().replace(/\D/g, '');
     if (phoneClean.length !== 10) {
-      showNotification("Mobile number must be exactly 10 digits.");
+      showNotification(t('messages.invalidPhone'), 'error');
       return;
     }
     if (formData.email) {
       const emailClean = formData.email.trim().toLowerCase();
       const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
       if (!gmailRegex.test(emailClean)) {
-        showNotification("Email must be a valid @gmail.com address.");
+        showNotification(t('messages.invalidEmail'), 'error');
         return;
       }
     }
     updateUserProfile(formData);
     setIsEditing(false);
+    showNotification(t('messages.profileUpdated'));
   };
 
-  // Filter complaints for this citizen
-  const citizenComplaints = complaints; // All complaints stored for user session
+  const citizenComplaints = complaints;
   const totalCount = citizenComplaints.length;
   const resolvedCount = citizenComplaints.filter(c => c.status === 'Resolved').length;
   const pendingCount = citizenComplaints.filter(c => c.status === 'Submitted' || c.status === 'Under Review').length;
@@ -63,10 +65,10 @@ export default function ProfilePage() {
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display-lg truncate">{currentUser?.full_name || currentUser?.name || 'Citizen'}</h1>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display-lg truncate">{currentUser?.full_name || currentUser?.name || t('navbar.citizenBadge')}</h1>
                 <span className="bg-gov-green/20 text-gov-green border border-gov-green/40 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold flex items-center gap-1">
                   <span className="material-symbols-outlined text-xs">verified</span>
-                  Verified Citizen
+                  {t('profile.verified')}
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-primary-fixed-dim mt-1 flex items-center gap-1 sm:gap-2">
@@ -74,17 +76,17 @@ export default function ProfilePage() {
                 <span>{currentUser?.district || 'South District'}, {currentUser?.state || 'Delhi NCR'}</span>
               </p>
               <p className="text-[11px] sm:text-xs text-white/80 mt-0.5 font-mono">
-                Citizen ID: CTZ-2026-{currentUser?.id || '88492'}
+                {t('profile.citizenId')}: CTZ-2026-{currentUser?.id || '88492'}
               </p>
             </div>
           </div>
 
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className="w-full sm:w-auto bg-white text-primary font-bold text-xs px-md py-2.5 rounded-lg hover:bg-surface-container transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 min-h-[44px]"
+            className="w-full sm:w-auto bg-white text-primary font-bold text-xs px-md py-2.5 rounded-lg hover:bg-surface-container transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 min-h-[44px] cursor-pointer"
           >
             <span className="material-symbols-outlined text-sm">{isEditing ? 'close' : 'edit'}</span>
-            {isEditing ? 'Cancel Edit' : 'Edit Profile'}
+            {isEditing ? t('common.cancel') : t('profile.editProfile')}
           </button>
         </div>
       </div>
@@ -93,38 +95,38 @@ export default function ProfilePage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-md mb-md sm:mb-lg">
         <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-3 sm:p-md shadow-ambient">
           <div className="flex justify-between items-center text-primary mb-1">
-            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-on-surface-variant">Total Logged</span>
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-on-surface-variant">{t('profile.totalFiled')}</span>
             <span className="material-symbols-outlined text-lg sm:text-xl">assignment</span>
           </div>
           <div className="text-xl sm:text-2xl font-bold text-on-surface font-display-lg">{totalCount}</div>
-          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">Grievances filed</div>
+          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">{t('citizen.kpi.totalFiledSub')}</div>
         </div>
 
         <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-3 sm:p-md shadow-ambient">
           <div className="flex justify-between items-center text-gov-green mb-1">
-            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-on-surface-variant">Resolved</span>
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-on-surface-variant">{t('profile.resolved')}</span>
             <span className="material-symbols-outlined text-lg sm:text-xl">check_circle</span>
           </div>
           <div className="text-xl sm:text-2xl font-bold text-gov-green font-display-lg">{resolvedCount}</div>
-          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">Issues fixed</div>
+          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">{t('citizen.kpi.resolvedSub')}</div>
         </div>
 
         <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-3 sm:p-md shadow-ambient">
           <div className="flex justify-between items-center text-gov-saffron mb-1">
-            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-on-surface-variant">In Progress</span>
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-on-surface-variant">{t('profile.inProgress')}</span>
             <span className="material-symbols-outlined text-lg sm:text-xl">engineering</span>
           </div>
           <div className="text-xl sm:text-2xl font-bold text-gov-saffron font-display-lg">{inProgressCount}</div>
-          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">Field action active</div>
+          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">{t('citizen.kpi.inProgressSub')}</div>
         </div>
 
         <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-3 sm:p-md shadow-ambient">
           <div className="flex justify-between items-center text-primary mb-1">
-            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-on-surface-variant">Pending</span>
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-on-surface-variant">{t('profile.pending')}</span>
             <span className="material-symbols-outlined text-lg sm:text-xl">pending_actions</span>
           </div>
           <div className="text-xl sm:text-2xl font-bold text-primary font-display-lg">{pendingCount}</div>
-          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">Awaiting triage</div>
+          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">{t('citizen.kpi.pendingSub')}</div>
         </div>
       </div>
 
@@ -133,13 +135,13 @@ export default function ProfilePage() {
         <div className="lg:col-span-1 bg-surface-container-lowest border border-outline-variant rounded-xl p-4 sm:p-lg shadow-ambient h-fit">
           <h2 className="text-lg font-bold text-on-surface mb-md flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">person</span>
-            Personal Information
+            {t('profile.personalInfo')}
           </h2>
 
           {isEditing ? (
             <form onSubmit={handleSubmit} className="flex flex-col gap-md">
               <div>
-                <label className="block text-xs font-bold text-on-surface mb-1">Full Name</label>
+                <label className="block text-xs font-bold text-on-surface mb-1">{t('profile.fullName')}</label>
                 <input
                   type="text"
                   name="full_name"
@@ -151,7 +153,7 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-on-surface mb-1">Phone Number (10 Digits)</label>
+                <label className="block text-xs font-bold text-on-surface mb-1">{t('profile.phone')}</label>
                 <input
                   type="tel"
                   name="phone"
@@ -167,7 +169,7 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-on-surface mb-1">Email Address (@gmail.com)</label>
+                <label className="block text-xs font-bold text-on-surface mb-1">{t('profile.email')}</label>
                 <input
                   type="email"
                   name="email"
@@ -180,7 +182,7 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-on-surface mb-1">State / Union Territory</label>
+                <label className="block text-xs font-bold text-on-surface mb-1">{t('profile.state')}</label>
                 <input
                   type="text"
                   name="state"
@@ -191,7 +193,7 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-on-surface mb-1">District</label>
+                <label className="block text-xs font-bold text-on-surface mb-1">{t('profile.district')}</label>
                 <input
                   type="text"
                   name="district"
@@ -204,47 +206,47 @@ export default function ProfilePage() {
               <div className="flex gap-2 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-primary text-on-primary font-bold text-xs py-2.5 rounded hover:bg-primary-container transition-colors min-h-[44px]"
+                  className="flex-1 bg-primary text-on-primary font-bold text-xs py-2.5 rounded hover:bg-primary-container transition-colors min-h-[44px] cursor-pointer"
                 >
-                  Save Changes
+                  {t('profile.saveChanges')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2.5 border border-outline-variant text-xs text-on-surface-variant rounded hover:bg-surface-container min-h-[44px]"
+                  className="px-4 py-2.5 border border-outline-variant text-xs text-on-surface-variant rounded hover:bg-surface-container min-h-[44px] cursor-pointer"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
               </div>
             </form>
           ) : (
             <div className="flex flex-col gap-md text-xs">
               <div className="border-b border-outline-variant pb-2">
-                <span className="text-[11px] text-on-surface-variant font-medium block">Full Name</span>
+                <span className="text-[11px] text-on-surface-variant font-medium block">{t('profile.fullName')}</span>
                 <span className="font-bold text-on-surface text-sm">{currentUser?.full_name || currentUser?.name || 'Aaditya Sharma'}</span>
               </div>
 
               <div className="border-b border-outline-variant pb-2">
-                <span className="text-[11px] text-on-surface-variant font-medium block">Phone Number</span>
+                <span className="text-[11px] text-on-surface-variant font-medium block">{t('profile.phone')}</span>
                 <span className="font-bold text-on-surface">{currentUser?.phone || '+91 98765 43210'}</span>
               </div>
 
               <div className="border-b border-outline-variant pb-2">
-                <span className="text-[11px] text-on-surface-variant font-medium block">Email Address</span>
+                <span className="text-[11px] text-on-surface-variant font-medium block">{t('profile.email')}</span>
                 <span className="font-bold text-on-surface break-all">{currentUser?.email || 'citizen@kalyansetu.gov.in'}</span>
               </div>
 
               <div className="border-b border-outline-variant pb-2">
-                <span className="text-[11px] text-on-surface-variant font-medium block">State / District</span>
+                <span className="text-[11px] text-on-surface-variant font-medium block">{t('profile.state')} / {t('profile.district')}</span>
                 <span className="font-bold text-on-surface">{currentUser?.district || 'South District'}, {currentUser?.state || 'Delhi NCR'}</span>
               </div>
 
               <div>
-                <span className="text-[11px] text-on-surface-variant font-medium block mb-1">Account Status</span>
+                <span className="text-[11px] text-on-surface-variant font-medium block mb-1">{t('profile.security')}</span>
                 <div className="bg-surface-container p-2.5 rounded border border-outline-variant flex items-center justify-between text-[11px]">
                   <span className="flex items-center gap-1 font-semibold text-gov-green">
                     <span className="material-symbols-outlined text-xs">verified</span>
-                    Active Registered Citizen Account
+                    {t('profile.kycVerified')}
                   </span>
                 </div>
               </div>
@@ -258,16 +260,16 @@ export default function ProfilePage() {
             <div>
               <h2 className="text-base sm:text-lg font-bold text-on-surface flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">history</span>
-                My Reported Grievances
+                {t('citizen.recentReports')}
               </h2>
-              <p className="text-xs text-on-surface-variant">Track status and field updates for your filed issues</p>
+              <p className="text-xs text-on-surface-variant">{t('citizen.dashboardDesc')}</p>
             </div>
             <button
               onClick={() => navigateTo('submit')}
-              className="w-full sm:w-auto bg-primary text-on-primary text-xs font-bold px-3 py-2 rounded flex items-center justify-center gap-1 hover:bg-primary-container transition-colors shadow-sm min-h-[40px]"
+              className="w-full sm:w-auto bg-primary text-on-primary text-xs font-bold px-3 py-2 rounded flex items-center justify-center gap-1 hover:bg-primary-container transition-colors shadow-sm min-h-[40px] cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">add</span>
-              Report New Problem
+              {t('citizen.reportNew')}
             </button>
           </div>
 
@@ -275,8 +277,8 @@ export default function ProfilePage() {
             {citizenComplaints.length === 0 ? (
               <div className="text-center py-xl text-on-surface-variant">
                 <span className="material-symbols-outlined text-4xl mb-2 text-outline">assignment_turned_in</span>
-                <p className="text-sm font-bold">No grievances filed yet</p>
-                <p className="text-xs text-outline mt-1">Submit your first civic report to track action here.</p>
+                <p className="text-sm font-bold">{t('citizen.noGrievances')}</p>
+                <p className="text-xs text-outline mt-1">{t('citizen.fileFirst')}</p>
               </div>
             ) : (
               citizenComplaints.map((item) => (
@@ -286,7 +288,7 @@ export default function ProfilePage() {
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-xs font-mono font-bold text-primary">#{item.id}</span>
+                      <span className="text-xs font-mono font-bold text-primary">#{item.display_id || item.id}</span>
                       <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
                         item.status === 'Resolved'
                           ? 'bg-gov-green/10 text-gov-green border border-gov-green/30'
@@ -294,23 +296,25 @@ export default function ProfilePage() {
                           ? 'bg-error/10 text-error border border-error/30 font-bold'
                           : 'bg-secondary-container/30 text-on-secondary-fixed-variant'
                       }`}>
-                        {item.status}
+                        {t(`status.${item.status}`, item.status)}
                       </span>
-                      <span className="text-[11px] text-on-surface-variant">• {item.dateFiled}</span>
+                      <span className="text-[11px] text-on-surface-variant">• {item.dateFiled || item.date}</span>
                     </div>
                     <h3 className="text-xs sm:text-sm font-bold text-on-surface mb-1">{item.title}</h3>
                     <p className="text-xs text-on-surface-variant line-clamp-2">{item.description}</p>
-                    <p className="text-[11px] text-outline mt-1 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-xs">business</span>
-                      <span>Assigned: {item.assignedDepartment || 'Urban Infrastructure Cell'}</span>
-                    </p>
+                    {item.assignedDepartment && (
+                      <p className="text-[11px] text-outline mt-1 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs">business</span>
+                        <span>{t('track.department')}: {item.assignedDepartment}</span>
+                      </p>
+                    )}
                   </div>
 
                   <button
                     onClick={() => navigateTo('track', item.id)}
-                    className="w-full md:w-auto px-md py-2.5 bg-surface-container text-primary font-bold text-xs rounded hover:bg-primary-container hover:text-white transition-colors flex items-center justify-center gap-1 shrink-0 min-h-[44px]"
+                    className="w-full md:w-auto px-md py-2.5 bg-surface-container text-primary font-bold text-xs rounded hover:bg-primary-container hover:text-white transition-colors flex items-center justify-center gap-1 shrink-0 min-h-[44px] cursor-pointer"
                   >
-                    <span>Track Status</span>
+                    <span>{t('citizen.table.trackDetails')}</span>
                     <span className="material-symbols-outlined text-sm">arrow_forward</span>
                   </button>
                 </div>

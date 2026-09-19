@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import { useCivic } from '../context/CivicContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function CitizenDashboardPage() {
   const { complaints, navigateTo, currentUser } = useCivic();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
 
-  const statusFilters = ['ALL', 'Submitted', 'Under Review', 'In Progress', 'Resolved'];
+  const statusFilters = [
+    { key: 'ALL', label: t('common.all') },
+    { key: 'Submitted', label: t('status.Submitted') },
+    { key: 'Under Review', label: t('status.Under Review') },
+    { key: 'In Progress', label: t('status.In Progress') },
+    { key: 'Resolved', label: t('status.Resolved') }
+  ];
 
   const filteredComplaints = complaints.filter(item => {
     const matchesSearch = 
@@ -38,22 +46,22 @@ export default function CitizenDashboardPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-outline-variant pb-4">
         <div>
           <div className="flex items-center gap-2 text-xs text-on-surface-variant mb-1 font-label-sm uppercase tracking-wider">
-            <span>Welcome, {currentUser?.name || currentUser?.full_name || 'Citizen'}</span>
+            <span>{t('citizen.welcome')}, {currentUser?.name || currentUser?.full_name || t('navbar.citizenBadge')}</span>
             <span>•</span>
-            <span>Citizen Portal</span>
+            <span>{t('citizen.portal')}</span>
           </div>
-          <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary">Citizen Dashboard</h1>
+          <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary">{t('citizen.dashboardTitle')}</h1>
           <p className="font-body-md text-xs sm:text-sm text-on-surface-variant mt-1">
-            Track, manage, and verify all your submitted civic priority reports in real-time.
+            {t('citizen.dashboardDesc')}
           </p>
         </div>
 
         <button
           onClick={() => navigateTo('submit')}
-          className="w-full sm:w-auto justify-center bg-primary-container text-on-primary font-label-md text-sm font-semibold px-5 sm:px-lg py-2.5 sm:py-md rounded hover:bg-primary transition-all flex items-center gap-2 shadow-sm active:scale-95 shrink-0"
+          className="w-full sm:w-auto justify-center bg-primary-container text-on-primary font-label-md text-sm font-semibold px-5 sm:px-lg py-2.5 sm:py-md rounded hover:bg-primary transition-all flex items-center gap-2 shadow-sm active:scale-95 shrink-0 cursor-pointer"
         >
           <span className="material-symbols-outlined text-[20px]">add_circle</span>
-          Report New Problem
+          {t('citizen.reportNew')}
         </button>
       </div>
 
@@ -61,38 +69,38 @@ export default function CitizenDashboardPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-md">
         <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-[11px] sm:text-xs font-label-sm text-on-surface-variant uppercase">Total Filed</span>
+            <span className="text-[11px] sm:text-xs font-label-sm text-on-surface-variant uppercase">{t('citizen.kpi.totalFiled')}</span>
             <span className="material-symbols-outlined text-primary text-lg sm:text-xl">folder</span>
           </div>
           <div className="text-xl sm:text-2xl font-bold text-primary">{totalCount}</div>
-          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">Grievances logged</div>
+          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">{t('citizen.kpi.totalFiledSub')}</div>
         </div>
 
         <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-[11px] sm:text-xs font-label-sm text-on-surface-variant uppercase">In Progress</span>
+            <span className="text-[11px] sm:text-xs font-label-sm text-on-surface-variant uppercase">{t('citizen.kpi.inProgress')}</span>
             <span className="material-symbols-outlined text-gov-saffron text-lg sm:text-xl">engineering</span>
           </div>
           <div className="text-xl sm:text-2xl font-bold text-on-secondary-fixed-variant">{inProgressCount}</div>
-          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">Under field repair</div>
+          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">{t('citizen.kpi.inProgressSub')}</div>
         </div>
 
         <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-[11px] sm:text-xs font-label-sm text-on-surface-variant uppercase">Resolved</span>
+            <span className="text-[11px] sm:text-xs font-label-sm text-on-surface-variant uppercase">{t('citizen.kpi.resolved')}</span>
             <span className="material-symbols-outlined text-gov-green text-lg sm:text-xl">task_alt</span>
           </div>
           <div className="text-xl sm:text-2xl font-bold text-gov-green">{resolvedCount}</div>
-          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">Successfully solved</div>
+          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">{t('citizen.kpi.resolvedSub')}</div>
         </div>
 
         <div className="bg-surface-container-lowest border border-outline-variant p-3 sm:p-md rounded-lg shadow-ambient">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-[11px] sm:text-xs font-label-sm text-on-surface-variant uppercase">Pending</span>
+            <span className="text-[11px] sm:text-xs font-label-sm text-on-surface-variant uppercase">{t('citizen.kpi.pending')}</span>
             <span className="material-symbols-outlined text-outline text-lg sm:text-xl">pending_actions</span>
           </div>
           <div className="text-xl sm:text-2xl font-bold text-on-surface">{pendingCount}</div>
-          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">Department triage</div>
+          <div className="text-[10px] sm:text-[11px] text-on-surface-variant mt-0.5">{t('citizen.kpi.pendingSub')}</div>
         </div>
       </div>
 
@@ -102,15 +110,15 @@ export default function CitizenDashboardPage() {
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0">
           {statusFilters.map((st) => (
             <button
-              key={st}
-              onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 text-xs font-label-md rounded transition-all whitespace-nowrap shrink-0 ${
-                statusFilter === st
+              key={st.key}
+              onClick={() => setStatusFilter(st.key)}
+              className={`px-3 py-1.5 text-xs font-label-md rounded transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+                statusFilter === st.key
                   ? 'bg-primary-container text-white font-bold shadow-sm'
                   : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
               }`}
             >
-              {st === 'ALL' ? 'All Grievances' : st}
+              {st.label}
             </button>
           ))}
         </div>
@@ -122,12 +130,12 @@ export default function CitizenDashboardPage() {
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-2 sm:py-1.5 text-on-surface focus:border-primary outline-none"
           >
-            <option value="ALL">All Categories</option>
-            <option value="Road">Road Infrastructure</option>
-            <option value="Water">Drainage & Water</option>
-            <option value="Sanitation">Sanitation & Waste</option>
-            <option value="Electricity">Electricity & Lighting</option>
-            <option value="Safety">Public Safety</option>
+            <option value="ALL">{t('citizen.filterCategory')}</option>
+            <option value="Road">{t('category.Road Infrastructure')}</option>
+            <option value="Drainage">{t('category.Drainage & Water Supply')}</option>
+            <option value="Sanitation">{t('category.Solid Waste & Sanitation')}</option>
+            <option value="Electricity">{t('category.Electricity & Lighting')}</option>
+            <option value="Safety">{t('category.Public Safety')}</option>
           </select>
 
           <div className="relative flex-grow sm:w-60 md:w-64">
@@ -138,7 +146,7 @@ export default function CitizenDashboardPage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search ID, location..."
+              placeholder={t('citizen.filterSearch')}
               className="w-full pl-8 pr-3 py-2 sm:py-1.5 text-xs bg-surface border border-outline-variant rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none"
             />
           </div>
@@ -150,13 +158,13 @@ export default function CitizenDashboardPage() {
         {filteredComplaints.length === 0 ? (
           <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-xl text-center flex flex-col items-center justify-center">
             <span className="material-symbols-outlined text-4xl text-outline mb-2">search_off</span>
-            <h3 className="text-base font-bold text-on-surface">No Grievances Found</h3>
-            <p className="text-xs text-on-surface-variant mt-1">Try resetting the filters or search keywords.</p>
+            <h3 className="text-base font-bold text-on-surface">{t('citizen.noGrievances')}</h3>
+            <p className="text-xs text-on-surface-variant mt-1">{t('citizen.fileFirst')}</p>
             <button
               onClick={() => { setSearchTerm(''); setStatusFilter('ALL'); setCategoryFilter('ALL'); }}
-              className="mt-3 text-xs text-primary font-bold underline"
+              className="mt-3 text-xs text-primary font-bold underline cursor-pointer"
             >
-              Reset Filters
+              {t('common.clear')}
             </button>
           </div>
         ) : (
@@ -168,15 +176,15 @@ export default function CitizenDashboardPage() {
               <div className="flex flex-col gap-1.5 flex-grow">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-mono font-bold text-primary bg-primary-fixed/40 px-2 py-0.5 rounded border border-primary-fixed">
-                    #{item.id}
+                    #{item.display_id || item.id}
                   </span>
                   <span className="text-xs text-on-surface-variant font-medium">
-                    {item.category}
+                    {t(`category.${item.category}`, item.category)}
                   </span>
                   <span className="text-on-surface-variant">•</span>
                   <span className="text-xs text-on-surface-variant flex items-center gap-0.5">
                     <span className="material-symbols-outlined text-xs">calendar_today</span>
-                    {item.dateFiled}
+                    {item.dateFiled || item.date}
                   </span>
                 </div>
 
@@ -194,10 +202,12 @@ export default function CitizenDashboardPage() {
                     <span className="material-symbols-outlined text-sm text-primary">location_on</span>
                     {item.location}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm text-primary">corporate_fare</span>
-                    {item.assignedDepartment}
-                  </span>
+                  {item.assignedDepartment && (
+                    <span className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm text-primary">corporate_fare</span>
+                      {item.assignedDepartment}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -212,14 +222,14 @@ export default function CitizenDashboardPage() {
                     ? 'bg-secondary-container/30 text-on-secondary-fixed-variant border border-secondary-container/50'
                     : 'bg-surface-container-high text-on-surface-variant border border-outline-variant'
                 }`}>
-                  {item.status}
+                  {t(`status.${item.status}`, item.status)}
                 </span>
 
                 <button
                   onClick={() => navigateTo('track', item.id)}
-                  className="bg-primary-container text-on-primary text-xs font-bold px-4 py-2.5 rounded hover:bg-primary transition-all flex items-center gap-1.5 w-full sm:w-auto justify-center shadow-sm active:scale-95"
+                  className="bg-primary-container text-on-primary text-xs font-bold px-4 py-2.5 rounded hover:bg-primary transition-all flex items-center gap-1.5 w-full sm:w-auto justify-center shadow-sm active:scale-95 cursor-pointer"
                 >
-                  <span>Track Full Timeline</span>
+                  <span>{t('citizen.table.trackDetails')}</span>
                   <span className="material-symbols-outlined text-sm">arrow_forward</span>
                 </button>
               </div>

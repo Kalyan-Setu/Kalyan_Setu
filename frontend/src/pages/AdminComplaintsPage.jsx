@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useCivic } from '../context/CivicContext';
+import { useLanguage } from '../context/LanguageContext';
 import AdminSidebar from '../components/AdminSidebar';
 
 export default function AdminComplaintsPage() {
-  const { complaints, updateComplaintStatus, deleteComplaint, bulkAssign, navigateTo, showNotification, setActiveTab, setActiveTrackId } = useCivic();
+  const { complaints, updateComplaintStatus, deleteComplaint, bulkAssign, navigateTo, showNotification } = useCivic();
+  const { t } = useLanguage();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
@@ -20,16 +22,17 @@ export default function AdminComplaintsPage() {
 
   const filteredComplaints = complaints.filter(item => {
     const matchesSearch =
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.reportedBy.toLowerCase().includes(searchTerm.toLowerCase());
+      (item.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.display_id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.location || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.reportedBy || '').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       selectedStatus === 'ALL' ? true : item.status === selectedStatus;
 
     const matchesCategory =
-      selectedCategory === 'ALL' ? true : item.category.includes(selectedCategory);
+      selectedCategory === 'ALL' ? true : (item.category || '').includes(selectedCategory);
 
     return matchesSearch && matchesStatus && matchesCategory;
   });
@@ -70,12 +73,12 @@ export default function AdminComplaintsPage() {
   const exportReport = () => {
     const csvContent = "data:text/csv;charset=utf-8," + 
       ["ID,Title,Category,SeverityScore,Status,Location,DateFiled,Officer"]
-      .concat(filteredComplaints.map(c => `"${c.id}","${c.title}","${c.category}","${c.aiSeverityScore || c.ai_severity_score || 'Pending'}","${c.status}","${c.location}","${c.dateFiled}","${c.assignedOfficer}"`))
+      .concat(filteredComplaints.map(c => `"${c.display_id || c.id}","${c.title}","${c.category}","${c.aiSeverityScore || c.ai_severity_score || 'Pending'}","${c.status}","${c.location}","${c.dateFiled || c.date}","${c.assignedOfficer}"`))
       .join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `peoples_priorities_complaints_${Date.now()}.csv`);
+    link.setAttribute("download", `kalyan_setu_complaints_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -91,29 +94,29 @@ export default function AdminComplaintsPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md mb-md sm:mb-lg border-b border-outline-variant pb-md">
           <div>
             <h1 className="font-headline-lg text-xl sm:text-2xl md:text-3xl font-bold text-primary">
-              Complaints Management
+              {t('admin.complaintsTitle')}
             </h1>
             <p className="font-body-md text-xs text-on-surface-variant mt-1">
-              Review, filter, dispatch, and update status for all reported citizen grievances.
+              {t('admin.complaintsSubtitle')}
             </p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
             <button
               onClick={exportReport}
-              className="flex-1 sm:flex-initial bg-surface-container-lowest border border-outline-variant text-primary font-bold text-xs px-3.5 py-2.5 rounded hover:bg-surface-container transition-colors flex items-center justify-center gap-1.5 shadow-ambient min-h-[38px]"
+              className="flex-1 sm:flex-initial bg-surface-container-lowest border border-outline-variant text-primary font-bold text-xs px-3.5 py-2.5 rounded hover:bg-surface-container transition-colors flex items-center justify-center gap-1.5 shadow-ambient min-h-[38px] cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">download</span>
-              <span>Export CSV</span>
+              <span>{t('admin.exportCsv')}</span>
             </button>
 
             {selectedIds.length > 0 && (
               <button
                 onClick={() => setBulkModalOpen(true)}
-                className="flex-1 sm:flex-initial bg-gov-saffron text-primary font-bold text-xs px-4 py-2.5 rounded hover:bg-gov-saffron/90 transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 animate-pulse min-h-[38px]"
+                className="flex-1 sm:flex-initial bg-gov-saffron text-primary font-bold text-xs px-4 py-2.5 rounded hover:bg-gov-saffron/90 transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 animate-pulse min-h-[38px] cursor-pointer"
               >
                 <span className="material-symbols-outlined text-sm">group_add</span>
-                <span>Bulk Assign ({selectedIds.length})</span>
+                <span>{t('admin.bulkAssign')} ({selectedIds.length})</span>
               </button>
             )}
           </div>
@@ -131,36 +134,24 @@ export default function AdminComplaintsPage() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by ID, keyword, citizen, location..."
+                placeholder={t('citizen.filterSearch')}
                 className="w-full pl-9 pr-3 py-2 text-xs bg-surface border border-outline-variant rounded focus:border-primary outline-none min-h-[38px]"
               />
             </div>
 
-            {/* Dropdowns */}
-            <div className="grid grid-cols-2 sm:flex items-center gap-2">
+            {/* Category Dropdown */}
+            <div className="flex items-center gap-2">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-2 text-on-surface focus:border-primary outline-none min-h-[38px]"
+                className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-2 text-on-surface focus:border-primary outline-none min-h-[38px] w-full sm:w-auto"
               >
-                <option value="ALL">All Categories</option>
-                <option value="Road">Road Infrastructure</option>
-                <option value="Water">Drainage & Water</option>
-                <option value="Sanitation">Sanitation & Waste</option>
-                <option value="Electricity">Electricity & Lighting</option>
-                <option value="Safety">Public Safety</option>
-              </select>
-
-              <select
-                value={selectedPriority}
-                onChange={(e) => setSelectedPriority(e.target.value)}
-                className="text-xs bg-surface border border-outline-variant rounded px-2.5 py-2 text-on-surface focus:border-primary outline-none"
-              >
-                <option value="ALL">All Priorities</option>
-                <option value="Critical">Critical</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
+                <option value="ALL">{t('citizen.filterCategory')}</option>
+                <option value="Road">{t('category.Road Infrastructure')}</option>
+                <option value="Drainage">{t('category.Drainage & Water Supply')}</option>
+                <option value="Sanitation">{t('category.Solid Waste & Sanitation')}</option>
+                <option value="Electricity">{t('category.Electricity & Lighting')}</option>
+                <option value="Safety">{t('category.Public Safety')}</option>
               </select>
             </div>
           </div>
@@ -171,13 +162,13 @@ export default function AdminComplaintsPage() {
               <button
                 key={st}
                 onClick={() => setSelectedStatus(st)}
-                className={`px-3 py-1.5 text-xs font-label-md rounded transition-all whitespace-nowrap min-h-[32px] ${
+                className={`px-3 py-1.5 text-xs font-label-md rounded transition-all whitespace-nowrap min-h-[32px] cursor-pointer ${
                   selectedStatus === st
                     ? 'bg-primary-container text-white font-bold shadow-sm'
                     : 'text-on-surface-variant hover:bg-surface-container'
                 }`}
               >
-                {st === 'ALL' ? 'All Statuses' : st}
+                {st === 'ALL' ? t('common.all') : t(`status.${st}`, st)}
               </button>
             ))}
           </div>
@@ -189,7 +180,7 @@ export default function AdminComplaintsPage() {
           <div className="block sm:hidden divide-y divide-outline-variant/60">
             {filteredComplaints.length === 0 ? (
               <div className="p-6 text-center text-xs text-on-surface-variant">
-                No complaints match the selected filters.
+                {t('citizen.noGrievances')}
               </div>
             ) : (
               filteredComplaints.map((item) => (
@@ -211,19 +202,10 @@ export default function AdminComplaintsPage() {
                         onClick={() => navigateTo('admin_action', item.id)}
                         className="font-mono font-bold text-primary hover:underline text-xs"
                       >
-                        #{item.id}
+                        #{item.display_id || item.id}
                       </button>
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                        item.priority === 'Critical'
-                          ? 'bg-error-container text-on-error-container font-extrabold'
-                          : item.priority === 'High'
-                          ? 'bg-secondary-container text-on-secondary-container'
-                          : 'bg-surface-container-high text-on-surface-variant'
-                      }`}>
-                        {item.priority}
-                      </span>
                       <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
                         item.status === 'Resolved'
                           ? 'bg-gov-green/15 text-gov-green border border-gov-green/30'
@@ -235,7 +217,7 @@ export default function AdminComplaintsPage() {
                           ? 'bg-secondary-container/30 text-on-secondary-fixed-variant'
                           : 'bg-surface-container-high text-on-surface-variant'
                       }`}>
-                        {item.status}
+                        {t(`status.${item.status}`, item.status)}
                       </span>
                     </div>
                   </div>
@@ -243,7 +225,7 @@ export default function AdminComplaintsPage() {
                   <div>
                     <h3 className="text-xs font-bold text-on-surface line-clamp-2">{item.title}</h3>
                     <div className="text-[10px] text-on-surface-variant mt-0.5 flex items-center justify-between">
-                      <span>{item.category}</span>
+                      <span>{t(`category.${item.category}`, item.category)}</span>
                       <span>By {item.reportedBy}</span>
                     </div>
                     <div className="text-[10px] text-on-surface-variant mt-0.5 flex items-center gap-1">
@@ -261,7 +243,7 @@ export default function AdminComplaintsPage() {
                       {item.status !== 'Deleted' && item.status !== 'Rejected' && (
                         <button
                           onClick={() => navigateTo('admin_ai', item.id || item.display_id)}
-                          className="bg-gov-saffron/10 text-gov-saffron font-bold text-[10px] px-2 py-1 rounded flex items-center gap-0.5 min-h-[30px]"
+                          className="bg-gov-saffron/10 text-gov-saffron font-bold text-[10px] px-2 py-1 rounded flex items-center gap-0.5 min-h-[30px] cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-xs">smart_toy</span>
                           <span>AI</span>
@@ -273,17 +255,17 @@ export default function AdminComplaintsPage() {
                           setNewStatus(item.status);
                           setStatusNote('');
                         }}
-                        className="p-1.5 text-primary hover:bg-surface-container rounded transition-colors min-h-[30px] min-w-[30px] flex items-center justify-center border border-outline-variant"
-                        title="Update Status"
+                        className="p-1.5 text-primary hover:bg-surface-container rounded transition-colors min-h-[30px] min-w-[30px] flex items-center justify-center border border-outline-variant cursor-pointer"
+                        title={t('admin.updateStatus')}
                       >
                         <span className="material-symbols-outlined text-sm">edit_note</span>
                       </button>
                       {item.status !== 'Deleted' && (
                         <button
                           onClick={() => navigateTo('admin_action', item.id)}
-                          className="bg-primary-container text-on-primary font-bold text-[10px] px-2.5 py-1 rounded hover:bg-primary flex items-center gap-0.5 min-h-[30px]"
+                          className="bg-primary-container text-on-primary font-bold text-[10px] px-2.5 py-1 rounded hover:bg-primary flex items-center gap-0.5 min-h-[30px] cursor-pointer"
                         >
-                          <span>Act</span>
+                          <span>{t('navbar.takeAction')}</span>
                           <span className="material-symbols-outlined text-xs">arrow_forward</span>
                         </button>
                       )}
@@ -307,20 +289,20 @@ export default function AdminComplaintsPage() {
                       className="rounded border-outline-variant"
                     />
                   </th>
-                  <th className="p-3">Grievance ID</th>
-                  <th className="p-3">Issue Title & Category</th>
-                  <th className="p-3">Location & Citizen</th>
-                  <th className="p-3">AI Severity Score</th>
-                  <th className="p-3">Assigned Cell</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3 text-right">Actions</th>
+                  <th className="p-3">{t('citizen.table.id')}</th>
+                  <th className="p-3">{t('citizen.table.problem')}</th>
+                  <th className="p-3">{t('common.location')}</th>
+                  <th className="p-3">{t('admin.ai.severityScore')}</th>
+                  <th className="p-3">{t('track.department')}</th>
+                  <th className="p-3">{t('common.status')}</th>
+                  <th className="p-3 text-right">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/60">
                 {filteredComplaints.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="p-8 text-center text-on-surface-variant">
-                      No complaints match the selected filters.
+                      {t('citizen.noGrievances')}
                     </td>
                   </tr>
                 ) : (
@@ -343,20 +325,20 @@ export default function AdminComplaintsPage() {
                       <td className="p-3 font-mono font-bold text-primary">
                         <button
                           onClick={() => navigateTo('admin_action', item.id)}
-                          className="hover:underline"
+                          className="hover:underline cursor-pointer"
                         >
-                          #{item.id}
+                          #{item.display_id || item.id}
                         </button>
                       </td>
 
                       <td className="p-3">
                         <div className="font-bold text-on-surface line-clamp-1">{item.title}</div>
-                        <div className="text-[10px] text-on-surface-variant">{item.category}</div>
+                        <div className="text-[10px] text-on-surface-variant">{t(`category.${item.category}`, item.category)}</div>
                       </td>
 
                       <td className="p-3">
                         <div className="text-on-surface font-medium line-clamp-1">{item.location}</div>
-                        <div className="text-[10px] text-on-surface-variant">By {item.reportedBy} ({item.dateFiled})</div>
+                        <div className="text-[10px] text-on-surface-variant">By {item.reportedBy} ({item.dateFiled || item.date})</div>
                       </td>
 
                       <td className="p-3">
@@ -373,7 +355,7 @@ export default function AdminComplaintsPage() {
                             </span>
                           ) : (
                             <span className="text-[10px] text-on-surface-variant font-medium bg-surface-container px-2 py-0.5 rounded w-fit">
-                              Pending AI Triage
+                              {t('common.pending')}
                             </span>
                           )}
                         </div>
@@ -396,18 +378,17 @@ export default function AdminComplaintsPage() {
                             ? 'bg-secondary-container/30 text-on-secondary-fixed-variant border border-secondary-container/50'
                             : 'bg-surface-container-high text-on-surface-variant border border-outline-variant'
                         }`}>
-                          {item.status}
+                          {t(`status.${item.status}`, item.status)}
                         </span>
                       </td>
 
                       <td className="p-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          {/* Quick AI Analyze button (only for non-deleted problems) */}
                           {item.status !== 'Deleted' && item.status !== 'Rejected' && (
                             <button
                               onClick={() => navigateTo('admin_ai', item.id || item.display_id)}
-                              title="Run AI Agentic Workflow"
-                              className="bg-gov-saffron/10 text-gov-saffron hover:bg-gov-saffron/20 font-bold text-[10px] px-2 py-1 rounded transition-colors flex items-center gap-0.5"
+                              title="Run AI Workflow"
+                              className="bg-gov-saffron/10 text-gov-saffron hover:bg-gov-saffron/20 font-bold text-[10px] px-2 py-1 rounded transition-colors flex items-center gap-0.5 cursor-pointer"
                             >
                               <span className="material-symbols-outlined text-xs">smart_toy</span>
                               <span>AI</span>
@@ -419,30 +400,30 @@ export default function AdminComplaintsPage() {
                               setNewStatus(item.status);
                               setStatusNote('');
                             }}
-                            title="Update Status"
-                            className="p-1 text-primary hover:bg-surface-container rounded transition-colors"
+                            title={t('admin.updateStatus')}
+                            className="p-1 text-primary hover:bg-surface-container rounded transition-colors cursor-pointer"
                           >
                             <span className="material-symbols-outlined text-base">edit_note</span>
                           </button>
                           {item.status !== 'Deleted' && (
                             <button
                               onClick={() => navigateTo('admin_action', item.id)}
-                              title="Take Strategic Action"
-                              className="bg-primary-container text-on-primary font-bold text-[11px] px-2.5 py-1 rounded hover:bg-primary transition-all flex items-center gap-0.5"
+                              title={t('navbar.takeAction')}
+                              className="bg-primary-container text-on-primary font-bold text-[11px] px-2.5 py-1 rounded hover:bg-primary transition-all flex items-center gap-0.5 cursor-pointer"
                             >
-                              <span>Act</span>
+                              <span>{t('navbar.takeAction')}</span>
                               <span className="material-symbols-outlined text-xs">arrow_forward</span>
                             </button>
                           )}
                           {item.status !== 'Deleted' && (
                             <button
                               onClick={() => {
-                                if (window.confirm(`Are you sure you want to delete grievance #${item.id}? It will be removed from AI analysis.`)) {
+                                if (window.confirm(`Delete grievance #${item.display_id || item.id}?`)) {
                                   deleteComplaint(item.id || item.display_id);
                                 }
                               }}
-                              title="Delete Grievance (Exclude from AI)"
-                              className="p-1 text-error/70 hover:text-error hover:bg-error/10 rounded transition-colors"
+                              title={t('common.delete')}
+                              className="p-1 text-error/70 hover:text-error hover:bg-error/10 rounded transition-colors cursor-pointer"
                             >
                               <span className="material-symbols-outlined text-base">delete</span>
                             </button>
@@ -469,37 +450,37 @@ export default function AdminComplaintsPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-primary/50 backdrop-blur-sm">
             <div className="bg-surface-container-lowest p-4 sm:p-lg rounded-xl border border-outline-variant shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-md border-b border-outline-variant pb-2">
-                <h3 className="font-bold text-sm text-primary">Update Status: #{editingComplaint.id}</h3>
-                <button onClick={() => setEditingComplaint(null)} className="text-on-surface-variant p-1 rounded hover:bg-surface-container">
+                <h3 className="font-bold text-sm text-primary">{t('admin.updateStatus')}: #{editingComplaint.display_id || editingComplaint.id}</h3>
+                <button onClick={() => setEditingComplaint(null)} className="text-on-surface-variant p-1 rounded hover:bg-surface-container cursor-pointer">
                   <span className="material-symbols-outlined text-base">close</span>
                 </button>
               </div>
 
               <form onSubmit={handleStatusUpdateSubmit} className="flex flex-col gap-md text-xs">
                 <div>
-                  <label className="block font-bold text-on-surface mb-1">Select New Status</label>
+                  <label className="block font-bold text-on-surface mb-1">{t('admin.updateStatus')}</label>
                   <select
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
                     className="w-full p-2.5 bg-surface border border-outline-variant rounded focus:border-primary outline-none font-bold"
                   >
-                    <option value="Submitted">Submitted (Pending Review)</option>
-                    <option value="Under Review">Under Review</option>
-                    <option value="Action Assigned">Action Assigned</option>
-                    <option value="In Progress">In Progress (Field Repair)</option>
-                    <option value="Resolved">Resolved (Completed)</option>
-                    <option value="Rejected">Rejected</option>
-                    <option value="Deleted">Deleted (Removed by Govt)</option>
+                    <option value="Submitted">{t('status.Submitted')}</option>
+                    <option value="Under Review">{t('status.Under Review')}</option>
+                    <option value="Action Assigned">{t('status.Action Assigned')}</option>
+                    <option value="In Progress">{t('status.In Progress')}</option>
+                    <option value="Resolved">{t('status.Resolved')}</option>
+                    <option value="Rejected">{t('status.Rejected')}</option>
+                    <option value="Deleted">{t('status.Deleted')}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-on-surface mb-1">Official Milestone Note</label>
+                  <label className="block font-bold text-on-surface mb-1">{t('common.details')}</label>
                   <textarea
                     rows={3}
                     value={statusNote}
                     onChange={(e) => setStatusNote(e.target.value)}
-                    placeholder="e.g. Work crew deployed with heavy machinery..."
+                    placeholder="Official status note..."
                     className="w-full p-2.5 bg-surface border border-outline-variant rounded focus:border-primary outline-none resize-none"
                   ></textarea>
                 </div>
@@ -508,15 +489,15 @@ export default function AdminComplaintsPage() {
                   <button
                     type="button"
                     onClick={() => setEditingComplaint(null)}
-                    className="px-3 py-2 text-on-surface-variant font-bold rounded hover:bg-surface-container min-h-[40px]"
+                    className="px-3 py-2 text-on-surface-variant font-bold rounded hover:bg-surface-container min-h-[40px] cursor-pointer"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
-                    className="bg-primary-container text-on-primary font-bold px-4 py-2 rounded hover:bg-primary transition-colors min-h-[40px]"
+                    className="bg-primary-container text-on-primary font-bold px-4 py-2 rounded hover:bg-primary transition-colors min-h-[40px] cursor-pointer"
                   >
-                    Save & Update
+                    {t('common.save')}
                   </button>
                 </div>
               </form>
@@ -529,15 +510,15 @@ export default function AdminComplaintsPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-primary/50 backdrop-blur-sm">
             <div className="bg-surface-container-lowest p-4 sm:p-lg rounded-xl border border-outline-variant shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-md border-b border-outline-variant pb-2">
-                <h3 className="font-bold text-sm text-primary">Bulk Assign ({selectedIds.length} Complaints)</h3>
-                <button onClick={() => setBulkModalOpen(false)} className="text-on-surface-variant p-1 rounded hover:bg-surface-container">
+                <h3 className="font-bold text-sm text-primary">{t('admin.bulkAssign')} ({selectedIds.length})</h3>
+                <button onClick={() => setBulkModalOpen(false)} className="text-on-surface-variant p-1 rounded hover:bg-surface-container cursor-pointer">
                   <span className="material-symbols-outlined text-base">close</span>
                 </button>
               </div>
 
               <form onSubmit={handleBulkAssignSubmit} className="flex flex-col gap-md text-xs">
                 <div>
-                  <label className="block font-bold text-on-surface mb-1">Assign to Department</label>
+                  <label className="block font-bold text-on-surface mb-1">{t('admin.selectDepartment')}</label>
                   <input
                     type="text"
                     required
@@ -549,7 +530,7 @@ export default function AdminComplaintsPage() {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-on-surface mb-1">Lead Responsible Officer</label>
+                  <label className="block font-bold text-on-surface mb-1">{t('admin.selectOfficer')}</label>
                   <input
                     type="text"
                     value={bulkOfficer}
@@ -562,15 +543,15 @@ export default function AdminComplaintsPage() {
                   <button
                     type="button"
                     onClick={() => setBulkModalOpen(false)}
-                    className="px-3 py-2 text-on-surface-variant font-bold rounded hover:bg-surface-container min-h-[40px]"
+                    className="px-3 py-2 text-on-surface-variant font-bold rounded hover:bg-surface-container min-h-[40px] cursor-pointer"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
-                    className="bg-gov-saffron text-primary font-bold px-4 py-2 rounded hover:bg-gov-saffron/90 transition-colors min-h-[40px]"
+                    className="bg-gov-saffron text-primary font-bold px-4 py-2 rounded hover:bg-gov-saffron/90 transition-colors min-h-[40px] cursor-pointer"
                   >
-                    Dispatch All
+                    {t('common.confirm')}
                   </button>
                 </div>
               </form>
