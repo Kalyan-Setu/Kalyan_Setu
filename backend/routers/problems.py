@@ -35,6 +35,7 @@ def _format_problem(p: dict) -> dict:
         "status": p.get("status", "Submitted"),
         "evidence_type": p.get("evidence_type", "text"),
         "file_url": p.get("file_url"),
+        "audio_url": p.get("audio_url"),
         "voice_transcript": p.get("voice_transcript"),
         "ai_severity_score": p.get("ai_severity_score"),
         "sentiment": p.get("sentiment"),
@@ -97,6 +98,7 @@ async def generate_description(
             return {
                 "title": result["title"],
                 "description": result["description"],
+                "category": result.get("category", ""),
                 "source_transcript": transcript,
                 "model": "groq",
                 "language_code": language_code or "od-IN",
@@ -105,6 +107,7 @@ async def generate_description(
         return {
             "title": "",
             "description": transcript,
+            "category": "",
             "source_transcript": transcript,
             "model": "raw_transcript",
         }
@@ -132,9 +135,10 @@ async def submit_problem(
     evidence_type: Optional[str] = Form("text"),
     voice_transcript: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
+    audio_file: Optional[UploadFile] = File(None),
     current_user: Optional[dict] = Depends(get_optional_user),
 ):
-    """Submit a new complaint."""
+    """Submit a new complaint supporting any combination of text, voice, and photo."""
     if current_user and current_user.get("sub"):
         user_id = uuid.UUID(current_user["sub"])
         user_state = state or current_user.get("state") or "Delhi NCR"
@@ -155,44 +159,92 @@ async def submit_problem(
     final_state = state or user_state or "Delhi NCR"
 
     file_url = None
+    audio_url = None
     ai_summary = None
-    final_description = description or ""
+
+    # Read uploaded files
     file_bytes = await file.read() if file else None
+    audio_bytes = await audio_file.read() if audio_file else None
+
+    # Process primary file (could be photo or audio if submitted alone)
     if file_bytes:
         suffix = Path(file.filename or "evidence.bin").suffix.lower() or ".bin"
         stored_name = f"{uuid.uuid4().hex}{suffix}"
         UPLOAD_DIR.mkdir(exist_ok=True)
         (UPLOAD_DIR / stored_name).write_bytes(file_bytes)
-        file_url = f"/uploads/{stored_name}"
+        
+        is_audio = suffix in [".webm", ".mp3", ".wav", ".ogg", ".m4a"] or (file.content_type and "audio" in file.content_type)
+        if is_audio and not audio_bytes:
+            audio_url = f"/uploads/{stored_name}"
+            audio_bytes = file_bytes
+        else:
+            file_url = f"/uploads/{stored_name}"
 
-    if file_bytes and evidence_type == "photo":
+    # Process audio_file if explicitly provided
+    if audio_bytes and not audio_url:
+        suffix = Path(getattr(audio_file, "filename", "voice.webm") or "voice.webm").suffix.lower() or ".webm"
+        stored_audio_name = f"{uuid.uuid4().hex}{suffix}"
+        UPLOAD_DIR.mkdir(exist_ok=True)
+        (UPLOAD_DIR / stored_audio_name).write_bytes(audio_bytes)
+        audio_url = f"/uploads/{stored_audio_name}"
+
+    # Multimodal AI analysis:
+    extracted_image_text = None
+    # 1. Image analysis if image attached
+    if file_url and file_bytes and (not audio_url or file_url != audio_url):
         try:
-            from AI.processor import image_to_text, summarize_text
-            extracted_text = await image_to_text(file_bytes)
-            if extracted_text:
-                final_description = extracted_text if not description else f"{description}\n\n[AI Image Description]: {extracted_text}"
-            ai_summary = await summarize_text(final_description)
+            from AI.processor import image_to_text
+            extracted_image_text = await image_to_text(file_bytes)
         except Exception as e:
             print(f"[AI] Image processing failed: {e}")
 
-    elif file_bytes and evidence_type == "voice":
+    # 2. Voice transcription if audio attached and transcript not supplied
+    if audio_bytes and not voice_transcript:
         try:
-            from AI.processor import voice_to_text, summarize_text
-            transcript = await voice_to_text(file_bytes)
+            from AI.processor import voice_to_text
+            transcript = await voice_to_text(audio_bytes)
             if transcript:
                 voice_transcript = transcript
-                final_description = transcript if not description else f"{description}\n\n[AI Transcription]: {transcript}"
-            ai_summary = await summarize_text(final_description)
         except Exception as e:
             print(f"[AI] Voice processing failed: {e}")
 
-    elif evidence_type == "text" and final_description:
-        try:
-            from AI.processor import clean_text, summarize_text
-            final_description = clean_text(final_description)
-            ai_summary = await summarize_text(final_description)
-        except Exception as e:
-            print(f"[AI] Text processing failed: {e}")
+    # 3. Assemble unified grievance description
+    description_parts = []
+    if description and description.strip():
+        description_parts.append(description.strip())
+    if voice_transcript and voice_transcript.strip():
+        # Avoid duplicating if user already had voice transcript in description
+        if voice_transcript.strip() not in (description or ""):
+            description_parts.append(f"[Citizen Voice Note]: {voice_transcript.strip()}")
+    if extracted_image_text:
+        description_parts.append(f"[AI Visual Analysis]: {extracted_image_text.strip()}")
+
+    if description_parts:
+        final_description = "\n\n".join(description_parts)
+    else:
+        final_description = voice_transcript or "Civic grievance submitted by citizen."
+
+    # 4. Generate AI summary from unified information
+    try:
+        from AI.processor import clean_text, summarize_text
+        cleaned = clean_text(final_description)
+        ai_summary = await summarize_text(cleaned)
+    except Exception as e:
+        print(f"[AI] Text summarization failed: {e}")
+
+    # Determine unified evidence type
+    has_photo = bool(file_url and file_url != audio_url)
+    has_voice = bool(audio_url or voice_transcript)
+    has_text = bool(description and description.strip())
+
+    if (has_photo and has_voice) or (has_photo and has_text and has_voice):
+        final_evidence_type = "multimodal"
+    elif has_photo:
+        final_evidence_type = "photo"
+    elif has_voice:
+        final_evidence_type = "voice"
+    else:
+        final_evidence_type = "text"
 
     dept_map = {
         "Road": "Public Works Department (PWD)",
@@ -218,23 +270,43 @@ async def submit_problem(
     prob_id = uuid.uuid4()
     display_id = _generate_display_id()
 
-    await execute(
-        """
-        INSERT INTO problems (
-            id, display_id, user_id, title, description, ai_summary, category, location,
-            district, state, priority, status, evidence_type, file_url, voice_transcript,
-            ai_severity_score, sentiment, assigned_department, assigned_officer, action_notes, budget
+    try:
+        await execute(
+            """
+            INSERT INTO problems (
+                id, display_id, user_id, title, description, ai_summary, category, location,
+                district, state, priority, status, evidence_type, file_url, audio_url, voice_transcript,
+                ai_severity_score, sentiment, assigned_department, assigned_officer, action_notes, budget
+            )
+            VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8,
+                $9, $10, $11, $12, $13, $14, $15, $16,
+                $17, $18, $19, $20, $21, $22
+            )
+            """,
+            prob_id, display_id, user_id, title, final_description, ai_summary, category, location,
+            final_district, final_state, priority, "Submitted", final_evidence_type, file_url, audio_url, voice_transcript,
+            severity, sentiment, assigned_dept, "Under Assignment", "Grievance queued for automated AI analysis and officer triage.", "Allocating..."
         )
-        VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8,
-            $9, $10, $11, $12, $13, $14, $15,
-            $16, $17, $18, $19, $20, $21
+    except Exception as insert_err:
+        # Backward-compatible fallback if audio_url column doesn't exist yet
+        await execute(
+            """
+            INSERT INTO problems (
+                id, display_id, user_id, title, description, ai_summary, category, location,
+                district, state, priority, status, evidence_type, file_url, voice_transcript,
+                ai_severity_score, sentiment, assigned_department, assigned_officer, action_notes, budget
+            )
+            VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8,
+                $9, $10, $11, $12, $13, $14, $15,
+                $16, $17, $18, $19, $20, $21
+            )
+            """,
+            prob_id, display_id, user_id, title, final_description, ai_summary, category, location,
+            final_district, final_state, priority, "Submitted", final_evidence_type, file_url or audio_url, voice_transcript,
+            severity, sentiment, assigned_dept, "Under Assignment", "Grievance queued for automated AI analysis and officer triage.", "Allocating..."
         )
-        """,
-        prob_id, display_id, user_id, title, final_description, ai_summary, category, location,
-        final_district, final_state, priority, "Submitted", evidence_type, file_url, voice_transcript,
-        severity, sentiment, assigned_dept, "Under Assignment", "Grievance queued for automated AI analysis and officer triage.", "Allocating..."
-    )
 
     created_p = await fetch_one(
         "SELECT p.*, u.full_name FROM problems p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = $1",

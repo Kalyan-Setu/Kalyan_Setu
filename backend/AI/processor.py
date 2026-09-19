@@ -215,8 +215,10 @@ async def generate_description_from_transcript(
             "1. STRICT SCRIPT: You MUST write BOTH the TITLE and the DESCRIPTION strictly in formal Odia (ଓଡ଼ିଆ ଭାଷା) using authentic Odia script.\n"
             "2. NO HALLUCINATED CITIES: Extract the exact street, landmark, or area directly from the citizen's transcript (e.g. 'ଗୀତା ଆଗ ରାସ୍ତା' / 'GITA Road'). Do NOT invent or add default cities like Delhi, Central Delhi (କେନ୍ଦ୍ରୀୟ ଦିଲ୍ଲୀ), or any unrelated place unless spoken in the transcript.\n"
             "3. TITLE: A short, formal, clear title in Odia (max 10 words) mentioning the exact issue and landmark.\n"
-            "4. DESCRIPTION: A formal, well-written 3-4 sentence paragraph in Odia describing the problem, exact location/landmark from the transcript, the risk/danger to pedestrians and vehicles, and an urgent request for the concerned municipal authorities to carry out repairs.\n\n"
+            "4. DESCRIPTION: A formal, well-written 3-4 sentence paragraph in Odia describing the problem, exact location/landmark from the transcript, the risk/danger to pedestrians and vehicles, and an urgent request for the concerned municipal authorities to carry out repairs.\n"
+            "5. CATEGORY: Exactly one standard civic category from: Road Infrastructure, Drainage & Water Supply, Sanitation & Solid Waste, Electricity & Street Lighting, Traffic & Transport, Public Safety & Hazards, Parks & Public Spaces, Health & Hygiene, General Civic Issue.\n\n"
             "Respond in this EXACT format (no markdown bolding in keys, keep labels as shown):\n"
+            "CATEGORY: <standard category name>\n"
             "TITLE: <short Odia title>\n"
             "DESCRIPTION: <detailed Odia description>"
         )
@@ -224,15 +226,17 @@ async def generate_description_from_transcript(
         prompt = (
             "You are an AI civic assistant helping citizens file formal government grievances in Hindi (हिन्दी).\n"
             "A citizen has reported a civic problem via voice recording. The raw speech transcript is below.\n\n"
-            f"Civic Category: {category}\n"
+            f"Civic Category: {category or 'Infer from transcript'}\n"
             f"User Location (if provided): {cleaned_loc or cleaned_dist or 'Infer landmark/street strictly from transcript'}\n"
             f"Citizen Raw Speech Transcript: \"{transcript.strip()}\"\n\n"
             "CRITICAL RULES:\n"
             "1. STRICT SCRIPT: You MUST write BOTH the TITLE and the DESCRIPTION strictly in formal Hindi (हिन्दी) using Devanagari script.\n"
             "2. NO HALLUCINATED CITIES: Extract the exact street, landmark, or area directly from the citizen's transcript. Do NOT invent or add default cities like Central Delhi or Delhi unless spoken in the transcript.\n"
             "3. TITLE: A short, formal title in Hindi (max 10 words) mentioning the issue and landmark.\n"
-            "4. DESCRIPTION: A formal 3-4 sentence paragraph in Hindi describing the problem, exact landmark, public risk, and urging authorities to take immediate repair action.\n\n"
+            "4. DESCRIPTION: A formal 3-4 sentence paragraph in Hindi describing the problem, exact landmark, public risk, and urging authorities to take immediate repair action.\n"
+            "5. CATEGORY: Exactly one standard civic category from: Road Infrastructure, Drainage & Water Supply, Sanitation & Solid Waste, Electricity & Street Lighting, Traffic & Transport, Public Safety & Hazards, Parks & Public Spaces, Health & Hygiene, General Civic Issue.\n\n"
             "Respond in this EXACT format:\n"
+            "CATEGORY: <standard category name>\n"
             "TITLE: <short Hindi title>\n"
             "DESCRIPTION: <detailed Hindi description>"
         )
@@ -240,14 +244,16 @@ async def generate_description_from_transcript(
         prompt = (
             "You are an AI civic assistant helping citizens file formal government grievances.\n"
             "A citizen has reported a civic problem via voice recording. The raw speech transcript is below.\n\n"
-            f"Civic Category: {category}\n"
+            f"Civic Category: {category or 'Infer from transcript'}\n"
             f"User Location (if provided): {cleaned_loc or cleaned_dist or 'Infer landmark/street strictly from transcript'}\n"
             f"Citizen Raw Speech Transcript: \"{transcript.strip()}\"\n\n"
             "CRITICAL RULES:\n"
             "1. Extract the exact landmark, road, or area directly from the transcript. Do NOT invent default cities.\n"
             "2. TITLE: A short, formal title (max 10 words) summarising the problem and landmark in English.\n"
-            "3. DESCRIPTION: A formal 3-4 sentence paragraph expanding the transcript into a formal municipal grievance.\n\n"
+            "3. DESCRIPTION: A formal 3-4 sentence paragraph expanding the transcript into a formal municipal grievance.\n"
+            "4. CATEGORY: Exactly one standard civic category from: Road Infrastructure, Drainage & Water Supply, Sanitation & Solid Waste, Electricity & Street Lighting, Traffic & Transport, Public Safety & Hazards, Parks & Public Spaces, Health & Hygiene, General Civic Issue.\n\n"
             "Respond in this EXACT format:\n"
+            "CATEGORY: <standard category name>\n"
             "TITLE: <short title here>\n"
             "DESCRIPTION: <detailed description here>"
         )
@@ -274,13 +280,21 @@ async def generate_description_from_transcript(
                 )
             if resp.status_code == 200:
                 content = resp.json()["choices"][0]["message"]["content"].strip()
-                title, description_lines = "", []
+                title, description_lines, detected_category = "", [], ""
                 is_reading_desc = False
 
                 for line in content.splitlines():
                     clean_line = line.strip()
-                    clean_line = clean_line.replace("**TITLE:**", "TITLE:").replace("**DESCRIPTION:**", "DESCRIPTION:")
-                    if clean_line.startswith("TITLE:"):
+                    clean_line = (
+                        clean_line
+                        .replace("**CATEGORY:**", "CATEGORY:")
+                        .replace("**TITLE:**", "TITLE:")
+                        .replace("**DESCRIPTION:**", "DESCRIPTION:")
+                    )
+                    if clean_line.startswith("CATEGORY:"):
+                        detected_category = clean_line.replace("CATEGORY:", "").strip()
+                        is_reading_desc = False
+                    elif clean_line.startswith("TITLE:"):
                         title = clean_line.replace("TITLE:", "").strip()
                         is_reading_desc = False
                     elif clean_line.startswith("DESCRIPTION:"):
@@ -293,8 +307,8 @@ async def generate_description_from_transcript(
 
                 description = " ".join(description_lines).strip()
                 if title and description:
-                    print(f"[Groq] Generated grievance description via {model} in {'Odia' if is_odia else 'Hindi' if is_hindi else 'English'}")
-                    return {"title": title, "description": description}
+                    print(f"[Groq] Generated grievance description via {model} in {'Odia' if is_odia else 'Hindi' if is_hindi else 'English'} (Category: {detected_category})")
+                    return {"title": title, "description": description, "category": detected_category}
             elif resp.status_code == 429:
                 print(f"[Groq] Rate limited on {model}, trying next…")
                 continue

@@ -28,6 +28,7 @@ def _format_problem(p: dict) -> dict:
         "status": p.get("status", "Submitted"),
         "evidence_type": p.get("evidence_type", "text"),
         "file_url": p.get("file_url"),
+        "audio_url": p.get("audio_url"),
         "voice_transcript": p.get("voice_transcript"),
         "ai_severity_score": p.get("ai_severity_score"),
         "sentiment": p.get("sentiment"),
